@@ -1,0 +1,38 @@
+@page
+@model gestion_bibliotecaria.Pages.AutorModel
+@{
+    ViewData["Title"] = "Autores";
+}
+
+<h1>Autores</h1>
+
+<div>
+    <a asp-page="AutorCreate" class="btn btn-primary">Nuevo Autor</a>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombres</th>
+            <th>Apellidos</th>
+            <th>Nacionalidad</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (System.Data.DataRow row in Model.AutorDataTable.Rows)
+        {
+            <tr>
+                <td>@row["AutorId"]</td>
+                <td>@row["Nombres"]</td>
+                <td>@row["Apellidos"]</td>
+                <td>@row["Nacionalidad"]</td>
+                <td>
+                    <a asp-page="AutorEdit" asp-route-id="@row["AutorId"]" class="btn btn-warning btn-sm">Editar</a>
+                    <a asp-page="AutorDelete" asp-route-id="@row["AutorId"]" class="btn btn-danger btn-sm">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
