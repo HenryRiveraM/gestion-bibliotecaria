@@ -27,7 +27,7 @@ public class AutorModel : PageModel
         {
             connection.Open();
             string query = @"SELECT AutorId, Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado 
-                            FROM Autor 
+                            FROM autor 
                             WHERE Estado = 1 
                             ORDER BY Apellidos, Nombres";
 

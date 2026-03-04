@@ -1,0 +1,51 @@
+@page
+@model gestion_bibliotecaria.Pages.AutorCreateModel
+@{
+    ViewData["Title"] = "Nuevo Autor";
+}
+
+<h1>Crear Nuevo Autor</h1>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success">@Model.SuccessMessage</div>
+}
+
+<form method="post">
+    <div class="mb-3">
+        <label asp-for="Autor.Nombres" class="form-label">Nombres</label>
+        <input asp-for="Autor.Nombres" class="form-control" required />
+    </div>
+    
+    <div class="mb-3">
+        <label asp-for="Autor.Apellidos" class="form-label">Apellidos</label>
+        <input asp-for="Autor.Apellidos" class="form-control" required />
+    </div>
+    
+    <div class="mb-3">
+        <label asp-for="Autor.Nacionalidad" class="form-label">Nacionalidad</label>
+        <input asp-for="Autor.Nacionalidad" class="form-control" />
+    </div>
+    
+    <div class="mb-3">
+        <label asp-for="Autor.FechaNacimiento" class="form-label">Fecha de Nacimiento</label>
+        <input asp-for="Autor.FechaNacimiento" class="form-control" type="date" />
+    </div>
+    
+    <div class="mb-3">
+        <div class="form-check">
+            <input asp-for="Autor.Estado" class="form-check-input" type="checkbox" checked />
+            <label asp-for="Autor.Estado" class="form-check-label">Activo</label>
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a asp-page="Autor" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
