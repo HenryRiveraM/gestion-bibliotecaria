@@ -1,0 +1,65 @@
+@page "/Libro/Delete/{id:int}"
+@model gestion_bibliotecaria.Pages.LibroDeleteModel
+@{
+    ViewData["Title"] = "Eliminar Libro";
+}
+
+<h1>Eliminar Libro</h1>
+
+<div class="alert alert-warning">
+    <h4>¿Estás seguro de que deseas eliminar este libro?</h4>
+    <p>Esta acción no se puede deshacer.</p>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <dl class="row">
+            <dt class="col-sm-3">ID Libro</dt>
+            <dd class="col-sm-9">@Model.LibroId</dd>
+
+            <dt class="col-sm-3">Título</dt>
+            <dd class="col-sm-9"><strong>@Model.Titulo</strong></dd>
+
+            <dt class="col-sm-3">Autor</dt>
+            <dd class="col-sm-9">@Model.NombreAutor</dd>
+
+            <dt class="col-sm-3">Editorial</dt>
+            <dd class="col-sm-9">@(Model.Editorial ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Edición</dt>
+            <dd class="col-sm-9">@(Model.Edicion ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Año de Publicación</dt>
+            <dd class="col-sm-9">@(Model.AñoPublicacion?.ToString() ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Descripción</dt>
+            <dd class="col-sm-9">@(Model.Descripcion ?? "N/A")</dd>
+
+            <dt class="col-sm-3">Estado</dt>
+            <dd class="col-sm-9">
+                @if (Model.Estado)
+                {
+                    <span class="badge bg-success">Activo</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary">Inactivo</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Fecha de Registro</dt>
+            <dd class="col-sm-9">@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            @if (Model.UltimaActualizacion.HasValue)
+            {
+                <dt class="col-sm-3">Última Actualización</dt>
+                <dd class="col-sm-9">@Model.UltimaActualizacion.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<form method="post" class="mt-3">
+    <button type="submit" class="btn btn-danger">Eliminar Libro</button>
+    <a href="/Libro" class="btn btn-secondary">Cancelar</a>
+</form>
