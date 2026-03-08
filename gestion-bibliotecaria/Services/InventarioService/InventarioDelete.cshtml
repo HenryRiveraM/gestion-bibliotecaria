@@ -1,4 +1,4 @@
-@page "{id:int}"
+@page "/Inventario/Delete/{id:int}"
 @model gestion_bibliotecaria.Pages.InventarioDeleteModel
 @{
     ViewData["Title"] = "Eliminar Ejemplar - Inventario";
@@ -79,5 +79,5 @@
 
 <form method="post" class="mt-3">
     <button type="submit" class="btn btn-danger">Eliminar del Inventario</button>
-    <a asp-page="Inventario" class="btn btn-secondary">Cancelar</a>
+    <a href="/Inventario" class="btn btn-secondary">Cancelar</a>
 </form>
