@@ -12,7 +12,7 @@ public class LibroDeleteModel : PageModel
                                              WHERE LibroId = @LibroId";
 
     private const string QueryNombreAutor = "SELECT CONCAT(Nombres, ' ', Apellidos) AS NombreCompleto FROM autor WHERE AutorId = @AutorId";
-    private const string QueryDeleteLibro = "DELETE FROM libro WHERE LibroId = @LibroId";
+    private const string QueryDeleteLibro = "UPDATE libro SET Estado = 0, UltimaActualizacion = @UltimaActualizacion WHERE LibroId = @LibroId";
 
     private readonly IConfiguration _configuration;
 
@@ -101,6 +101,7 @@ public class LibroDeleteModel : PageModel
             using (var command = new MySqlCommand(QueryDeleteLibro, connection))
             {
                 command.Parameters.AddWithValue("@LibroId", id);
+                command.Parameters.AddWithValue("@UltimaActualizacion", DateTime.Now);
                 command.ExecuteNonQuery();
             }
         }
