@@ -1,0 +1,68 @@
+.error-container{
+    padding:20px;
+}
+
+.error-header{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.error-header h1{
+    font-size:30px;
+    font-weight:600;
+    color:#1e293b;
+}
+
+.icono-error{
+    width:32px;
+    filter:brightness(0);
+}
+
+.error-card{
+    background:white;
+    padding:30px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    max-width:600px;
+}
+
+.error-card h2{
+    color:#dc2626;
+    margin-bottom:15px;
+}
+
+.error-card p{
+    margin-bottom:15px;
+    color:#374151;
+}
+
+.request-id{
+    background:#f3f4f6;
+    padding:8px;
+    border-radius:6px;
+}
+
+.error-actions{
+    margin-top:20px;
+}
+
+.btn-home{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:#2563eb;
+    color:white;
+    padding:10px 16px;
+    border-radius:8px;
+    text-decoration:none;
+}
+
+.icono-btn{
+    width:16px;
+}
+
+.icon-white{
+    filter:brightness(0) invert(1);
+}
