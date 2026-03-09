@@ -1,0 +1,111 @@
+.autores-container{
+    padding:20px;
+}
+
+.page-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+    img {
+        width:35px;
+        height: 40px;
+    }
+}
+
+.page-header h1{
+    font-size:30px;
+    font-weight:600;
+    color:#1e293b;
+}
+
+/* BOTON NUEVO */
+
+.btn-nuevo{
+    background:#2563eb;
+    color:white;
+    padding:10px 18px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:500;
+    transition:0.2s;
+}
+
+.btn-nuevo:hover{
+    background:#1d4ed8;
+}
+
+/* TABLA */
+
+.tabla-container{
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+.tabla-autores{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.tabla-autores th{
+    background:#0f172a;
+    color:white;
+    padding:12px;
+    text-align:left;
+    
+}
+
+.tabla-autores td{
+    padding:12px;
+    border-bottom:1px solid #e2e8f0;
+}
+
+.tabla-autores tr:hover{
+    background:#f1f5f9;
+}
+
+/* ESTADO */
+
+.estado{
+    padding:4px 10px;
+    border-radius:6px;
+    font-size:13px;
+    font-weight:500;
+}
+
+.activo{
+    background:#dcfce7;
+    color:#166534;
+}
+
+.inactivo{
+    background:#e5e7eb;
+    color:#374151;
+}
+
+/* BOTONES ACCIONES */
+
+.acciones{
+    display:flex;
+    gap:8px;
+}
+
+.btn-editar{
+    background:#f59e0b;
+    color:white;
+    padding:6px 10px;
+    border-radius:6px;
+    text-decoration:none;
+    font-size:13px;
+}
+
+.btn-eliminar{
+    background:#ef4444;
+    color:white;
+    padding:6px 10px;
+    border-radius:6px;
+    text-decoration:none;
+    font-size:13px;
+}

@@ -4,52 +4,98 @@
     ViewData["Title"] = "Gestión de Autores";
 }
 
-<h1>✍️ Gestión de Autores</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/autores.css" />
+}
 
-<div class="mb-3">
-    <a asp-page="AutorCreate" class="btn btn-primary">Nuevo Autor</a>
+<div class="autores-container">
+
+    <!-- HEADER CON LOGO -->
+    <div class="page-header">
+
+        @* <div class="titulo-logo">
+            <img src="~/assets/images/blackLogo.png" class="logo-sistema">
+            <h1>Gestión de Autores</h1>
+        </div> *@
+
+        <a asp-page="AutorCreate" class="btn-nuevo">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
+            Nuevo Autor
+        </a>
+
+    </div>
+
+    <div class="tabla-container">
+
+        <table class="tabla-autores">
+
+            <thead>
+                <tr>
+                    <th>
+                        <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header">
+                        Nombres
+                    </th>
+                    <th>Apellidos</th>
+                    <th>Nacionalidad</th>
+                    <th>Fecha Nacimiento</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @foreach (System.Data.DataRow row in Model.AutorDataTable.Rows)
+                {
+                    <tr>
+
+                        <td>@row["Nombres"]</td>
+                        <td>@row["Apellidos"]</td>
+                        <td>@row["Nacionalidad"]</td>
+                        <td>@(((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))</td>
+
+                        <td>
+                            @if ((bool)row["Estado"])
+                            {
+                                <span class="estado activo">Activo</span>
+                            }
+                            else
+                            {
+                                <span class="estado inactivo">Inactivo</span>
+                            }
+                        </td>
+
+                        <td class="acciones">
+
+                            <a asp-page="AutorEdit"
+                                asp-route-id="@row["AutorId"]"
+                                class="btn-editar">
+
+                                <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                        class="icono-btn">
+
+                                Editar
+                            </a>
+
+                            <a asp-page="AutorDelete"
+                                asp-route-id="@row["AutorId"]"
+                                class="btn-eliminar">
+
+                                <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                        class="icono-btn">
+
+                                Eliminar
+                            </a>
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nombres</th>
-            <th>Apellidos</th>
-            <th>Nacionalidad</th>
-            <th>Fecha Nacimiento</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-
-    <tbody>
-        @foreach (System.Data.DataRow row in Model.AutorDataTable.Rows)
-        {
-            <tr>
-                <td>@row["Nombres"]</td>
-                <td>@row["Apellidos"]</td>
-                <td>@row["Nacionalidad"]</td>
-                <td>@(((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))</td>
-                <td>
-                    @if ((bool)row["Estado"])
-                    {
-                        <span class="badge bg-success">Activo</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-secondary">Inactivo</span>
-                    }
-                </td>
-                <td>
-                    <a asp-page="AutorEdit"
-                       asp-route-id="@row["AutorId"]"
-                       class="btn btn-warning btn-sm">Editar</a>
-
-                    <a asp-page="AutorDelete"
-                       asp-route-id="@row["AutorId"]"
-                       class="btn btn-danger btn-sm">Eliminar</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
