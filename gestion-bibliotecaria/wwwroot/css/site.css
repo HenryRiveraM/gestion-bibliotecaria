@@ -29,3 +29,53 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+.nav-link img{
+    filter: brightness(0);
+}
+
+.footer-custom{
+    background:#000;
+    color:white;
+    padding:18px 0;
+    margin-top:40px;
+}
+
+.footer-content{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.footer-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.footer-brand{
+    font-weight:600;
+}
+
+.footer-right a{
+    color:white;
+    text-decoration:none;
+}
+
+.footer-right a:hover{
+    text-decoration:underline;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex: 1;
+}
