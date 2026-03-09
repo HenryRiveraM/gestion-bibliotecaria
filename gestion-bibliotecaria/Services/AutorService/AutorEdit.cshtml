@@ -1,0 +1,41 @@
+﻿@page "/Autor/Edit/{id:int}"
+@model gestion_bibliotecaria.Pages.AutorEditModel
+@{
+    ViewData["Title"] = "Editar Autor";
+}
+
+<h1>Editar Autor</h1>
+
+<form method="post">
+
+    <input type="hidden" asp-for="Autor.AutorId" />
+
+    <div class="mb-3">
+        <label class="form-label">Nombres</label>
+        <input asp-for="Autor.Nombres" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Apellidos</label>
+        <input asp-for="Autor.Apellidos" class="form-control" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Nacionalidad</label>
+        <input asp-for="Autor.Nacionalidad" class="form-control" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Fecha Nacimiento</label>
+        <input asp-for="Autor.FechaNacimiento" type="date" class="form-control" />
+    </div>
+
+    <div class="mb-3 form-check">
+        <input asp-for="Autor.Estado" class="form-check-input" />
+        <label class="form-check-label">Activo</label>
+    </div>
+
+    <button type="submit" class="btn btn-success">Actualizar</button>
+    <a href="/Autor" class="btn btn-secondary">Cancelar</a>
+
+</form>

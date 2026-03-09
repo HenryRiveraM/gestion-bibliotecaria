@@ -1,0 +1,55 @@
+﻿@page "/Autor"
+@model gestion_bibliotecaria.Pages.AutorModel
+@{
+    ViewData["Title"] = "Gestión de Autores";
+}
+
+<h1>✍️ Gestión de Autores</h1>
+
+<div class="mb-3">
+    <a asp-page="AutorCreate" class="btn btn-primary">Nuevo Autor</a>
+</div>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombres</th>
+            <th>Apellidos</th>
+            <th>Nacionalidad</th>
+            <th>Fecha Nacimiento</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (System.Data.DataRow row in Model.AutorDataTable.Rows)
+        {
+            <tr>
+                <td>@row["Nombres"]</td>
+                <td>@row["Apellidos"]</td>
+                <td>@row["Nacionalidad"]</td>
+                <td>@(((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))</td>
+                <td>
+                    @if ((bool)row["Estado"])
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Inactivo</span>
+                    }
+                </td>
+                <td>
+                    <a asp-page="AutorEdit"
+                       asp-route-id="@row["AutorId"]"
+                       class="btn btn-warning btn-sm">Editar</a>
+
+                    <a asp-page="AutorDelete"
+                       asp-route-id="@row["AutorId"]"
+                       class="btn btn-danger btn-sm">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
