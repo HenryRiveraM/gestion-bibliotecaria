@@ -5,13 +5,25 @@
     ViewData["Title"] = "Gestión de Libros";
 }
 
-<h1>📚 Gestión de Libros</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/libros.css" />
+}
 
-<div class="mb-3">
-    <a href="/Libro/Create" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Agregar Nuevo Libro
-    </a>
-</div>
+<div class="libros-container">
+
+    <div class="page-header">
+
+        <div class="titulo-logo">
+            @* <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header"> *@
+            <h1>Gestión de Libros</h1>
+        </div>
+
+        <a href="/Libro/Create" class="btn-nuevo">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn icon-white">
+            Nuevo Libro
+        </a>
+
+    </div>
 
 @if (Model.Libros.Rows.Count == 0)
 {
@@ -32,9 +44,11 @@ else
     }
     var inactivos = total - activos;
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
+    <div class="tabla-container">
+
+        <table class="tabla-libros">
+
+            <thead>
                 <tr>
                     <th>ID</th>
                     <th>Título</th>
@@ -43,79 +57,100 @@ else
                     <th>Edición</th>
                     <th>Año</th>
                     <th>Estado</th>
-                    <th style="width: 200px;">Acciones</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>
-                @foreach (System.Data.DataRow row in Model.Libros.Rows)
-                {
-                    var libroId = row.Field<int>("LibroId");
-                    var autorId = row.Field<int>("AutorId");
-                    var titulo = row.Field<string>("Titulo");
-                    var editorial = row.Field<string>("Editorial");
-                    var edicion = row.Field<string>("Edicion");
-                    var añoPublicacion = row.Field<int?>("AñoPublicacion");
-                    var estado = row.Field<bool>("Estado");
 
-                    <tr class="@(!estado ? "table-secondary" : "")">
-                        <td>@libroId</td>
-                        <td><strong>@titulo</strong></td>
-                        <td>
-                            @if (Model.AutoresNombres.TryGetValue(autorId, out var nombreAutor))
-                            {
-                                <span>@nombreAutor</span>
-                            }
-                            else
-                            {
-                                <span class="text-muted">Autor #@autorId</span>
-                            }
-                        </td>
-                        <td>@(editorial ?? "N/A")</td>
-                        <td>@(edicion ?? "N/A")</td>
-                        <td>@(añoPublicacion?.ToString() ?? "N/A")</td>
-                        <td>
-                            @if (estado)
-                            {
-                                <span class="badge bg-success">Activo</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Inactivo</span>
-                            }
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <a href="/Libro/Edit/@libroId"
-                                   class="btn btn-sm btn-warning" title="Editar">
-                                    ✏️
-                                </a>
-                                <a href="/Libro/Delete/@libroId"
-                                   class="btn btn-sm btn-danger" title="Eliminar">
-                                    🗑️
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                }
+            <tbody>
+
+            @foreach (System.Data.DataRow row in Model.Libros.Rows)
+            {
+                var libroId = row.Field<int>("LibroId");
+                var autorId = row.Field<int>("AutorId");
+                var titulo = row.Field<string>("Titulo");
+                var editorial = row.Field<string>("Editorial");
+                var edicion = row.Field<string>("Edicion");
+                var añoPublicacion = row.Field<int?>("AñoPublicacion");
+                var estado = row.Field<bool>("Estado");
+
+                <tr class="@(!estado ? "fila-inactiva" : "")">
+
+                    <td>@libroId</td>
+
+                    <td>
+                        <strong>@titulo</strong>
+                    </td>
+
+                    <td>
+                        @if (Model.AutoresNombres.TryGetValue(autorId, out var nombreAutor))
+                        {
+                            <span>@nombreAutor</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Autor #@autorId</span>
+                        }
+                    </td>
+
+                    <td>@(editorial ?? "N/A")</td>
+                    <td>@(edicion ?? "N/A")</td>
+                    <td>@(añoPublicacion?.ToString() ?? "N/A")</td>
+
+                    <td>
+                        @if (estado)
+                        {
+                            <span class="estado activo">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="estado inactivo">Inactivo</span>
+                        }
+                    </td>
+
+                    <td class="acciones">
+
+                        <a href="/Libro/Edit/@libroId" class="btn-editar">
+
+                            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                 class="icono-btn icon-white">
+
+                            Editar
+                        </a>
+
+                        <a href="/Libro/Delete/@libroId" class="btn-eliminar">
+
+                            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                 class="icono-btn icon-white">
+
+                            Eliminar
+                        </a>
+
+                    </td>
+
+                </tr>
+            }
+
             </tbody>
+
         </table>
+
     </div>
 
-    <div class="row mt-3">
-        <div class="col-md-4">
-            <div class="alert alert-info">
-                <strong>Total libros:</strong> @total
-            </div>
+    <div class="estadisticas">
+
+        <div class="stat stat-info">
+            Total libros: @total
         </div>
-        <div class="col-md-4">
-            <div class="alert alert-success">
-                <strong>Activos:</strong> @activos
-            </div>
+
+        <div class="stat stat-success">
+            Activos: @activos
         </div>
-        <div class="col-md-4">
-            <div class="alert alert-secondary">
-                <strong>Inactivos:</strong> @inactivos
-            </div>
+
+        <div class="stat stat-secondary">
+            Inactivos: @inactivos
         </div>
+
     </div>
 }
+
+</div>
