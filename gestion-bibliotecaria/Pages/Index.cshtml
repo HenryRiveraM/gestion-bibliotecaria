@@ -1,10 +1,81 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Inicio";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/index.css" />
+}
+
+<div class="home-container">
+
+    <!-- HERO -->
+    <div class="hero">
+
+        <img src="~/assets/images/whiteLogo.jpg" class="hero-logo">
+
+        @* <h1>StarBook Library</h1> *@
+
+        <p class="hero-subtitle">
+            Sistema de Gestión Bibliotecaria
+        </p>
+
+        <p class="hero-description">
+            Administra libros, autores e inventario de forma simple y eficiente.
+        </p>
+
+    </div>
+
+    <!-- MODULOS -->
+    <div class="modulos">
+
+        <a href="/Libro" class="modulo-card">
+
+            <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                    class="modulo-icon">
+
+            <h3>Libros</h3>
+
+            <p>Gestión completa del catálogo de libros.</p>
+
+        </a>
+
+        <a href="/Autor" class="modulo-card">
+
+            <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                    class="modulo-icon">
+
+            <h3>Autores</h3>
+
+            <p>Administración de autores registrados.</p>
+
+        </a>
+
+        <a href="/Inventario" class="modulo-card">
+
+            <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                    class="modulo-icon">
+
+            <h3>Inventario</h3>
+
+            <p>Control de ejemplares y disponibilidad.</p>
+
+        </a>
+
+    </div>
+
+    <!-- INFO -->
+    <div class="info-section">
+
+        <h2>Sobre el Sistema</h2>
+
+        <p>
+            StarBook Library es una plataforma diseñada para facilitar la
+            gestión de bibliotecas digitales, permitiendo administrar libros,
+            autores y ejemplares dentro de un mismo sistema.
+        </p>
+
+    </div>
+
 </div>
