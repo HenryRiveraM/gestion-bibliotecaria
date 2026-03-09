@@ -1,4 +1,4 @@
-﻿namespace gestion_bibliotecaria.Services.Validaciones
+﻿namespace gestion_bibliotecaria.Validaciones
 {
     public static class ValidadorEntrada
     {
