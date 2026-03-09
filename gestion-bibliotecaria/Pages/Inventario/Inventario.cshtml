@@ -4,13 +4,25 @@
     ViewData["Title"] = "Gestión de Inventario - Ejemplares";
 }
 
-<h1>📦 Gestión de Inventario (Ejemplares)</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/inventario.css" />
+}
 
-<div class="mb-3">
-    <a href="/Inventario/Create" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Agregar Nuevo Ejemplar
-    </a>
-</div>
+<div class="inventario-container">
+
+    <div class="page-header">
+
+        <div class="titulo-logo">
+            @* <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header"> *@
+            <h1>Gestión de Inventario</h1>
+        </div>
+
+        <a href="/Inventario/Create" class="btn-nuevo">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
+            Nuevo Ejemplar
+        </a>
+
+    </div>
 
 @if (!Model.Ejemplares.Any())
 {
@@ -25,9 +37,11 @@ else
     var noDisponibles = Model.Ejemplares.Count(e => !e.Disponible && !e.DadoDeBaja);
     var dadosDeBaja = Model.Ejemplares.Count(e => e.DadoDeBaja);
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
+    <div class="tabla-container">
+
+        <table class="tabla-inventario">
+
+            <thead>
                 <tr>
                     <th>ID</th>
                     <th>Código Inventario</th>
@@ -37,99 +51,126 @@ else
                     <th>Dado de Baja</th>
                     <th>Ubicación</th>
                     <th>Estado</th>
-                    <th style="width: 200px;">Acciones</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
+
             <tbody>
-                @foreach (var ejemplar in Model.Ejemplares)
-                {
-                    <tr class="@(ejemplar.DadoDeBaja ? "table-secondary" : "")">
-                        <td>@ejemplar.EjemplarId</td>
-                        <td><strong>@ejemplar.CodigoInventario</strong></td>
-                        <td>
-                            @if (Model.LibrosTitulos.TryGetValue(ejemplar.LibroId, out var tituloLibro))
+
+            @foreach (var ejemplar in Model.Ejemplares)
+            {
+                <tr class="@(ejemplar.DadoDeBaja ? "fila-baja" : "")">
+
+                    <td>@ejemplar.EjemplarId</td>
+
+                    <td>
+                        <strong>@ejemplar.CodigoInventario</strong>
+                    </td>
+
+                    <td>
+                        @if (Model.LibrosTitulos.TryGetValue(ejemplar.LibroId, out var tituloLibro))
+                        {
+                            <span>@tituloLibro</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Libro #@ejemplar.LibroId</span>
+                        }
+                    </td>
+
+                    <td>@(ejemplar.EstadoConservacion ?? "N/A")</td>
+
+                    <td>
+                        @if (ejemplar.Disponible)
+                        {
+                            <span class="estado activo">Disponible</span>
+                        }
+                        else
+                        {
+                            <span class="estado inactivo">No disponible</span>
+                        }
+                    </td>
+
+                    <td>
+                        @if (ejemplar.DadoDeBaja)
+                        {
+                            <span class="estado baja">Baja</span>
+
+                            @if (!string.IsNullOrEmpty(ejemplar.MotivoBaja))
                             {
-                                <span>@tituloLibro</span>
+                                <br />
+                                <small class="text-muted">@ejemplar.MotivoBaja</small>
                             }
-                            else
-                            {
-                                <span class="text-muted">Libro #@ejemplar.LibroId</span>
-                            }
-                        </td>
-                        <td>@(ejemplar.EstadoConservacion ?? "N/A")</td>
-                        <td>
-                            @if (ejemplar.Disponible)
-                            {
-                                <span class="badge bg-success">Disponible</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-warning text-dark">No disponible</span>
-                            }
-                        </td>
-                        <td>
-                            @if (ejemplar.DadoDeBaja)
-                            {
-                                <span class="badge bg-danger">Sí</span>
-                                @if (!string.IsNullOrEmpty(ejemplar.MotivoBaja))
-                                {
-                                    <br/><small class="text-muted">@ejemplar.MotivoBaja</small>
-                                }
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">No</span>
-                            }
-                        </td>
-                        <td>@(ejemplar.Ubicacion ?? "N/A")</td>
-                        <td>
-                            @if (ejemplar.Estado)
-                            {
-                                <span class="badge bg-success">Activo</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-secondary">Inactivo</span>
-                            }
-                        </td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <a href="/Inventario/Edit/@ejemplar.EjemplarId"
-                                   class="btn btn-sm btn-warning" title="Editar">
-                                    ✏️
-                                </a>
-                                <a href="/Inventario/Delete/@ejemplar.EjemplarId"
-                                   class="btn btn-sm btn-danger" title="Eliminar">
-                                    🗑️
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                }
+                        }
+                        else
+                        {
+                            <span class="estado activo">No</span>
+                        }
+                    </td>
+
+                    <td>@(ejemplar.Ubicacion ?? "N/A")</td>
+
+                    <td>
+                        @if (ejemplar.Estado)
+                        {
+                            <span class="estado activo">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="estado inactivo">Inactivo</span>
+                        }
+                    </td>
+
+                    <td class="acciones">
+
+                        <a href="/Inventario/Edit/@ejemplar.EjemplarId"
+                            class="btn-editar">
+
+                            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                    class="icono-btn">
+
+                            Editar
+                        </a>
+
+                        <a href="/Inventario/Delete/@ejemplar.EjemplarId"
+                            class="btn-eliminar">
+
+                            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                    class="icono-btn">
+
+                            Eliminar
+                        </a>
+
+                    </td>
+
+                </tr>
+            }
+
             </tbody>
+
         </table>
+
     </div>
-    
-    <div class="row mt-3">
-        <div class="col-md-3">
-            <div class="alert alert-info">
-                <strong>Total ejemplares:</strong> @total
-            </div>
+
+    <div class="estadisticas">
+
+        <div class="stat stat-info">
+            Total ejemplares: @total
         </div>
-        <div class="col-md-3">
-            <div class="alert alert-success">
-                <strong>Disponibles:</strong> @disponibles
-            </div>
+
+        <div class="stat stat-success">
+            Disponibles: @disponibles
         </div>
-        <div class="col-md-3">
-            <div class="alert alert-warning">
-                <strong>No disponibles:</strong> @noDisponibles
-            </div>
+
+        <div class="stat stat-warning">
+            No disponibles: @noDisponibles
         </div>
-        <div class="col-md-3">
-            <div class="alert alert-danger">
-                <strong>Dados de baja:</strong> @dadosDeBaja
-            </div>
+
+        <div class="stat stat-danger">
+            Dados de baja: @dadosDeBaja
         </div>
+
     </div>
 }
+
+</div>
