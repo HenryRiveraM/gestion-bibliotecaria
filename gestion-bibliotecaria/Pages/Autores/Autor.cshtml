@@ -52,7 +52,7 @@
                         <td>@row["Nombres"]</td>
                         <td>@row["Apellidos"]</td>
                         <td>@row["Nacionalidad"]</td>
-                        <td>@(((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))</td>
+                        <td>@(row.IsNull("FechaNacimiento") ? string.Empty : ((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))</td>
 
                         <td>
                             @if ((bool)row["Estado"])
