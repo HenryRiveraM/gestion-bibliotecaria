@@ -5,65 +5,153 @@
     ViewData["Title"] = "Editar Libro";
 }
 
-<h1>Editar Libro</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/libroEdit.css" />
+}
 
-<form method="post">
-    <input type="hidden" asp-for="LibroId" />
-    <input type="hidden" asp-for="FechaRegistro" />
+<div class="libro-edit-container">
 
-    <div class="mb-3">
-        <label asp-for="AutorId" class="form-label">Autor</label>
-        <select asp-for="AutorId" class="form-control" required>
-            <option value="">Seleccione un autor...</option>
-            @foreach (DataRow row in Model.Autores.Rows)
-            {
-                var autorId = (int)row["AutorId"];
-                var nombres = row["Nombres"]?.ToString() ?? string.Empty;
-                var apellidos = row["Apellidos"]?.ToString() ?? string.Empty;
-                var nacionalidad = row["Nacionalidad"] as string;
-
-                <option value="@autorId">
-                    @apellidos, @nombres @(nacionalidad != null ? $"({nacionalidad})" : "")
-                </option>
-            }
-        </select>
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Titulo" class="form-label">Título</label>
-        <input asp-for="Titulo" class="form-control" required />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Editorial" class="form-label">Editorial</label>
-        <input asp-for="Editorial" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Edicion" class="form-label">Edición</label>
-        <input asp-for="Edicion" class="form-control" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="AñoPublicacion" class="form-label">Año de Publicación</label>
-        <input asp-for="AñoPublicacion" class="form-control" type="number" 
-               min="1000" max="2100" />
-    </div>
-
-    <div class="mb-3">
-        <label asp-for="Descripcion" class="form-label">Descripción</label>
-        <textarea asp-for="Descripcion" class="form-control" rows="4"></textarea>
-    </div>
-
-    <div class="mb-3">
-        <div class="form-check">
-            <input asp-for="Estado" class="form-check-input" type="checkbox" />
-            <label asp-for="Estado" class="form-check-label">Activo en el sistema</label>
+    <!-- HEADER -->
+    <div class="page-header">
+        <div class="titulo-logo">
+            @* <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" *@
+                    <img class="icono-header">
+            <h1>Editar Libro</h1>
         </div>
     </div>
 
-    <div class="mb-3">
-        <button type="submit" class="btn btn-primary">Actualizar</button>
-        <a href="/Libro" class="btn btn-secondary">Cancelar</a>
+    <!-- FORM CARD -->
+    <div class="form-card">
+
+        <form method="post">
+
+            <input type="hidden" asp-for="LibroId" />
+            <input type="hidden" asp-for="FechaRegistro" />
+
+            <!-- AUTOR -->
+            <div class="form-group">
+
+                <label asp-for="AutorId">Autor</label>
+
+                <select asp-for="AutorId"
+                        class="input-form"
+                        required>
+
+                    <option value="">Seleccione un autor...</option>
+
+                    @foreach (DataRow row in Model.Autores.Rows)
+                    {
+                        var autorId = (int)row["AutorId"];
+                        var nombres = row["Nombres"]?.ToString() ?? "";
+                        var apellidos = row["Apellidos"]?.ToString() ?? "";
+                        var nacionalidad = row["Nacionalidad"] as string;
+
+                        <option value="@autorId">
+                            @apellidos, @nombres @(nacionalidad != null ? $"({nacionalidad})" : "")
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+
+            <!-- TITULO -->
+            <div class="form-group">
+
+                <label asp-for="Titulo">Título</label>
+
+                <input asp-for="Titulo"
+                        class="input-form"
+                        required />
+
+            </div>
+
+
+            <!-- EDITORIAL -->
+            <div class="form-group">
+
+                <label asp-for="Editorial">Editorial</label>
+
+                <input asp-for="Editorial"
+                        class="input-form" />
+
+            </div>
+
+
+            <!-- EDICION -->
+            <div class="form-group">
+
+                <label asp-for="Edicion">Edición</label>
+
+                <input asp-for="Edicion"
+                        class="input-form" />
+
+            </div>
+
+
+            <!-- AÑO -->
+            <div class="form-group">
+
+                <label asp-for="AñoPublicacion">
+                    Año de Publicación
+                </label>
+
+                <input asp-for="AñoPublicacion"
+                        class="input-form"
+                        type="number"
+                        min="1000"
+                        max="2100" />
+
+            </div>
+
+
+            <!-- DESCRIPCION -->
+            <div class="form-group">
+
+                <label asp-for="Descripcion">
+                    Descripción
+                </label>
+
+                <textarea asp-for="Descripcion"
+                            class="input-form"
+                            rows="4">
+                </textarea>
+
+            </div>
+
+
+            <!-- ESTADO -->
+            <div class="form-check">
+
+                <input asp-for="Estado"
+                        class="check-input"
+                        type="checkbox" />
+
+                <label>
+                    Activo en el sistema
+                </label>
+
+            </div>
+
+
+            <!-- BOTONES -->
+            <div class="form-actions">
+
+                <button type="submit"
+                        class="btn-guardar">
+                    Actualizar
+                </button>
+
+                <a href="/Libro"
+                    class="btn-cancelar">
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
     </div>
-</form>
+
+</div>
