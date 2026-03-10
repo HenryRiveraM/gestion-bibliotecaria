@@ -1,4 +1,5 @@
-html {
+html{
+    height:100%;
     font-size:14px;
 }
 
@@ -8,14 +9,13 @@ html {
     }
 }
 
-/* MODO OSCURO GENERAL */
-
 body{
+    min-height:100vh;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
     background:#141414;
     color:#e5e7eb;
 }
-
-/* NAVBAR */
 
 .navbar{
     background:#282828;
@@ -23,29 +23,21 @@ body{
     padding:12px 0;
 }
 
-/* LOGO */
-
 .navbar-brand img{
     filter:brightness(1.1);
 }
-
-/* BOTONES DEL NAVBAR */
 
 .nav-btn{
     padding:8px 16px;
     border-radius:8px;
     transition:all .25s ease;
-    color:#cbd5f5 !important;
+    color:#ffffff !important;
     font-weight:500;
 }
-
-/* ICONOS */
 
 .nav-link img{
     filter:brightness(0) invert(1);
 }
-
-/* HOVER ESTILO CHATGPT */
 
 .nav-btn:hover{
     background:#00A67E;
@@ -57,14 +49,16 @@ body{
     filter:brightness(0) invert(1);
 }
 
-/* NAVBAR TOGGLER MOBILE */
-
 .navbar-toggler{
     border:1px solid #1e293b;
     background:#020617;
 }
 
-/* TARJETAS */
+
+.main-content{
+    padding-top:30px;
+    padding-bottom:30px;
+}
 
 .tabla-container,
 .privacy-card,
@@ -77,7 +71,6 @@ body{
     padding:20px;
 }
 
-/* TABLAS */
 
 table{
     color:#e5e7eb;
@@ -87,14 +80,11 @@ thead{
     background:#141414;
 }
 
-/* FOOTER */
-
 .footer-custom{
     background:#141414;
     border-top:1px solid #1e293b;
     color:#A0A0A0;
     padding:20px 0;
-    margin-top:40px;
 }
 
 .footer-content{
@@ -103,8 +93,6 @@ thead{
     align-items:center;
 }
 
-/* LINKS DEL FOOTER */
-
 .footer-right a{
     color:#00A67E;
     text-decoration:none;
@@ -112,19 +100,4 @@ thead{
 
 .footer-right a:hover{
     color:#00d49f;
-}
-
-/* FOOTER SIEMPRE ABAJO */
-
-html,body{
-    height:100%;
-}
-
-body{
-    display:flex;
-    flex-direction:column;
-}
-
-main{
-    flex:1;
 }
