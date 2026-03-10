@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using gestion_bibliotecaria.Models;
 using MySql.Data.MySqlClient;
+using gestion_bibliotecaria.Validaciones;
 
 namespace gestion_bibliotecaria.Pages;
 
