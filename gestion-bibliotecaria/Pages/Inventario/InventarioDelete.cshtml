@@ -4,80 +4,134 @@
     ViewData["Title"] = "Eliminar Ejemplar - Inventario";
 }
 
-<h1>Eliminar Ejemplar del Inventario</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/InventarioDelete.css" />
+}
 
-<div class="alert alert-warning">
-    <h4>¿Estás seguro de que deseas eliminar este ejemplar del inventario?</h4>
-    <p>Esta acción no se puede deshacer.</p>
+<div class="inventario-delete-container">
+
+    <div class="page-header">
+
+        <div class="titulo-logo">
+            @* <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" *@
+                 <img class="icono-header">
+            <h1>Eliminar Ejemplar</h1>
+        </div>
+
+    </div>
+
+
+<div class="warning-box">
+
+    <h3>¿Estás seguro de eliminar este ejemplar?</h3>
+
+    <p>
+        Esta acción eliminará el ejemplar del inventario permanentemente.
+    </p>
+
 </div>
+
 
 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
 {
-    <div class="alert alert-danger">@Model.ErrorMessage</div>
+    <div class="error-box">@Model.ErrorMessage</div>
 }
 
-<div class="card">
-    <div class="card-body">
-        <dl class="row">
-            <dt class="col-sm-3">ID Ejemplar</dt>
-            <dd class="col-sm-9">@Model.Ejemplar.EjemplarId</dd>
 
-            <dt class="col-sm-3">Código de Inventario</dt>
-            <dd class="col-sm-9"><strong>@Model.Ejemplar.CodigoInventario</strong></dd>
+<div class="detalle-card">
 
-            <dt class="col-sm-3">Libro</dt>
-            <dd class="col-sm-9">@Model.TituloLibro</dd>
+<dl class="detalle-grid">
 
-            <dt class="col-sm-3">Estado de Conservación</dt>
-            <dd class="col-sm-9">@(Model.Ejemplar.EstadoConservacion ?? "N/A")</dd>
+    <dt>ID Ejemplar</dt>
+    <dd>@Model.Ejemplar.EjemplarId</dd>
 
-            <dt class="col-sm-3">Ubicación</dt>
-            <dd class="col-sm-9">@(Model.Ejemplar.Ubicacion ?? "N/A")</dd>
+    <dt>Código Inventario</dt>
+    <dd><strong>@Model.Ejemplar.CodigoInventario</strong></dd>
 
-            <dt class="col-sm-3">Disponible</dt>
-            <dd class="col-sm-9">
-                @if (Model.Ejemplar.Disponible)
-                {
-                    <span class="badge bg-success">Sí</span>
-                }
-                else
-                {
-                    <span class="badge bg-warning text-dark">No</span>
-                }
-            </dd>
+    <dt>Libro</dt>
+    <dd>@Model.TituloLibro</dd>
 
-            <dt class="col-sm-3">Dado de Baja</dt>
-            <dd class="col-sm-9">
-                @if (Model.Ejemplar.DadoDeBaja)
-                {
-                    <span class="badge bg-danger">Sí</span>
-                    @if (!string.IsNullOrEmpty(Model.Ejemplar.MotivoBaja))
-                    {
-                        <br/><small>Motivo: @Model.Ejemplar.MotivoBaja</small>
-                    }
-                }
-                else
-                {
-                    <span class="badge bg-secondary">No</span>
-                }
-            </dd>
+    <dt>Estado Conservación</dt>
+    <dd>@(Model.Ejemplar.EstadoConservacion ?? "N/A")</dd>
 
-            <dt class="col-sm-3">Estado</dt>
-            <dd class="col-sm-9">@(Model.Ejemplar.Estado ? "Activo" : "Inactivo")</dd>
+    <dt>Ubicación</dt>
+    <dd>@(Model.Ejemplar.Ubicacion ?? "N/A")</dd>
 
-            <dt class="col-sm-3">Fecha de Registro</dt>
-            <dd class="col-sm-9">@Model.Ejemplar.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
+    <dt>Disponible</dt>
+    <dd>
+        @if (Model.Ejemplar.Disponible)
+        {
+            <span class="estado activo">Sí</span>
+        }
+        else
+        {
+            <span class="estado advertencia">No</span>
+        }
+    </dd>
 
-            @if (Model.Ejemplar.UltimaActualizacion.HasValue)
+    <dt>Dado de Baja</dt>
+    <dd>
+
+        @if (Model.Ejemplar.DadoDeBaja)
+        {
+            <span class="estado baja">Sí</span>
+
+            @if (!string.IsNullOrEmpty(Model.Ejemplar.MotivoBaja))
             {
-                <dt class="col-sm-3">Última Actualización</dt>
-                <dd class="col-sm-9">@Model.Ejemplar.UltimaActualizacion.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+                <br/>
+                <small class="text-muted">
+                    Motivo: @Model.Ejemplar.MotivoBaja
+                </small>
             }
-        </dl>
-    </div>
+        }
+        else
+        {
+            <span class="estado neutro">No</span>
+        }
+
+    </dd>
+
+    <dt>Estado</dt>
+    <dd>
+        @if (Model.Ejemplar.Estado)
+        {
+            <span class="estado activo">Activo</span>
+        }
+        else
+        {
+            <span class="estado inactivo">Inactivo</span>
+        }
+    </dd>
+
+    <dt>Fecha Registro</dt>
+    <dd>@Model.Ejemplar.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
+
+@if (Model.Ejemplar.UltimaActualizacion.HasValue)
+{
+    <dt>Última Actualización</dt>
+    <dd>@Model.Ejemplar.UltimaActualizacion.Value.ToString("dd/MM/yyyy HH:mm")</dd>
+}
+
+</dl>
+
 </div>
 
-<form method="post" class="mt-3">
-    <button type="submit" class="btn btn-danger">Eliminar del Inventario</button>
-    <a href="/Inventario" class="btn btn-secondary">Cancelar</a>
+
+<form method="post" class="form-actions">
+
+<button type="submit" class="btn-eliminar">
+
+    <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+         class="icono-btn">
+
+    Eliminar del Inventario
+
+</button>
+
+<a href="/Inventario" class="btn-cancelar">
+Cancelar
+</a>
+
 </form>
+
+</div>
