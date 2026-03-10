@@ -59,6 +59,8 @@
                placeholder="Ej: INV-001-2026"
                required />
 
+        <span asp-validation-for="Ejemplar.CodigoInventario" class="text-danger"></span>
+
         <small class="text-muted">
             Debe ser único en el sistema
         </small>
@@ -84,6 +86,8 @@
 
         </select>
 
+        <span asp-validation-for="Ejemplar.EstadoConservacion" class="text-danger"></span>
+
     </div>
 
 
@@ -96,6 +100,8 @@
         <input asp-for="Ejemplar.Ubicacion"
                class="input-form"
                placeholder="Ej: Estantería A1, Pasillo 3" />
+
+        <span asp-validation-for="Ejemplar.Ubicacion" class="text-danger"></span>
 
     </div>
 
@@ -140,6 +146,8 @@
                   class="input-form"
                   rows="3">
         </textarea>
+
+        <span asp-validation-for="Ejemplar.MotivoBaja" class="text-danger"></span>
 
     </div>
 
