@@ -16,24 +16,31 @@
 <body>
 
 <header>
+
     <nav class="navbar navbar-expand-sm">
 
         <div class="container">
 
             <!-- LOGO -->
             <a class="navbar-brand d-flex align-items-center" href="/">
-                <img src="~/assets/images/whiiteLogoR.png" height="60" width="100" class="me-2">
+                <img src="~/assets/images/whiiteLogoR.png"
+                        height="60"
+                        width="100"
+                        class="me-2">
             </a>
 
             <!-- BOTON MOBILE -->
-            <button class="navbar-toggler" type="button"
+            <button class="navbar-toggler"
+                    type="button"
                     data-bs-toggle="collapse"
                     data-bs-target=".navbar-collapse">
 
-                <img src="~/assets/icons/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="24">
+                <img src="~/assets/icons/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                        width="24">
 
             </button>
 
+            <!-- MENU -->
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 
                 <ul class="navbar-nav flex-grow-1">
@@ -69,22 +76,33 @@
                 </ul>
 
             </div>
+
         </div>
+
     </nav>
+
 </header>
 
-<div class="container">
-    <main role="main" class="pb-3">
-        @RenderBody()
-    </main>
-</div>
+
+<!-- CONTENIDO PRINCIPAL -->
+
+<main class="container main-content">
+
+    @RenderBody()
+
+</main>
+
+
+<!-- FOOTER -->
 
 <footer class="footer-custom">
 
     <div class="container footer-content">
 
         <div class="footer-left">
-            <img src="~/assets/images/whiiteLogoR.png" height="60" width="100">
+            <img src="~/assets/images/whiiteLogoR.png"
+                    height="60"
+                    width="100">
         </div>
 
         <div class="footer-center">
@@ -98,6 +116,7 @@
     </div>
 
 </footer>
+
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
