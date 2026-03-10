@@ -64,6 +64,8 @@
                         placeholder="Título del libro"
                         required />
 
+                <span asp-validation-for="Titulo" class="text-danger"></span>
+
             </div>
 
 
@@ -76,6 +78,8 @@
                         class="input-form"
                         placeholder="Ej: Penguin Books, Planeta" />
 
+                <span asp-validation-for="Editorial" class="text-danger"></span>
+
             </div>
 
 
@@ -87,6 +91,8 @@
                 <input asp-for="Edicion"
                         class="input-form"
                         placeholder="Ej: Primera edición, 2da ed." />
+
+                <span asp-validation-for="Edicion" class="text-danger"></span>
 
             </div>
 
@@ -120,6 +126,8 @@
                             rows="4"
                             placeholder="Descripción breve del contenido del libro">
                 </textarea>
+
+                <span asp-validation-for="Descripcion" class="text-danger"></span>
 
             </div>
 
