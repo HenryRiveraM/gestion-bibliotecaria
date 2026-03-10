@@ -4,101 +4,208 @@
     ViewData["Title"] = "Editar Ejemplar - Inventario";
 }
 
-<h1>Editar Ejemplar del Inventario</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/InventarioEdit.css" />
+}
+
+<div class="inventario-edit-container">
+
+<div class="page-header">
+
+    <div class="titulo-logo">
+        <img@* <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" *@
+             class="icono-header">
+        <h1>Editar Ejemplar</h1>
+    </div>
+
+</div>
+
 
 @if (!string.IsNullOrEmpty(Model.ErrorMessage))
 {
-    <div class="alert alert-danger">@Model.ErrorMessage</div>
+    <div class="error-box">@Model.ErrorMessage</div>
 }
 
+
+<div class="form-card">
+
 <form method="post">
-    <input type="hidden" asp-for="Ejemplar.EjemplarId" />
-    <input type="hidden" asp-for="Ejemplar.FechaRegistro" />
-    
-    <div class="mb-3">
-        <label asp-for="Ejemplar.LibroId" class="form-label">Libro</label>
-        <select asp-for="Ejemplar.LibroId" class="form-control" required>
-            <option value="">Seleccione un libro...</option>
-            @foreach (var libro in Model.Libros)
-            {
-                <option value="@libro.LibroId">
-                    @libro.Titulo (@libro.Editorial)
-                </option>
-            }
-        </select>
-    </div>
-    
-    <div class="mb-3">
-        <label asp-for="Ejemplar.CodigoInventario" class="form-label">Código de Inventario</label>
-        <input asp-for="Ejemplar.CodigoInventario" class="form-control" required />
-        <small class="form-text text-muted">Debe ser único en el sistema</small>
-    </div>
-    
-    <div class="mb-3">
-        <label asp-for="Ejemplar.EstadoConservacion" class="form-label">Estado de Conservación</label>
-        <select asp-for="Ejemplar.EstadoConservacion" class="form-control">
-            <option value="">Seleccione...</option>
-            <option value="Excelente">Excelente</option>
-            <option value="Muy Bueno">Muy Bueno</option>
-            <option value="Bueno">Bueno</option>
-            <option value="Regular">Regular</option>
-            <option value="Malo">Malo</option>
-        </select>
-    </div>
-    
-    <div class="mb-3">
-        <label asp-for="Ejemplar.Ubicacion" class="form-label">Ubicación</label>
-        <input asp-for="Ejemplar.Ubicacion" class="form-control" />
-    </div>
-    
-    <div class="mb-3">
-        <div class="form-check">
-            <input asp-for="Ejemplar.Disponible" class="form-check-input" type="checkbox" />
-            <label asp-for="Ejemplar.Disponible" class="form-check-label">Disponible para préstamo</label>
-        </div>
-    </div>
-    
-    <div class="mb-3">
-        <div class="form-check">
-            <input asp-for="Ejemplar.DadoDeBaja" class="form-check-input" type="checkbox" id="dadoBajaCheck" />
-            <label asp-for="Ejemplar.DadoDeBaja" class="form-check-label">Dado de Baja</label>
-        </div>
-    </div>
-    
-    <div class="mb-3" id="motivoBajaDiv">
-        <label asp-for="Ejemplar.MotivoBaja" class="form-label">Motivo de Baja</label>
-        <textarea asp-for="Ejemplar.MotivoBaja" class="form-control" rows="3"></textarea>
-    </div>
-    
-    <div class="mb-3">
-        <div class="form-check">
-            <input asp-for="Ejemplar.Estado" class="form-check-input" type="checkbox" />
-            <label asp-for="Ejemplar.Estado" class="form-check-label">Activo en el sistema</label>
-        </div>
-    </div>
-    
-    <div class="mb-3">
-        <button type="submit" class="btn btn-primary">Actualizar</button>
-        <a href="/Inventario" class="btn btn-secondary">Cancelar</a>
-    </div>
+
+<input type="hidden" asp-for="Ejemplar.EjemplarId" />
+<input type="hidden" asp-for="Ejemplar.FechaRegistro" />
+
+
+<div class="form-group">
+
+<label asp-for="Ejemplar.LibroId">Libro</label>
+
+<select asp-for="Ejemplar.LibroId"
+        class="input-form"
+        required>
+
+<option value="">Seleccione un libro...</option>
+
+@foreach (var libro in Model.Libros)
+{
+<option value="@libro.LibroId">
+@libro.Titulo (@libro.Editorial)
+</option>
+}
+
+</select>
+
+</div>
+
+
+<div class="form-group">
+
+<label asp-for="Ejemplar.CodigoInventario">
+Código de Inventario
+</label>
+
+<input asp-for="Ejemplar.CodigoInventario"
+       class="input-form"
+       required />
+
+<small class="text-muted">
+Debe ser único en el sistema
+</small>
+
+</div>
+
+
+<div class="form-group">
+
+<label asp-for="Ejemplar.EstadoConservacion">
+Estado de Conservación
+</label>
+
+<select asp-for="Ejemplar.EstadoConservacion"
+        class="input-form">
+
+<option value="">Seleccione...</option>
+<option value="Excelente">Excelente</option>
+<option value="Muy Bueno">Muy Bueno</option>
+<option value="Bueno">Bueno</option>
+<option value="Regular">Regular</option>
+<option value="Malo">Malo</option>
+
+</select>
+
+</div>
+
+
+<div class="form-group">
+
+<label asp-for="Ejemplar.Ubicacion">
+Ubicación
+</label>
+
+<input asp-for="Ejemplar.Ubicacion"
+       class="input-form" />
+
+</div>
+
+
+<div class="form-check">
+
+<input asp-for="Ejemplar.Disponible"
+       class="check-input"
+       type="checkbox" />
+
+<label>
+Disponible para préstamo
+</label>
+
+</div>
+
+
+<div class="form-check">
+
+<input asp-for="Ejemplar.DadoDeBaja"
+       class="check-input"
+       type="checkbox"
+       id="dadoBajaCheck" />
+
+<label>
+Dado de Baja
+</label>
+
+</div>
+
+
+<div class="form-group"
+     id="motivoBajaDiv">
+
+<label asp-for="Ejemplar.MotivoBaja">
+Motivo de Baja
+</label>
+
+<textarea asp-for="Ejemplar.MotivoBaja"
+          class="input-form"
+          rows="3">
+</textarea>
+
+</div>
+
+
+<div class="form-check">
+
+<input asp-for="Ejemplar.Estado"
+       class="check-input"
+       type="checkbox" />
+
+<label>
+Activo en el sistema
+</label>
+
+</div>
+
+
+<div class="form-actions">
+
+<button type="submit"
+        class="btn-guardar">
+Actualizar
+</button>
+
+<a href="/Inventario"
+   class="btn-cancelar">
+Cancelar
+</a>
+
+</div>
+
 </form>
 
+</div>
+
+</div>
+
+
 @section Scripts {
-    <script>
-        function toggleMotivoBaja() {
-            const checkbox = document.getElementById('dadoBajaCheck');
-            const div = document.getElementById('motivoBajaDiv');
 
-            if (!checkbox || !div) {
-                return;
-            }
+<script>
 
-            div.style.display = checkbox.checked ? 'block' : 'none';
-        }
-        
-        document.getElementById('dadoBajaCheck').addEventListener('change', toggleMotivoBaja);
-        
-        // Inicializar al cargar
-        toggleMotivoBaja();
-    </script>
+function toggleMotivoBaja(){
+
+const checkbox = document.getElementById('dadoBajaCheck');
+const div = document.getElementById('motivoBajaDiv');
+
+if(!checkbox || !div){
+return;
+}
+
+div.style.display =
+checkbox.checked ? 'block' : 'none';
+
+}
+
+document.getElementById('dadoBajaCheck')
+.addEventListener('change', toggleMotivoBaja);
+
+toggleMotivoBaja();
+
+</script>
+
 }
