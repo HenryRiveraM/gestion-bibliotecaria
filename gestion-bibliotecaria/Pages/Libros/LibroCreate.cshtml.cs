@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using MySql.Data.MySqlClient;
+using gestion_bibliotecaria.Validaciones;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -52,6 +53,50 @@ public class LibroCreateModel : PageModel
 
     public IActionResult OnPost()
     {
+        Titulo = (Titulo ?? string.Empty).Trim();
+        Editorial = (Editorial ?? string.Empty).Trim();
+        Edicion = (Edicion ?? string.Empty).Trim();
+        Descripcion = (Descripcion ?? string.Empty).Trim();
+
+        if (ValidadorEntrada.EstaVacio(Titulo))
+        {
+            ModelState.AddModelError("Titulo", "El título es obligatorio.");
+        }
+        else if (ValidadorEntrada.ExcedeLongitud(Titulo, 100))
+        {
+            ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 100 caracteres.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Editorial))
+        {
+            if (ValidadorEntrada.ExcedeLongitud(Editorial, 100))
+            {
+                ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(Edicion))
+        {
+            if (ValidadorEntrada.ExcedeLongitud(Edicion, 50))
+            {
+                ModelState.AddModelError("Edicion", "La edición excede la longitud máxima de 50 caracteres.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(Descripcion))
+        {
+            if (ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
+            {
+                ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
+            }
+        }
+
+        if (!ModelState.IsValid)
+        {
+            CargarPagina();
+            return Page();
+        }
+
         InsertarLibro();
         return Redirect("/Libro");
     }
