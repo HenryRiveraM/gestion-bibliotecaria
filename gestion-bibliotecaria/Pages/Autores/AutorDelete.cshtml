@@ -4,23 +4,54 @@
     ViewData["Title"] = "Eliminar Autor";
 }
 
-<h1>Eliminar Autor</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/autorDelete.css" />
+}
 
-<div class="alert alert-danger">
-    <strong>¿Estás seguro que deseas eliminar este autor?</strong>
+<div class="autor-delete-container">
+
+    <div class="page-header">
+
+        <div class="titulo-logo">
+            @* <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" *@
+                    class="icono-header">
+            <h1>Eliminar Autor</h1>
+        </div>
+
+    </div>
+
+    <div class="delete-card">
+
+        <div class="warning-box">
+            <strong>¿Estás seguro que deseas eliminar este autor?</strong>
+        </div>
+
+        <div class="autor-info">
+
+            <p><strong>Nombres:</strong> @Model.Autor.Nombres</p>
+            <p><strong>Apellidos:</strong> @Model.Autor.Apellidos</p>
+            <p><strong>Nacionalidad:</strong> @Model.Autor.Nacionalidad</p>
+
+        </div>
+
+        <form method="post">
+
+            <input type="hidden" asp-for="Autor.AutorId" />
+
+            <div class="acciones">
+
+                <button type="submit" class="btn-eliminar">
+                    Eliminar
+                </button>
+
+                <a href="/Autor" class="btn-cancelar">
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
+    </div>
+
 </div>
-
-<div class="mb-3">
-    <p><strong>Nombres:</strong> @Model.Autor.Nombres</p>
-    <p><strong>Apellidos:</strong> @Model.Autor.Apellidos</p>
-    <p><strong>Nacionalidad:</strong> @Model.Autor.Nacionalidad</p>
-</div>
-
-<form method="post">
-
-    <input type="hidden" asp-for="Autor.AutorId" />
-
-    <button type="submit" class="btn btn-danger">Eliminar</button>
-    <a href="/Autor" class="btn btn-secondary">Cancelar</a>
-
-</form>
