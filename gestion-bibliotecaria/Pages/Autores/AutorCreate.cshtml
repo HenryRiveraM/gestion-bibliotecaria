@@ -4,42 +4,71 @@
     ViewData["Title"] = "Crear Autor";
 }
 
-<h1>Nuevo Autor</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/autorCreate.css" />
+}
 
-<form method="post">
+<div class="autor-create-container">
 
-    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="page-header">
 
-    <div class="mb-3">
-        <label class="form-label">Nombres</label>
-        <input asp-for="Autor.Nombres" class="form-control" required />
-        <span asp-validation-for="Autor.Nombres" class="text-danger"></span>
+        <div class="titulo-logo">
+            @* <img src="~/assets/icons/person_add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" *@
+                    class="icono-header">
+            <h1>Nuevo Autor</h1>
+        </div>
+
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Apellidos</label>
-        <input asp-for="Autor.Apellidos" class="form-control" required />
-        <span asp-validation-for="Autor.Apellidos" class="text-danger"></span>
+    <div class="form-card">
+
+        <form method="post">
+
+            <div asp-validation-summary="ModelOnly" class="error-summary"></div>
+
+            <div class="form-group">
+                <label>Nombres</label>
+                <input asp-for="Autor.Nombres" class="input-form" required />
+                <span asp-validation-for="Autor.Nombres" class="text-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Apellidos</label>
+                <input asp-for="Autor.Apellidos" class="input-form" required />
+                <span asp-validation-for="Autor.Apellidos" class="text-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Nacionalidad</label>
+                <input asp-for="Autor.Nacionalidad" class="input-form" />
+                <span asp-validation-for="Autor.Nacionalidad" class="text-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Fecha de Nacimiento</label>
+                <input asp-for="Autor.FechaNacimiento" type="date" class="input-form" />
+                <span asp-validation-for="Autor.FechaNacimiento" class="text-error"></span>
+            </div>
+
+            <div class="form-check">
+                <input asp-for="Autor.Estado" class="check-input" />
+                <label>Activo</label>
+            </div>
+
+            <div class="form-actions">
+
+                <button type="submit" class="btn-guardar">
+                    Guardar
+                </button>
+
+                <a href="/Autor" class="btn-cancelar">
+                    Cancelar
+                </a>
+
+            </div>
+
+        </form>
+
     </div>
 
-    <div class="mb-3">
-        <label class="form-label">Nacionalidad</label>
-        <input asp-for="Autor.Nacionalidad" class="form-control" />
-        <span asp-validation-for="Autor.Nacionalidad" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-        <label class="form-label">Fecha de Nacimiento</label>
-        <input asp-for="Autor.FechaNacimiento" type="date" class="form-control" />
-        <span asp-validation-for="Autor.FechaNacimiento" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3 form-check">
-        <input asp-for="Autor.Estado" class="form-check-input" />
-        <label class="form-check-label">Activo</label>
-    </div>
-
-    <button type="submit" class="btn btn-success">Guardar</button>
-    <a href="/Autor" class="btn btn-secondary">Cancelar</a>
-
-</form>
+</div>
