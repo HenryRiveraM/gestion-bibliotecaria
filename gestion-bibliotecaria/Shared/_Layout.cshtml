@@ -3,7 +3,6 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    @* <title>@ViewData["Title"] - gestion_bibliotecaria</title> *@
 
     <script type="importmap"></script>
 
@@ -13,23 +12,23 @@
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
+
 <body>
+
 <header>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+    <nav class="navbar navbar-expand-sm">
+
         <div class="container">
 
             <!-- LOGO -->
             <a class="navbar-brand d-flex align-items-center" href="/">
-                <img src="~/assets/images/whiteLogo.jpg" height="60" width="100" class="me-2">
-                @* gestion_bibliotecaria *@
+                <img src="~/assets/images/whiiteLogoR.png" height="60" width="100" class="me-2">
             </a>
 
             <!-- BOTON MOBILE -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target=".navbar-collapse"
-                    aria-controls="navbarSupportedContent"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target=".navbar-collapse">
 
                 <img src="~/assets/icons/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="24">
 
@@ -39,44 +38,33 @@
 
                 <ul class="navbar-nav flex-grow-1">
 
-                    <!-- HOME -->
                     <li class="nav-item">
-                        <a class="nav-link text-dark d-flex align-items-center gap-2" href="/">
+                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/">
                             <img src="~/assets/icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                             Home
                         </a>
                     </li>
 
-                    <!-- INVENTARIO -->
                     <li class="nav-item">
-                        <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Inventario">
+                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Inventario">
                             <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                             Inventario
                         </a>
                     </li>
 
-                    <!-- LIBROS -->
                     <li class="nav-item">
-                        <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Libro">
+                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Libro">
                             <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                             Libros
                         </a>
                     </li>
 
-                    <!-- AUTORES -->
                     <li class="nav-item">
-                        <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Autor">
+                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Autor">
                             <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                             Autores
                         </a>
                     </li>
-
-                    <!-- PRIVACY -->
-                    @* <li class="nav-item">
-                        <a class="nav-link text-dark" href="/Privacy">
-                            Privacy
-                        </a>
-                    </li> *@
 
                 </ul>
 
@@ -84,18 +72,19 @@
         </div>
     </nav>
 </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
+
+<div class="container">
+    <main role="main" class="pb-3">
+        @RenderBody()
+    </main>
+</div>
 
 <footer class="footer-custom">
+
     <div class="container footer-content">
 
         <div class="footer-left">
-            <img src="~/assets/images/blackLogo.jpg" height="60" width="100">
-            @* <span class="footer-brand">StarBook Library</span> *@
+            <img src="~/assets/images/whiiteLogoR.png" height="60" width="100">
         </div>
 
         <div class="footer-center">
@@ -107,12 +96,14 @@
         </div>
 
     </div>
+
 </footer>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="~/js/site.js" asp-append-version="true"></script>
 
-    @await RenderSectionAsync("Scripts", required: false)
+@await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

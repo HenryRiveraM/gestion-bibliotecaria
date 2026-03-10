@@ -1,43 +1,99 @@
 html {
-  font-size: 14px;
+    font-size:14px;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+@media (min-width:768px){
+    html{
+        font-size:16px;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+/* MODO OSCURO GENERAL */
+
+body{
+    background:#141414;
+    color:#e5e7eb;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+/* NAVBAR */
+
+.navbar{
+    background:#282828;
+    border-bottom:1px solid #1e293b;
+    padding:12px 0;
 }
 
-body {
-  margin-bottom: 60px;
+/* LOGO */
+
+.navbar-brand img{
+    filter:brightness(1.1);
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+/* BOTONES DEL NAVBAR */
+
+.nav-btn{
+    padding:8px 16px;
+    border-radius:8px;
+    transition:all .25s ease;
+    color:#cbd5f5 !important;
+    font-weight:500;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
+/* ICONOS */
 
 .nav-link img{
-    filter: brightness(0);
+    filter:brightness(0) invert(1);
 }
 
+/* HOVER ESTILO CHATGPT */
+
+.nav-btn:hover{
+    background:#00A67E;
+    color:white !important;
+    transform:translateY(-2px);
+}
+
+.nav-btn:hover img{
+    filter:brightness(0) invert(1);
+}
+
+/* NAVBAR TOGGLER MOBILE */
+
+.navbar-toggler{
+    border:1px solid #1e293b;
+    background:#020617;
+}
+
+/* TARJETAS */
+
+.tabla-container,
+.privacy-card,
+.error-card,
+.info-section{
+    background:#020617;
+    border:1px solid #1e293b;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,0.4);
+    padding:20px;
+}
+
+/* TABLAS */
+
+table{
+    color:#e5e7eb;
+}
+
+thead{
+    background:#141414;
+}
+
+/* FOOTER */
+
 .footer-custom{
-    background:#000;
-    color:white;
-    padding:18px 0;
+    background:#141414;
+    border-top:1px solid #1e293b;
+    color:#A0A0A0;
+    padding:20px 0;
     margin-top:40px;
 }
 
@@ -47,35 +103,28 @@ body {
     align-items:center;
 }
 
-.footer-left{
-    display:flex;
-    align-items:center;
-    gap:10px;
-}
-
-.footer-brand{
-    font-weight:600;
-}
+/* LINKS DEL FOOTER */
 
 .footer-right a{
-    color:white;
+    color:#00A67E;
     text-decoration:none;
 }
 
 .footer-right a:hover{
-    text-decoration:underline;
+    color:#00d49f;
 }
 
-html, body {
-    height: 100%;
+/* FOOTER SIEMPRE ABAJO */
+
+html,body{
+    height:100%;
 }
 
-body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+body{
+    display:flex;
+    flex-direction:column;
 }
 
-main {
-    flex: 1;
+main{
+    flex:1;
 }
