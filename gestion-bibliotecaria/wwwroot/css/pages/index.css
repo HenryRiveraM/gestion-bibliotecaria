@@ -1,92 +1,116 @@
 .home-container{
-    padding:20px;
+    padding:30px 20px;
 }
 
 /* HERO */
 
 .hero{
     text-align:center;
-    margin-bottom:40px;
+    margin-bottom:50px;
 }
 
 .hero-logo{
-    width: 300px;
-    margin-bottom:10px;
-}
-
-.hero h1{
-    font-size:36px;
-    font-weight:700;
-    color:#1e293b;
+    width:260px;
+    margin-bottom:15px;
 }
 
 .hero-subtitle{
-    font-size:20px;
-    color:#2563eb;
+    font-size:22px;
+    color:#00A67E;
     margin-bottom:10px;
+    font-weight:600;
 }
 
 .hero-description{
-    color:#6b7280;
+    color:#A0A0A0;
+    font-size:15px;
 }
 
 /* MODULOS */
 
 .modulos{
     display:grid;
-    grid-template-columns:repeat(3,1fr);
-    gap:20px;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:25px;
     margin-top:30px;
 }
 
+/* CARD */
+
 .modulo-card{
-    background:white;
-    padding:25px;
+    background:#282828;
+    padding:30px 20px;
     border-radius:12px;
     text-align:center;
     text-decoration:none;
-    color:inherit;
-    box-shadow:0 4px 10px rgba(0,0,0,0.05);
-    transition:0.2s;
+    color:#e5e7eb;
+    border:1px solid #1e293b;
+    box-shadow:0 4px 12px rgba(0,0,0,0.4);
+    transition:all .25s ease;
 }
+
+/* HOVER */
 
 .modulo-card:hover{
-    transform:translateY(-4px);
-    box-shadow:0 6px 15px rgba(0,0,0,0.08);
+    transform:translateY(-5px);
+    border-color:#00A67E;
+    box-shadow:0 8px 20px rgba(0,0,0,0.6);
 }
 
+/* ICONOS */
+
 .modulo-icon{
-    width:40px;
-    margin-bottom:10px;
-    filter:brightness(0);
+    width:42px;
+    margin-bottom:12px;
+    filter:brightness(0) invert(1);
 }
+
+/* TITULOS */
 
 .modulo-card h3{
     margin-bottom:8px;
-    color:#1e293b;
+    color:#ffffff;
+    font-weight:600;
 }
+
+/* TEXTO */
 
 .modulo-card p{
     font-size:14px;
-    color:#6b7280;
+    color:#A0A0A0;
 }
 
 /* INFO */
 
 .info-section{
-    margin-top:40px;
-    background:white;
-    padding:25px;
-    border-radius:10px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    margin-top:50px;
+    background:#282828;
+    padding:30px;
+    border-radius:12px;
+    border:1px solid #1e293b;
+    box-shadow:0 4px 12px rgba(0,0,0,0.4);
 }
 
 .info-section h2{
-    margin-bottom:10px;
-    color:#1e293b;
+    margin-bottom:12px;
+    color:#00A67E;
 }
 
 .info-section p{
-    color:#374151;
+    color:#A0A0A0;
     line-height:1.6;
+}
+
+/* RESPONSIVE */
+
+@media (max-width:768px){
+
+    .hero-logo{
+        width:200px;
+    }
+
+    .hero-subtitle{
+        font-size:18px;
+    }
+
 }

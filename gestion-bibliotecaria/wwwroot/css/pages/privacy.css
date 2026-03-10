@@ -1,11 +1,13 @@
 .privacy-container{
-    padding:20px;
+    padding:30px 20px;
 }
+
+/* HEADER */
 
 .page-header{
     display:flex;
     align-items:center;
-    margin-bottom:20px;
+    margin-bottom:25px;
 }
 
 .titulo-logo{
@@ -15,26 +17,40 @@
 }
 
 .page-header h1{
-    font-size:30px;
+    font-size:28px;
     font-weight:600;
-    color:#1e293b;
+    color:#e5e7eb;
 }
+
+/* ICONO */
 
 .icono-header{
-    width:28px;
-    filter:brightness(0);
+    width:26px;
+    filter:brightness(0) invert(1);
 }
+
+/* CARD */
 
 .privacy-card{
-    background:white;
-    padding:25px;
-    border-radius:10px;
-    box-shadow:0 4px 10px rgba(0,0,0,0.05);
-    line-height:1.6;
-    font-size:16px;
-    color:#374151;
+    background:#171717;
+    padding:30px;
+    border-radius:12px;
+    border:1px solid #282828;
+    box-shadow:0 6px 16px rgba(0,0,0,0.35);
+    line-height:1.7;
+    font-size:15px;
+    color:#e5e7eb;
 }
 
+/* PÁRRAFOS */
+
 .privacy-card p{
-    margin-bottom:15px;
+    margin-bottom:16px;
+    color:#9ca3af;
+}
+
+/* TEXTO IMPORTANTE */
+
+.privacy-card strong{
+    color:#10a37f;
 }
