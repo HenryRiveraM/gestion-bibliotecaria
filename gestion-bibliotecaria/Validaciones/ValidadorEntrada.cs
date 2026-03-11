@@ -75,11 +75,9 @@
         {
             if (!fecha.HasValue)
             {
-                // empty date is allowed here; separate required checks should enforce presence
                 return true;
             }
 
-            // Compare dates only (ignore time) to prevent future dates
             return fecha.Value.Date <= DateTime.Today;
         }
     }

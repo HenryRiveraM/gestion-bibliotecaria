@@ -98,7 +98,6 @@ public class AutorEditModel : PageModel
             }
         }
 
-        // FechaNacimiento should not be in the future
         if (!ValidadorEntrada.FechaNoFutura(Autor.FechaNacimiento))
         {
             ModelState.AddModelError("Autor.FechaNacimiento", "La fecha de nacimiento no puede ser futura.");
