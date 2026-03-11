@@ -6,7 +6,7 @@ using gestion_bibliotecaria.Validaciones;
 
 namespace gestion_bibliotecaria.Pages;
 
-public class InventarioCreateModel : PageModel
+public class EjemplarCreateModel : PageModel
 {
     private const string QueryLibros = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro, UltimaActualizacion
                                         FROM libro
@@ -25,7 +25,7 @@ public class InventarioCreateModel : PageModel
 
     public string ErrorMessage { get; set; } = string.Empty;
 
-    public InventarioCreateModel(IConfiguration configuration)
+    public EjemplarCreateModel(IConfiguration configuration)
     {
         _configuration = configuration;
     }
@@ -89,7 +89,7 @@ public class InventarioCreateModel : PageModel
         try
         {
             await InsertarEjemplarAsync(Ejemplar);
-            return Redirect("/Inventario");
+            return Redirect("/Ejemplar");
         }
         catch (Exception ex)
         {

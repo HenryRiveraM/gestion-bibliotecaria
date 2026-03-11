@@ -1,4 +1,4 @@
-.inventario-container{
+.ejemplar-container{
     padding:30px 20px;
 }
 
@@ -55,6 +55,39 @@
     transform:translateY(-2px);
 }
 
+/* FILTROS */
+
+.filtros-barra{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-bottom:18px;
+    flex-wrap:wrap;
+}
+
+.filtro-item{
+    min-width:200px;
+}
+
+.filtro-buscar{
+    flex:1;
+    min-width:280px;
+}
+
+.input-filtro{
+    width:100%;
+    background:#1b1c1d;
+    border:1px solid #282828;
+    color:#e5e7eb;
+    border-radius:8px;
+    padding:10px 12px;
+}
+
+.input-filtro:focus{
+    outline:none;
+    border-color:#10a37f;
+}
+
 /* CONTENEDOR TABLA */
 
 .tabla-container{
@@ -67,14 +100,14 @@
 
 /* TABLA */
 
-.tabla-inventario{
+.tabla-ejemplar{
     width:100%;
     border-collapse:collapse;
 }
 
 /* HEADER TABLA */
 
-.tabla-inventario th{
+.tabla-ejemplar th{
     background:#282828;
     color:#e5e7eb;
     padding:12px;
@@ -84,7 +117,7 @@
 
 /* CELDAS */
 
-.tabla-inventario td{
+.tabla-ejemplar td{
     padding:12px;
     border-bottom:1px solid #282828;
     color:#e5e7eb;
@@ -92,7 +125,7 @@
 
 /* HOVER FILAS */
 
-.tabla-inventario tr:hover{
+.tabla-ejemplar tr:hover{
     background:#1b1c1d;
 }
 

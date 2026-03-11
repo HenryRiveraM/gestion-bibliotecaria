@@ -6,7 +6,7 @@ using gestion_bibliotecaria.Validaciones;
 
 namespace gestion_bibliotecaria.Pages;
 
-public class InventarioEditModel : PageModel
+public class EjemplarEditModel : PageModel
 {
     private const string QueryEjemplarPorId = @"SELECT EjemplarId, LibroId, CodigoInventario, EstadoConservacion, Disponible, DadoDeBaja, MotivoBaja, Ubicacion, Estado, FechaRegistro, UltimaActualizacion
                                                 FROM ejemplar
@@ -37,7 +37,7 @@ public class InventarioEditModel : PageModel
 
     public string ErrorMessage { get; set; } = string.Empty;
 
-    public InventarioEditModel(IConfiguration configuration)
+    public EjemplarEditModel(IConfiguration configuration)
     {
         _configuration = configuration;
     }
@@ -67,7 +67,7 @@ public class InventarioEditModel : PageModel
 
             if (success)
             {
-                return Redirect("/Inventario");
+                return Redirect("/Ejemplar");
             }
 
             ErrorMessage = "No se pudo actualizar el ejemplar.";
