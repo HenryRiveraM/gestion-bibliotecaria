@@ -70,11 +70,7 @@ public class AutorEditModel : PageModel
             }
         }
 
-        if (ValidadorEntrada.EstaVacio(Autor.Apellidos))
-        {
-            ModelState.AddModelError("Autor.Apellidos", "Los apellidos son obligatorios.");
-        }
-        else
+        if (!string.IsNullOrWhiteSpace(Autor.Apellidos))
         {
             if (!ValidadorEntrada.SoloLetras(Autor.Apellidos))
             {
@@ -98,7 +94,6 @@ public class AutorEditModel : PageModel
             }
         }
 
-        // FechaNacimiento should not be in the future
         if (!ValidadorEntrada.FechaNoFutura(Autor.FechaNacimiento))
         {
             ModelState.AddModelError("Autor.FechaNacimiento", "La fecha de nacimiento no puede ser futura.");
