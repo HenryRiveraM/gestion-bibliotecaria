@@ -24,6 +24,22 @@
 
     </div>
 
+    <div class="filtros-barra">
+        <div class="filtro-item filtro-buscar">
+            <input id="buscador-ejemplar"
+                   type="text"
+                   class="input-filtro"
+                   placeholder="Buscar por codigo, libro, ubicacion o estado..."
+                   autocomplete="off" />
+        </div>
+        <div class="filtro-item">
+            <select id="orden-ejemplar" class="input-filtro">
+                <option value="codigo_asc">Codigo A-Z</option>
+                <option value="titulo_asc">Libro A-Z</option>
+            </select>
+        </div>
+    </div>
+
 @if (!Model.Ejemplares.Any())
 {
     <div class="alert alert-info">
@@ -39,7 +55,7 @@ else
 
     <div class="tabla-container">
 
-        <table class="tabla-ejemplar">
+        <table id="tabla-ejemplar" class="tabla-ejemplar">
 
             <thead>
                 <tr>
@@ -143,6 +159,11 @@ else
                 </tr>
             }
 
+                <tr id="fila-sin-resultados" style="display:none;">
+                    <td colspan="8" style="text-align:center; padding:20px; color:#9ca3af;">
+                        No hay ejemplares que coincidan con la busqueda.
+                    </td>
+                </tr>
             </tbody>
 
         </table>
@@ -171,3 +192,56 @@ else
 }
 
 </div>
+
+@section Scripts {
+<script>
+    (function () {
+        var input = document.getElementById('buscador-ejemplar');
+        var select = document.getElementById('orden-ejemplar');
+        var tabla = document.getElementById('tabla-ejemplar');
+
+        if (!input || !tabla) return;
+
+        function normalizar(s) {
+            return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        }
+
+        function aplicar() {
+            var termino = normalizar(input.value);
+            var orden = select ? select.value : 'codigo_asc';
+            var tbody = tabla.querySelector('tbody');
+            var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
+
+            // Ordenar
+            var colIndex = orden.startsWith('titulo') ? 1 : 0;
+            var asc = orden.endsWith('_asc');
+            filas.sort(function (a, b) {
+                var va = normalizar(a.cells[colIndex] ? a.cells[colIndex].textContent : '');
+                var vb = normalizar(b.cells[colIndex] ? b.cells[colIndex].textContent : '');
+                return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+            });
+            filas.forEach(function (f) { tbody.appendChild(f); });
+
+            // Filtrar
+            var visibles = 0;
+            filas.forEach(function (fila) {
+                var texto = normalizar(fila.textContent);
+                var coincide = termino === '' || texto.includes(termino);
+                fila.style.display = coincide ? '' : 'none';
+                if (coincide) visibles++;
+            });
+
+            var sinResultados = document.getElementById('fila-sin-resultados');
+            if (sinResultados) {
+                sinResultados.style.display = visibles === 0 ? '' : 'none';
+                tbody.appendChild(sinResultados);
+            }
+        }
+
+        input.addEventListener('input', aplicar);
+        if (select) select.addEventListener('change', aplicar);
+
+        aplicar();
+    })();
+</script>
+}

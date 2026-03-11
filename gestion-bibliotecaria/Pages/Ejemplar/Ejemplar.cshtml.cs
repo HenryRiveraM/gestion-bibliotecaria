@@ -84,4 +84,5 @@ public class EjemplarModel : PageModel
             UltimaActualizacion = reader.IsDBNull(reader.GetOrdinal("UltimaActualizacion")) ? null : reader.GetDateTime("UltimaActualizacion")
         };
     }
+
 }
