@@ -43,7 +43,6 @@ else
 
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Codigo Ejemplar</th>
                     <th>Libro</th>
                     <th>Estado Conservación</th>
@@ -60,8 +59,6 @@ else
             @foreach (var ejemplar in Model.Ejemplares)
             {
                 <tr class="@(ejemplar.DadoDeBaja ? "fila-baja" : "")">
-
-                    <td>@ejemplar.EjemplarId</td>
 
                     <td>
                         <strong>@ejemplar.CodigoInventario</strong>
