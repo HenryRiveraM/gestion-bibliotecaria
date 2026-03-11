@@ -1,14 +1,14 @@
-@page "/Inventario/Delete/{id:int}"
-@model gestion_bibliotecaria.Pages.InventarioDeleteModel
+@page "/Ejemplar/Delete/{id:int}"
+@model gestion_bibliotecaria.Pages.EjemplarDeleteModel
 @{
-    ViewData["Title"] = "Eliminar Ejemplar - Inventario";
+    ViewData["Title"] = "Eliminar Ejemplar";
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/InventarioDelete.css" />
+    <link rel="stylesheet" href="~/css/pages/EjemplarDelete.css" />
 }
 
-<div class="inventario-delete-container">
+<div class="ejemplar-delete-container">
 
     <div class="page-header">
 
@@ -26,7 +26,7 @@
     <h3>¿Estás seguro de eliminar este ejemplar?</h3>
 
     <p>
-        Esta acción eliminará el ejemplar del inventario permanentemente.
+        Esta accion eliminara el ejemplar permanentemente.
     </p>
 
 </div>
@@ -45,7 +45,7 @@
     <dt>ID Ejemplar</dt>
     <dd>@Model.Ejemplar.EjemplarId</dd>
 
-    <dt>Código Inventario</dt>
+    <dt>Codigo Ejemplar</dt>
     <dd><strong>@Model.Ejemplar.CodigoInventario</strong></dd>
 
     <dt>Libro</dt>
@@ -124,11 +124,11 @@
     <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
          class="icono-btn">
 
-    Eliminar del Inventario
+    Eliminar Ejemplar
 
 </button>
 
-<a href="/Inventario" class="btn-cancelar">
+<a href="/Ejemplar" class="btn-cancelar">
 Cancelar
 </a>
 

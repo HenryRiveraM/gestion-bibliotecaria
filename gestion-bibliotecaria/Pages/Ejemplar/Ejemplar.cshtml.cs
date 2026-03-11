@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 
 namespace gestion_bibliotecaria.Pages;
 
-public class InventarioModel : PageModel
+public class EjemplarModel : PageModel
 {
     private const string QueryEjemplares = @"SELECT EjemplarId, LibroId, CodigoInventario, EstadoConservacion, Disponible, DadoDeBaja, MotivoBaja, Ubicacion, Estado, FechaRegistro, UltimaActualizacion
                                              FROM ejemplar
@@ -17,7 +17,7 @@ public class InventarioModel : PageModel
     public List<Ejemplar> Ejemplares { get; set; } = new();
     public Dictionary<int, string> LibrosTitulos { get; set; } = new();
 
-    public InventarioModel(IConfiguration configuration)
+    public EjemplarModel(IConfiguration configuration)
     {
         _configuration = configuration;
     }

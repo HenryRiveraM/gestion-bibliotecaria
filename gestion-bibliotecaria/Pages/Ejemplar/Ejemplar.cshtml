@@ -1,23 +1,23 @@
-@page "/Inventario"
-@model gestion_bibliotecaria.Pages.InventarioModel
+@page "/Ejemplar"
+@model gestion_bibliotecaria.Pages.EjemplarModel
 @{
-    ViewData["Title"] = "Gestión de Inventario - Ejemplares";
+    ViewData["Title"] = "Gestion de Ejemplares";
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/Inventario.css" />
+    <link rel="stylesheet" href="~/css/pages/ejemplar.css" />
 }
 
-<div class="inventario-container">
+<div class="ejemplar-container">
 
     <div class="page-header">
 
         <div class="titulo-logo">
             @* <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header"> *@
-            <h1>Gestión de Inventario</h1>
+            <h1>Gestion de Ejemplares</h1>
         </div>
 
-        <a href="/Inventario/Create" class="btn-nuevo">
+        <a href="/Ejemplar/Create" class="btn-nuevo">
             <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
             Nuevo Ejemplar
         </a>
@@ -27,7 +27,7 @@
 @if (!Model.Ejemplares.Any())
 {
     <div class="alert alert-info">
-        No hay ejemplares registrados en el inventario.
+        No hay ejemplares registrados.
     </div>
 }
 else
@@ -39,12 +39,12 @@ else
 
     <div class="tabla-container">
 
-        <table class="tabla-inventario">
+        <table class="tabla-ejemplar">
 
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Código Inventario</th>
+                    <th>Codigo Ejemplar</th>
                     <th>Libro</th>
                     <th>Estado Conservación</th>
                     <th>Disponible</th>
@@ -123,7 +123,7 @@ else
 
                     <td class="acciones">
 
-                        <a href="/Inventario/Edit/@ejemplar.EjemplarId"
+                        <a href="/Ejemplar/Edit/@ejemplar.EjemplarId"
                             class="btn-editar">
 
                             <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
@@ -132,7 +132,7 @@ else
                             Editar
                         </a>
 
-                        <a href="/Inventario/Delete/@ejemplar.EjemplarId"
+                        <a href="/Ejemplar/Delete/@ejemplar.EjemplarId"
                             class="btn-eliminar">
 
                             <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"

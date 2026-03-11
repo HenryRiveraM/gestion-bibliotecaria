@@ -5,7 +5,7 @@ using MySql.Data.MySqlClient;
 
 namespace gestion_bibliotecaria.Pages;
 
-public class InventarioDeleteModel : PageModel
+public class EjemplarDeleteModel : PageModel
 {
     private const string QueryEjemplarPorId = @"SELECT EjemplarId, LibroId, CodigoInventario, EstadoConservacion, Disponible, DadoDeBaja, MotivoBaja, Ubicacion, Estado, FechaRegistro, UltimaActualizacion
                                                 FROM ejemplar
@@ -21,7 +21,7 @@ public class InventarioDeleteModel : PageModel
 
     public string ErrorMessage { get; set; } = string.Empty;
 
-    public InventarioDeleteModel(IConfiguration configuration)
+    public EjemplarDeleteModel(IConfiguration configuration)
     {
         _configuration = configuration;
     }
@@ -44,10 +44,10 @@ public class InventarioDeleteModel : PageModel
 
             if (success)
             {
-                return Redirect("/Inventario");
+                return Redirect("/Ejemplar");
             }
 
-            ErrorMessage = "No se pudo eliminar el ejemplar del inventario.";
+            ErrorMessage = "No se pudo eliminar el ejemplar del modulo de ejemplares.";
             await CargarDetalleEjemplarAsync(id);
             return Page();
         }

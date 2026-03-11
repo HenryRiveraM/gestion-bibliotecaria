@@ -2,7 +2,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages(options =>
 {
-    // Keep Inventario pages under Services without moving them back to Pages.
+    // Keep Ejemplar pages under Services without moving them back to Pages.
     options.RootDirectory = "/";
 
     // Preserve friendly URLs for default pages under /Pages.

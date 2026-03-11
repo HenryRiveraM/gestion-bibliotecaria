@@ -1,14 +1,14 @@
-@page "/Inventario/Create"
-@model gestion_bibliotecaria.Pages.InventarioCreateModel
+@page "/Ejemplar/Create"
+@model gestion_bibliotecaria.Pages.EjemplarCreateModel
 @{
-    ViewData["Title"] = "Nuevo Ejemplar - Inventario";
+    ViewData["Title"] = "Nuevo Ejemplar";
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/InventarioCreate.css" />
+    <link rel="stylesheet" href="~/css/pages/EjemplarCreate.css" />
 }
 
-<div class="inventario-create-container">
+<div class="ejemplar-create-container">
 
     <div class="page-header">
 
@@ -51,7 +51,7 @@
     <div class="form-group">
 
         <label asp-for="Ejemplar.CodigoInventario">
-            Código de Inventario
+            Codigo de Ejemplar
         </label>
 
         <input asp-for="Ejemplar.CodigoInventario"
@@ -173,7 +173,7 @@
             Guardar
         </button>
 
-        <a href="/Inventario"
+        <a href="/Ejemplar"
            class="btn-cancelar">
             Cancelar
         </a>

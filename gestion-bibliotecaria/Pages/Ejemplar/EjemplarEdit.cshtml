@@ -1,14 +1,14 @@
-@page "/Inventario/Edit/{id:int}"
-@model gestion_bibliotecaria.Pages.InventarioEditModel
+@page "/Ejemplar/Edit/{id:int}"
+@model gestion_bibliotecaria.Pages.EjemplarEditModel
 @{
-    ViewData["Title"] = "Editar Ejemplar - Inventario";
+    ViewData["Title"] = "Editar Ejemplar";
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/InventarioEdit.css" />
+    <link rel="stylesheet" href="~/css/pages/EjemplarEdit.css" />
 }
 
-<div class="inventario-edit-container">
+<div class="ejemplar-edit-container">
 
 <div class="page-header">
 
@@ -60,7 +60,7 @@
 <div class="form-group">
 
 <label asp-for="Ejemplar.CodigoInventario">
-Código de Inventario
+Codigo de Ejemplar
 </label>
 
 <input asp-for="Ejemplar.CodigoInventario"
@@ -177,7 +177,7 @@ Activo en el sistema
 Actualizar
 </button>
 
-<a href="/Inventario"
+<a href="/Ejemplar"
    class="btn-cancelar">
 Cancelar
 </a>
