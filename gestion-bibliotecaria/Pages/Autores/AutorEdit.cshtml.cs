@@ -70,11 +70,7 @@ public class AutorEditModel : PageModel
             }
         }
 
-        if (ValidadorEntrada.EstaVacio(Autor.Apellidos))
-        {
-            ModelState.AddModelError("Autor.Apellidos", "Los apellidos son obligatorios.");
-        }
-        else
+        if (!string.IsNullOrWhiteSpace(Autor.Apellidos))
         {
             if (!ValidadorEntrada.SoloLetras(Autor.Apellidos))
             {
