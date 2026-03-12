@@ -25,7 +25,6 @@ public class AutorCreateModel : PageModel
 
     public IActionResult OnPost()
     {
-        // Normalize input: trim ends and collapse internal whitespace (e.g. " Mark  Twain " -> "Mark Twain")
         Autor.Nombres = ValidadorEntrada.NormalizarEspacios(Autor.Nombres);
         Autor.Apellidos = ValidadorEntrada.NormalizarEspacios(Autor.Apellidos);
         Autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(Autor.Nacionalidad);

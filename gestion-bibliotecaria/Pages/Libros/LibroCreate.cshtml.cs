@@ -53,10 +53,10 @@ public class LibroCreateModel : PageModel
 
     public IActionResult OnPost()
     {
-        Titulo = (Titulo ?? string.Empty).Trim();
-        Editorial = (Editorial ?? string.Empty).Trim();
-        Edicion = (Edicion ?? string.Empty).Trim();
-        Descripcion = (Descripcion ?? string.Empty).Trim();
+        Titulo = ValidadorEntrada.NormalizarEspacios(Titulo);
+        Editorial = ValidadorEntrada.NormalizarEspacios(Editorial);
+        Edicion = ValidadorEntrada.NormalizarEspacios(Edicion);
+        Descripcion = ValidadorEntrada.NormalizarEspacios(Descripcion);
 
         if (ValidadorEntrada.EstaVacio(Titulo))
         {
@@ -89,6 +89,11 @@ public class LibroCreateModel : PageModel
             {
                 ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
             }
+        }
+
+        if (!ValidadorEntrada.AñoValido(AñoPublicacion))
+        {
+            ModelState.AddModelError("AñoPublicacion", "El año de publicación no es válido.");
         }
 
         if (!ModelState.IsValid)
