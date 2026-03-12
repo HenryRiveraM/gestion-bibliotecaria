@@ -54,6 +54,50 @@ public class EjemplarEditModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
+        // Normalize text inputs
+        Ejemplar.CodigoInventario = ValidadorEntrada.NormalizarEspacios(Ejemplar.CodigoInventario);
+        Ejemplar.EstadoConservacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.EstadoConservacion);
+        Ejemplar.Ubicacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.Ubicacion);
+        Ejemplar.MotivoBaja = ValidadorEntrada.NormalizarEspacios(Ejemplar.MotivoBaja);
+
+        // Validate fields (same rules as create)
+        if (ValidadorEntrada.EstaVacio(Ejemplar.CodigoInventario))
+        {
+            ModelState.AddModelError("Ejemplar.CodigoInventario", "El código de inventario es obligatorio.");
+        }
+        else if (!ValidadorEntrada.CodigoInventarioValido(Ejemplar.CodigoInventario))
+        {
+            ModelState.AddModelError("Ejemplar.CodigoInventario", "El código de inventario solo puede contener letras, números y guiones.");
+        }
+        else if (ValidadorEntrada.ExcedeLongitud(Ejemplar.CodigoInventario, 30))
+        {
+            ModelState.AddModelError("Ejemplar.CodigoInventario", "El código de inventario excede la longitud máxima de 30 caracteres.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Ejemplar.EstadoConservacion))
+        {
+            if (ValidadorEntrada.ExcedeLongitud(Ejemplar.EstadoConservacion, 50))
+            {
+                ModelState.AddModelError("Ejemplar.EstadoConservacion", "El estado de conservación excede la longitud máxima de 50 caracteres.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(Ejemplar.Ubicacion))
+        {
+            if (ValidadorEntrada.ExcedeLongitud(Ejemplar.Ubicacion, 100))
+            {
+                ModelState.AddModelError("Ejemplar.Ubicacion", "La ubicación excede la longitud máxima de 100 caracteres.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(Ejemplar.MotivoBaja))
+        {
+            if (ValidadorEntrada.ExcedeLongitud(Ejemplar.MotivoBaja, 200))
+            {
+                ModelState.AddModelError("Ejemplar.MotivoBaja", "El motivo de baja excede la longitud máxima de 200 caracteres.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             ErrorMessage = "Por favor completa todos los campos requeridos.";
