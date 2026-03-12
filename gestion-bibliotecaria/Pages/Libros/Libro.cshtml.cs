@@ -8,7 +8,7 @@ public class LibroModel : PageModel
 {
     private const string QueryLibros = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro, UltimaActualizacion
                                          FROM libro
-                                         ORDER BY LibroId DESC";
+                                         ORDER BY Titulo ASC";
 
     private const string QueryAutores = "SELECT AutorId, Nombres, Apellidos FROM autor";
 

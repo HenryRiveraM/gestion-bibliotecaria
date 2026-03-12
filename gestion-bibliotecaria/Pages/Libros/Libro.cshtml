@@ -44,13 +44,28 @@ else
     }
     var inactivos = total - activos;
 
+    <div class="filtros-barra">
+        <div class="filtro-item filtro-buscar">
+            <input id="buscador-libro"
+                   type="text"
+                   class="input-filtro"
+                   placeholder="Buscar por título, autor, editorial o estado..."
+                   autocomplete="off" />
+        </div>
+        <div class="filtro-item">
+            <select id="orden-libro" class="input-filtro">
+                <option value="titulo_asc">Título A-Z</option>
+                <option value="titulo_desc">Título Z-A</option>
+            </select>
+        </div>
+    </div>
+
     <div class="tabla-container">
 
-        <table class="tabla-libros">
+        <table id="tabla-libro" class="tabla-libros">
 
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Título</th>
                     <th>Autor</th>
                     <th>Editorial</th>
@@ -74,8 +89,6 @@ else
                 var estado = row.Field<bool>("Estado");
 
                 <tr class="@(!estado ? "fila-inactiva" : "")">
-
-                    <td>@libroId</td>
 
                     <td>
                         <strong>@titulo</strong>
@@ -132,6 +145,12 @@ else
 
             </tbody>
 
+            <tr id="fila-sin-resultados" style="display:none;">
+                <td colspan="7" style="text-align:center; padding:20px; color:#9ca3af;">
+                    No hay libros que coincidan con la búsqueda.
+                </td>
+            </tr>
+
         </table>
 
     </div>
@@ -154,3 +173,56 @@ else
 }
 
 </div>
+
+@section Scripts {
+<script>
+    (function () {
+        var input = document.getElementById('buscador-libro');
+        var select = document.getElementById('orden-libro');
+        var tabla = document.getElementById('tabla-libro');
+
+        if (!input || !tabla) return;
+
+        function normalizar(s) {
+            return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        }
+
+        function aplicar() {
+            var termino = normalizar(input.value);
+            var orden = select ? select.value : 'titulo_asc';
+            var tbody = tabla.querySelector('tbody');
+            var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
+
+            // Ordenar
+            var colIndex = 0; // Columna Título
+            var asc = orden.endsWith('_asc');
+            filas.sort(function (a, b) {
+                var va = normalizar(a.cells[colIndex] ? a.cells[colIndex].textContent : '');
+                var vb = normalizar(b.cells[colIndex] ? b.cells[colIndex].textContent : '');
+                return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+            });
+            filas.forEach(function (f) { tbody.appendChild(f); });
+
+            // Filtrar
+            var visibles = 0;
+            filas.forEach(function (fila) {
+                var texto = normalizar(fila.textContent);
+                var coincide = termino === '' || texto.includes(termino);
+                fila.style.display = coincide ? '' : 'none';
+                if (coincide) visibles++;
+            });
+
+            var sinResultados = document.getElementById('fila-sin-resultados');
+            if (sinResultados) {
+                sinResultados.style.display = visibles === 0 ? '' : 'none';
+                tbody.appendChild(sinResultados);
+            }
+        }
+
+        input.addEventListener('input', aplicar);
+        if (select) select.addEventListener('change', aplicar);
+
+        aplicar();
+    })();
+</script>
+}
