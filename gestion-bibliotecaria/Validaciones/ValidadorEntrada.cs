@@ -80,5 +80,27 @@
 
             return fecha.Value.Date <= DateTime.Today;
         }
+
+        public static bool TieneEspaciosInicioFin(string? valor)
+        {
+            if (string.IsNullOrEmpty(valor))
+            {
+                return false;
+            }
+
+            return !valor.Equals(valor.Trim(), StringComparison.Ordinal);
+        }
+
+        public static string NormalizarEspacios(string? valor)
+        {
+            if (string.IsNullOrWhiteSpace(valor))
+            {
+                return string.Empty;
+            }
+
+            // Trim ends and collapse internal whitespace sequences to a single space
+            var trimmed = valor.Trim();
+            return System.Text.RegularExpressions.Regex.Replace(trimmed, "\\s+", " ");
+        }
     }
 }
