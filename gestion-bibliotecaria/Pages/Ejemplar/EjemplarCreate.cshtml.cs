@@ -37,10 +37,11 @@ public class EjemplarCreateModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        Ejemplar.CodigoInventario = (Ejemplar.CodigoInventario ?? string.Empty).Trim();
-        Ejemplar.EstadoConservacion = (Ejemplar.EstadoConservacion ?? string.Empty).Trim();
-        Ejemplar.Ubicacion = (Ejemplar.Ubicacion ?? string.Empty).Trim();
-        Ejemplar.MotivoBaja = (Ejemplar.MotivoBaja ?? string.Empty).Trim();
+        // Normalize text inputs: trim ends and collapse internal whitespace
+        Ejemplar.CodigoInventario = ValidadorEntrada.NormalizarEspacios(Ejemplar.CodigoInventario);
+        Ejemplar.EstadoConservacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.EstadoConservacion);
+        Ejemplar.Ubicacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.Ubicacion);
+        Ejemplar.MotivoBaja = ValidadorEntrada.NormalizarEspacios(Ejemplar.MotivoBaja);
 
         if (ValidadorEntrada.EstaVacio(Ejemplar.CodigoInventario))
         {

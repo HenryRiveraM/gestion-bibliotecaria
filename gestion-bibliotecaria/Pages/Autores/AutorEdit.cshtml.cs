@@ -50,9 +50,9 @@ public class AutorEditModel : PageModel
 
     public IActionResult OnPost()
     {
-        Autor.Nombres = (Autor.Nombres ?? string.Empty).Trim();
-        Autor.Apellidos = (Autor.Apellidos ?? string.Empty).Trim();
-        Autor.Nacionalidad = (Autor.Nacionalidad ?? string.Empty).Trim();
+        Autor.Nombres = ValidadorEntrada.NormalizarEspacios(Autor.Nombres);
+        Autor.Apellidos = ValidadorEntrada.NormalizarEspacios(Autor.Apellidos);
+        Autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(Autor.Nacionalidad);
 
         if (ValidadorEntrada.EstaVacio(Autor.Nombres))
         {
