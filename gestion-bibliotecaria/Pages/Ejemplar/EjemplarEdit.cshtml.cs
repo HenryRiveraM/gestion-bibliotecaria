@@ -54,13 +54,11 @@ public class EjemplarEditModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        // Normalize text inputs
         Ejemplar.CodigoInventario = ValidadorEntrada.NormalizarEspacios(Ejemplar.CodigoInventario);
         Ejemplar.EstadoConservacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.EstadoConservacion);
         Ejemplar.Ubicacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.Ubicacion);
         Ejemplar.MotivoBaja = ValidadorEntrada.NormalizarEspacios(Ejemplar.MotivoBaja);
 
-        // Validate fields (same rules as create)
         if (ValidadorEntrada.EstaVacio(Ejemplar.CodigoInventario))
         {
             ModelState.AddModelError("Ejemplar.CodigoInventario", "El código de inventario es obligatorio.");

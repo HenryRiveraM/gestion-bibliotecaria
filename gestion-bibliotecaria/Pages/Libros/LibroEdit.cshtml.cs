@@ -113,7 +113,7 @@ public class LibroEditModel : PageModel
             }
         }
 
-        if (!ValidadorEntrada.AñoValido(AñoPublicacion))
+        if (!ValidadorEntrada.ValidYear(AñoPublicacion))
         {
             ModelState.AddModelError("AñoPublicacion", "El año de publicación no es válido.");
         }
