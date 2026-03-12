@@ -73,6 +73,38 @@
     filter:brightness(0) invert(1);
 }
 
+/* BUSQUEDA symbol ORDENAMIENTO*/
+
+.filtros-barra {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.filtro-item {
+    display: flex;
+}
+
+.filtro-buscar {
+    flex: 1;
+}
+
+.input-filtro {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: 1px solid #2d2d2d;
+    background: #282828;
+    color: #fff;
+    font-size: 14px;
+}
+
+    .input-filtro:focus {
+        outline: none;
+        border-color: #10b981;
+    }
+
 /* CELDAS */
 
 .tabla-autores td{
