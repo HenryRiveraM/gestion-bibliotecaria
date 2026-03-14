@@ -1,5 +1,8 @@
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDataProtection();
+builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
+
 builder.Services.AddRazorPages(options =>
 {
     // Keep Ejemplar pages under Services without moving them back to Pages.

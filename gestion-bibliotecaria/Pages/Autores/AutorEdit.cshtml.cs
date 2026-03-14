@@ -3,23 +3,36 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Validaciones;
 using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Security;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class AutorEditModel : PageModel
 {
     private readonly IConfiguration configuration;
+    private readonly RouteTokenService _routeTokenService;
 
     [BindProperty]
     public Autor Autor { get; set; } = new Autor();
 
-    public AutorEditModel(IConfiguration configuration)
+    [BindProperty]
+    public string AutorToken { get; set; } = string.Empty;
+
+    public AutorEditModel(IConfiguration configuration, RouteTokenService routeTokenService)
     {
         this.configuration = configuration;
+        _routeTokenService = routeTokenService;
     }
 
-    public void OnGet(int id)
+    public IActionResult OnGet(string token)
     {
+        if (!_routeTokenService.TryObtenerId(token, out var id))
+        {
+            return NotFound();
+        }
+
+        AutorToken = token;
+
         string connectionString = configuration.GetConnectionString("DefaultConnection")!;
 
         string query = @"SELECT AutorId, Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado
@@ -46,10 +59,24 @@ public class AutorEditModel : PageModel
                 }
             }
         }
+
+        if (Autor.AutorId == 0)
+        {
+            return NotFound();
+        }
+
+        return Page();
     }
 
     public IActionResult OnPost()
     {
+        if (!_routeTokenService.TryObtenerId(AutorToken, out var autorId))
+        {
+            return NotFound();
+        }
+
+        Autor.AutorId = autorId;
+
         Autor.Nombres = ValidadorEntrada.NormalizarEspacios(Autor.Nombres);
         Autor.Apellidos = ValidadorEntrada.NormalizarEspacios(Autor.Apellidos);
         Autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(Autor.Nacionalidad);

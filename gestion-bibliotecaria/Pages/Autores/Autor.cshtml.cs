@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MySql.Data.MySqlClient;
 using System.Data;
+using gestion_bibliotecaria.Security;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -10,6 +11,7 @@ public class AutorModel : PageModel
     public DataTable AutorDataTable { get; set; } = new DataTable();
 
     private readonly IConfiguration configuration;
+    private readonly RouteTokenService _routeTokenService;
 
     [BindProperty(SupportsGet = true)]
     public string? Buscar { get; set; }
@@ -17,9 +19,10 @@ public class AutorModel : PageModel
     [BindProperty(SupportsGet = true)]
     public string? Orden { get; set; }
 
-    public AutorModel(IConfiguration configuration)
+    public AutorModel(IConfiguration configuration, RouteTokenService routeTokenService)
     {
         this.configuration = configuration;
+        _routeTokenService = routeTokenService;
     }
 
     public void OnGet()
@@ -56,6 +59,17 @@ public class AutorModel : PageModel
             MySqlDataAdapter adapter = new MySqlDataAdapter(command);
 
             adapter.Fill(AutorDataTable);
+
+            if (!AutorDataTable.Columns.Contains("AutorToken"))
+            {
+                AutorDataTable.Columns.Add("AutorToken", typeof(string));
+            }
+
+            foreach (DataRow row in AutorDataTable.Rows)
+            {
+                var autorId = Convert.ToInt32(row["AutorId"]);
+                row["AutorToken"] = _routeTokenService.CrearToken(autorId);
+            }
         }
     }
 }

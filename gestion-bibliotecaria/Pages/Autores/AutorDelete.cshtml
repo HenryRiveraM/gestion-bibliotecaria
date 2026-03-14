@@ -1,4 +1,4 @@
-﻿@page "/Autor/Delete/{id:int}"
+﻿@page "/Autor/Delete/{token}"
 @model gestion_bibliotecaria.Pages.AutorDeleteModel
 @{
     ViewData["Title"] = "Eliminar Autor";
@@ -37,6 +37,7 @@
         <form method="post">
 
             <input type="hidden" asp-for="Autor.AutorId" />
+            <input type="hidden" asp-for="AutorToken" />
 
             <div class="acciones">
 

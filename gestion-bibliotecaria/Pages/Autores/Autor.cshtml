@@ -79,7 +79,7 @@
                         <td class="acciones">
 
                             <a asp-page="AutorEdit"
-                                asp-route-id="@row["AutorId"]"
+                                asp-route-token="@row["AutorToken"]"
                                 class="btn-editar">
 
                                 <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
@@ -89,7 +89,7 @@
                             </a>
 
                             <a asp-page="AutorDelete"
-                                asp-route-id="@row["AutorId"]"
+                                asp-route-token="@row["AutorToken"]"
                                 class="btn-eliminar">
 
                                 <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
