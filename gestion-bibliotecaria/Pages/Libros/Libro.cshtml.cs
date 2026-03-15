@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using MySql.Data.MySqlClient;
+using gestion_bibliotecaria.Security;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -13,18 +14,32 @@ public class LibroModel : PageModel
     private const string QueryAutores = "SELECT AutorId, Nombres, Apellidos FROM autor";
 
     private readonly IConfiguration _configuration;
+    private readonly RouteTokenService _routeTokenService;
 
     public DataTable Libros { get; set; } = new DataTable();
     public Dictionary<int, string> AutoresNombres { get; set; } = new();
 
-    public LibroModel(IConfiguration configuration)
+    public LibroModel(IConfiguration configuration, RouteTokenService routeTokenService)
     {
         _configuration = configuration;
+        _routeTokenService = routeTokenService;
     }
 
     public void OnGet()
     {
         Libros = ObtenerLibros();
+
+        if (!Libros.Columns.Contains("LibroToken"))
+        {
+            Libros.Columns.Add("LibroToken", typeof(string));
+        }
+
+        foreach (DataRow row in Libros.Rows)
+        {
+            var libroId = row.Field<int>("LibroId");
+            row["LibroToken"] = _routeTokenService.CrearToken(libroId);
+        }
+
         AutoresNombres = ObtenerNombresAutores();
     }
 

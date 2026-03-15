@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using MySql.Data.MySqlClient;
+using gestion_bibliotecaria.Security;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -15,6 +16,7 @@ public class LibroDeleteModel : PageModel
     private const string QueryDeleteLibro = "UPDATE libro SET Estado = 0, UltimaActualizacion = @UltimaActualizacion WHERE LibroId = @LibroId";
 
     private readonly IConfiguration _configuration;
+    private readonly RouteTokenService _routeTokenService;
 
     public int LibroId { get; set; }
     public int AutorId { get; set; }
@@ -29,13 +31,24 @@ public class LibroDeleteModel : PageModel
 
     public string NombreAutor { get; set; } = string.Empty;
 
-    public LibroDeleteModel(IConfiguration configuration)
+    [BindProperty]
+    public string LibroToken { get; set; } = string.Empty;
+
+    public LibroDeleteModel(IConfiguration configuration, RouteTokenService routeTokenService)
     {
         _configuration = configuration;
+        _routeTokenService = routeTokenService;
     }
 
-    public IActionResult OnGet(int id)
+    public IActionResult OnGet(string token)
     {
+        if (!_routeTokenService.TryObtenerId(token, out var id))
+        {
+            return NotFound();
+        }
+
+        LibroToken = token;
+
         if (!CargarDetalleLibro(id))
         {
             return NotFound();
@@ -44,8 +57,13 @@ public class LibroDeleteModel : PageModel
         return Page();
     }
 
-    public IActionResult OnPost(int id)
+    public IActionResult OnPost()
     {
+        if (!_routeTokenService.TryObtenerId(LibroToken, out var id))
+        {
+            return NotFound();
+        }
+
         EliminarLibro(id);
         return Redirect("/Libro");
     }

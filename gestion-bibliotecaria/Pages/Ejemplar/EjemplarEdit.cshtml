@@ -1,4 +1,4 @@
-@page "/Ejemplar/Edit/{id:int}"
+@page "/Ejemplar/Edit/{token}"
 @model gestion_bibliotecaria.Pages.EjemplarEditModel
 @{
     ViewData["Title"] = "Editar Ejemplar";
@@ -33,6 +33,7 @@
 
 <input type="hidden" asp-for="Ejemplar.EjemplarId" />
 <input type="hidden" asp-for="Ejemplar.FechaRegistro" />
+<input type="hidden" asp-for="EjemplarToken" />
 
 
 <div class="form-group">

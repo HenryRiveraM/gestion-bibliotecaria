@@ -1,4 +1,4 @@
-@page "/Libro/Delete/{id:int}"
+@page "/Libro/Delete/{token}"
 @model gestion_bibliotecaria.Pages.LibroDeleteModel
 @{
     ViewData["Title"] = "Eliminar Libro";
@@ -89,6 +89,8 @@
 
     <!-- BOTONES -->
     <form method="post" class="form-actions">
+
+        <input type="hidden" asp-for="LibroToken" />
 
         <button type="submit" class="btn-desactivar">
 

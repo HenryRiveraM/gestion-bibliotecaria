@@ -1,4 +1,4 @@
-@page "/Ejemplar/Delete/{id:int}"
+@page "/Ejemplar/Delete/{token}"
 @model gestion_bibliotecaria.Pages.EjemplarDeleteModel
 @{
     ViewData["Title"] = "Eliminar Ejemplar";
@@ -115,6 +115,8 @@
 
 
 <form method="post" class="form-actions">
+
+<input type="hidden" asp-for="EjemplarToken" />
 
 <button type="submit" class="btn-eliminar">
 
