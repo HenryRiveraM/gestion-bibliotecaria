@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Security;
 using MySql.Data.MySqlClient;
 
 namespace gestion_bibliotecaria.Pages;
@@ -13,18 +14,25 @@ public class EjemplarModel : PageModel
     private const string QueryTitulos = "SELECT LibroId, Titulo FROM libro";
 
     private readonly IConfiguration _configuration;
+    private readonly RouteTokenService _routeTokenService;
 
     public List<Ejemplar> Ejemplares { get; set; } = new();
     public Dictionary<int, string> LibrosTitulos { get; set; } = new();
 
-    public EjemplarModel(IConfiguration configuration)
+    public EjemplarModel(IConfiguration configuration, RouteTokenService routeTokenService)
     {
         _configuration = configuration;
+        _routeTokenService = routeTokenService;
     }
 
     public async Task OnGetAsync()
     {
         Ejemplares = await ObtenerEjemplaresAsync();
+        foreach (var ejemplar in Ejemplares)
+        {
+            ejemplar.RouteToken = _routeTokenService.CrearToken(ejemplar.EjemplarId);
+        }
+
         LibrosTitulos = await ObtenerTitulosLibrosAsync();
     }
 

@@ -3,6 +3,7 @@ namespace gestion_bibliotecaria.Models;
 public class Ejemplar
 {
     public int EjemplarId { get; set; }
+    public string RouteToken { get; set; } = string.Empty;
     public int LibroId { get; set; }
     public string CodigoInventario { get; set; } = string.Empty;
     public string? EstadoConservacion { get; set; }

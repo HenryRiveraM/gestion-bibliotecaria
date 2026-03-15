@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Security;
 using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Validaciones;
 
@@ -29,21 +30,33 @@ public class EjemplarEditModel : PageModel
                                                  WHERE EjemplarId = @EjemplarId";
 
     private readonly IConfiguration _configuration;
+    private readonly RouteTokenService _routeTokenService;
 
     [BindProperty]
     public Ejemplar Ejemplar { get; set; } = new Ejemplar();
+
+    [BindProperty]
+    public string EjemplarToken { get; set; } = string.Empty;
 
     public List<Libro> Libros { get; set; } = new();
 
     public string ErrorMessage { get; set; } = string.Empty;
 
-    public EjemplarEditModel(IConfiguration configuration)
+    public EjemplarEditModel(IConfiguration configuration, RouteTokenService routeTokenService)
     {
         _configuration = configuration;
+        _routeTokenService = routeTokenService;
     }
 
-    public async Task<IActionResult> OnGetAsync(int id)
+    public async Task<IActionResult> OnGetAsync(string token)
     {
+        if (!_routeTokenService.TryObtenerId(token, out var id))
+        {
+            return NotFound();
+        }
+
+        EjemplarToken = token;
+
         if (!await CargarPaginaAsync(id))
         {
             return NotFound();
@@ -54,6 +67,13 @@ public class EjemplarEditModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
+        if (!_routeTokenService.TryObtenerId(EjemplarToken, out var ejemplarId))
+        {
+            return NotFound();
+        }
+
+        Ejemplar.EjemplarId = ejemplarId;
+
         Ejemplar.CodigoInventario = ValidadorEntrada.NormalizarEspacios(Ejemplar.CodigoInventario);
         Ejemplar.EstadoConservacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.EstadoConservacion);
         Ejemplar.Ubicacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.Ubicacion);

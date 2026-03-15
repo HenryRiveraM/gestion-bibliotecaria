@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Security;
 using MySql.Data.MySqlClient;
 
 namespace gestion_bibliotecaria.Pages;
@@ -15,19 +16,31 @@ public class EjemplarDeleteModel : PageModel
     private const string QueryDeleteEjemplar = "DELETE FROM ejemplar WHERE EjemplarId = @EjemplarId";
 
     private readonly IConfiguration _configuration;
+    private readonly RouteTokenService _routeTokenService;
 
     public Ejemplar Ejemplar { get; set; } = new Ejemplar();
     public string TituloLibro { get; set; } = string.Empty;
 
+    [BindProperty]
+    public string EjemplarToken { get; set; } = string.Empty;
+
     public string ErrorMessage { get; set; } = string.Empty;
 
-    public EjemplarDeleteModel(IConfiguration configuration)
+    public EjemplarDeleteModel(IConfiguration configuration, RouteTokenService routeTokenService)
     {
         _configuration = configuration;
+        _routeTokenService = routeTokenService;
     }
 
-    public async Task<IActionResult> OnGetAsync(int id)
+    public async Task<IActionResult> OnGetAsync(string token)
     {
+        if (!_routeTokenService.TryObtenerId(token, out var id))
+        {
+            return NotFound();
+        }
+
+        EjemplarToken = token;
+
         if (!await CargarDetalleEjemplarAsync(id))
         {
             return NotFound();
@@ -36,8 +49,13 @@ public class EjemplarDeleteModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostAsync(int id)
+    public async Task<IActionResult> OnPostAsync()
     {
+        if (!_routeTokenService.TryObtenerId(EjemplarToken, out var id))
+        {
+            return NotFound();
+        }
+
         try
         {
             var success = await EliminarEjemplarAsync(id);
