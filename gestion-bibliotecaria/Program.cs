@@ -1,7 +1,11 @@
+using gestion_bibliotecaria.FactoryCreators;
+using gestion_bibliotecaria.FactoryProducts;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDataProtection();
 builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
+builder.Services.AddScoped<ILibroFactory, LibroFactory>();
 
 builder.Services.AddRazorPages(options =>
 {
