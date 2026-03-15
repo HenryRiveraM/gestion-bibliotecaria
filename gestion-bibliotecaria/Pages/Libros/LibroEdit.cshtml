@@ -1,4 +1,4 @@
-@page "/Libro/Edit/{id:int}"
+@page "/Libro/Edit/{token}"
 @using System.Data
 @model gestion_bibliotecaria.Pages.LibroEditModel
 @{
@@ -27,6 +27,7 @@
 
             <input type="hidden" asp-for="LibroId" />
             <input type="hidden" asp-for="FechaRegistro" />
+            <input type="hidden" asp-for="LibroToken" />
 
             <!-- AUTOR -->
             <div class="form-group">
