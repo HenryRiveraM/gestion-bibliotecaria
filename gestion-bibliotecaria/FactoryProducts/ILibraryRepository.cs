@@ -1,5 +1,6 @@
 namespace gestion_bibliotecaria.FactoryProducts;
 
-public interface ILibraryRepository
+public interface ILibraryRepository<T>
 {
+    void DoStuff(T item);
 }
