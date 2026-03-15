@@ -2,8 +2,8 @@ using gestion_bibliotecaria.FactoryProducts;
 
 namespace gestion_bibliotecaria.FactoryCreators;
 
-public abstract class RepositoryFactory
+public abstract class RepositoryFactory<T>
 {
-    public abstract ILibraryRepository CreateRepository();
+    public abstract ILibraryRepository<T> CreateRepository();
 
 }
