@@ -6,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDataProtection();
 builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
 builder.Services.AddScoped<ILibroFactory, LibroFactory>();
+builder.Services.AddScoped<IEjemplarFactory, EjemplarFactory>();
 
 builder.Services.AddRazorPages(options =>
 {

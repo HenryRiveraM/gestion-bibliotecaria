@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using gestion_bibliotecaria.Models;
 using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Validaciones;
+using gestion_bibliotecaria.FactoryProducts;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -17,6 +18,7 @@ public class EjemplarCreateModel : PageModel
                                                  SELECT LAST_INSERT_ID();";
 
     private readonly IConfiguration _configuration;
+    private readonly IEjemplarFactory _ejemplarFactory;
 
     [BindProperty]
     public Ejemplar Ejemplar { get; set; } = new Ejemplar { Estado = true, Disponible = true };
@@ -25,9 +27,10 @@ public class EjemplarCreateModel : PageModel
 
     public string ErrorMessage { get; set; } = string.Empty;
 
-    public EjemplarCreateModel(IConfiguration configuration)
+    public EjemplarCreateModel(IConfiguration configuration, IEjemplarFactory ejemplarFactory)
     {
         _configuration = configuration;
+        _ejemplarFactory = ejemplarFactory;
     }
 
     public async Task OnGetAsync()
@@ -37,7 +40,6 @@ public class EjemplarCreateModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        // Normalize text inputs: trim ends and collapse internal whitespace
         Ejemplar.CodigoInventario = ValidadorEntrada.NormalizarEspacios(Ejemplar.CodigoInventario);
         Ejemplar.EstadoConservacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.EstadoConservacion);
         Ejemplar.Ubicacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.Ubicacion);
@@ -56,30 +58,6 @@ public class EjemplarCreateModel : PageModel
             ModelState.AddModelError("Ejemplar.CodigoInventario", "El código de inventario excede la longitud máxima de 30 caracteres.");
         }
 
-        if (!string.IsNullOrWhiteSpace(Ejemplar.EstadoConservacion))
-        {
-            if (ValidadorEntrada.ExcedeLongitud(Ejemplar.EstadoConservacion, 50))
-            {
-                ModelState.AddModelError("Ejemplar.EstadoConservacion", "El estado de conservación excede la longitud máxima de 50 caracteres.");
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(Ejemplar.Ubicacion))
-        {
-            if (ValidadorEntrada.ExcedeLongitud(Ejemplar.Ubicacion, 100))
-            {
-                ModelState.AddModelError("Ejemplar.Ubicacion", "La ubicación excede la longitud máxima de 100 caracteres.");
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(Ejemplar.MotivoBaja))
-        {
-            if (ValidadorEntrada.ExcedeLongitud(Ejemplar.MotivoBaja, 200))
-            {
-                ModelState.AddModelError("Ejemplar.MotivoBaja", "El motivo de baja excede la longitud máxima de 200 caracteres.");
-            }
-        }
-
         if (!ModelState.IsValid)
         {
             ErrorMessage = "Por favor completa todos los campos requeridos.";
@@ -89,7 +67,19 @@ public class EjemplarCreateModel : PageModel
 
         try
         {
-            await InsertarEjemplarAsync(Ejemplar);
+            var ejemplar = _ejemplarFactory.CreateForInsert(
+                Ejemplar.LibroId,
+                Ejemplar.CodigoInventario,
+                Ejemplar.EstadoConservacion,
+                Ejemplar.Disponible,
+                Ejemplar.DadoDeBaja,
+                Ejemplar.MotivoBaja,
+                Ejemplar.Ubicacion,
+                Ejemplar.Estado
+            );
+
+            await InsertarEjemplarAsync(ejemplar);
+
             return Redirect("/Ejemplar");
         }
         catch (Exception ex)
@@ -102,6 +92,31 @@ public class EjemplarCreateModel : PageModel
 
     private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+    private async Task InsertarEjemplarAsync(Ejemplar ejemplar)
+    {
+        using var connection = new MySqlConnection(ConnectionString);
+        await connection.OpenAsync();
+
+        using var command = new MySqlCommand(QueryInsertEjemplar, connection);
+
+        command.Parameters.AddWithValue("@LibroId", ejemplar.LibroId);
+        command.Parameters.AddWithValue("@CodigoInventario", ejemplar.CodigoInventario);
+        command.Parameters.AddWithValue("@EstadoConservacion", ejemplar.EstadoConservacion ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Disponible", ejemplar.Disponible);
+        command.Parameters.AddWithValue("@DadoDeBaja", ejemplar.DadoDeBaja);
+        command.Parameters.AddWithValue("@MotivoBaja", ejemplar.MotivoBaja ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Ubicacion", ejemplar.Ubicacion ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Estado", ejemplar.Estado);
+        command.Parameters.AddWithValue("@FechaRegistro", ejemplar.FechaRegistro);
+
+        await command.ExecuteScalarAsync();
+    }
+
+    private async Task CargarPaginaAsync()
+    {
+        Libros = await ObtenerLibrosAsync();
+    }
 
     private async Task<List<Libro>> ObtenerLibrosAsync()
     {
@@ -119,30 +134,6 @@ public class EjemplarCreateModel : PageModel
         }
 
         return libros;
-    }
-
-    private async Task InsertarEjemplarAsync(Ejemplar ejemplar)
-    {
-        using var connection = new MySqlConnection(ConnectionString);
-        await connection.OpenAsync();
-
-        using var command = new MySqlCommand(QueryInsertEjemplar, connection);
-        command.Parameters.AddWithValue("@LibroId", ejemplar.LibroId);
-        command.Parameters.AddWithValue("@CodigoInventario", ejemplar.CodigoInventario);
-        command.Parameters.AddWithValue("@EstadoConservacion", ejemplar.EstadoConservacion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Disponible", ejemplar.Disponible);
-        command.Parameters.AddWithValue("@DadoDeBaja", ejemplar.DadoDeBaja);
-        command.Parameters.AddWithValue("@MotivoBaja", ejemplar.MotivoBaja ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Ubicacion", ejemplar.Ubicacion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Estado", ejemplar.Estado);
-        command.Parameters.AddWithValue("@FechaRegistro", DateTime.Now);
-
-        await command.ExecuteScalarAsync();
-    }
-
-    private async Task CargarPaginaAsync()
-    {
-        Libros = await ObtenerLibrosAsync();
     }
 
     private static Libro MapLibro(MySqlDataReader reader)
