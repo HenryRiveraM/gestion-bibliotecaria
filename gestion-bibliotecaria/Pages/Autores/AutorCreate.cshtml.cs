@@ -1,21 +1,21 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Validaciones;
 using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.FactoryCreators;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class AutorCreateModel : PageModel
 {
-    private readonly IConfiguration configuration;
+    private readonly RepositoryFactory<Autor> _autorRepositoryFactory;
 
     [BindProperty]
     public Autor Autor { get; set; } = new Autor();
 
-    public AutorCreateModel(IConfiguration configuration)
+    public AutorCreateModel(RepositoryFactory<Autor> autorRepositoryFactory)
     {
-        this.configuration = configuration;
+        _autorRepositoryFactory = autorRepositoryFactory;
     }
 
     public void OnGet()
@@ -79,27 +79,8 @@ public class AutorCreateModel : PageModel
             return Page();
         }
 
-        string connectionString = configuration.GetConnectionString("DefaultConnection")!;
-
-        string query = @"INSERT INTO autor
-                        (Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado, FechaRegistro)
-                        VALUES
-                        (@Nombres, @Apellidos, @Nacionalidad, @FechaNacimiento, @Estado, NOW())";
-
-        using (MySqlConnection connection = new MySqlConnection(connectionString))
-        {
-            connection.Open();
-
-            MySqlCommand command = new MySqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@Nombres", Autor.Nombres);
-            command.Parameters.AddWithValue("@Apellidos", Autor.Apellidos);
-            command.Parameters.AddWithValue("@Nacionalidad", Autor.Nacionalidad);
-            command.Parameters.AddWithValue("@FechaNacimiento", Autor.FechaNacimiento);
-            command.Parameters.AddWithValue("@Estado", Autor.Estado);
-
-            command.ExecuteNonQuery();
-        }
+        var repository = _autorRepositoryFactory.CreateRepository();
+        repository.Insert(Autor);
 
         return RedirectToPage("Autor");
     }
