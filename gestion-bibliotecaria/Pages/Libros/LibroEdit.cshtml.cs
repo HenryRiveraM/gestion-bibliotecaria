@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Validaciones;
+using gestion_bibliotecaria.FactoryProducts;
+using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Security;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -29,9 +32,14 @@ public class LibroEditModel : PageModel
                                               WHERE LibroId = @LibroId";
 
     private readonly IConfiguration _configuration;
+    private readonly ILibroFactory _libroFactory;
+    private readonly RouteTokenService _routeTokenService;
 
     [BindProperty]
     public int LibroId { get; set; }
+
+    [BindProperty]
+    public string LibroToken { get; set; } = string.Empty;
 
     [BindProperty]
     public int AutorId { get; set; }
@@ -54,17 +62,28 @@ public class LibroEditModel : PageModel
     [BindProperty]
     public bool Estado { get; set; }
 
+    [BindProperty]
     public DateTime FechaRegistro { get; set; }
 
     public DataTable Autores { get; set; } = new DataTable();
 
-    public LibroEditModel(IConfiguration configuration)
+    public LibroEditModel(
+        IConfiguration configuration,
+        ILibroFactory libroFactory,
+        RouteTokenService routeTokenService)
     {
         _configuration = configuration;
+        _libroFactory = libroFactory;
+        _routeTokenService = routeTokenService;
     }
 
-    public IActionResult OnGet(int id)
+    public IActionResult OnGet(string token)
     {
+        if (!_routeTokenService.TryObtenerId(token, out var id))
+        {
+            return NotFound();
+        }
+
         if (!CargarPagina(id))
         {
             return NotFound();
@@ -75,6 +94,13 @@ public class LibroEditModel : PageModel
 
     public IActionResult OnPost()
     {
+        if (!_routeTokenService.TryObtenerId(LibroToken, out var id))
+        {
+            return NotFound();
+        }
+
+        LibroId = id;
+
         Titulo = ValidadorEntrada.NormalizarEspacios(Titulo);
         Editorial = ValidadorEntrada.NormalizarEspacios(Editorial);
         Edicion = ValidadorEntrada.NormalizarEspacios(Edicion);
@@ -124,7 +150,17 @@ public class LibroEditModel : PageModel
             return Page();
         }
 
-        ActualizarLibro();
+        var libro = _libroFactory.CreateForUpdate(
+            LibroId,
+            AutorId,
+            Titulo,
+            Editorial,
+            Edicion,
+            AñoPublicacion,
+            Descripcion,
+            Estado);
+
+        ActualizarLibro(libro);
         return Redirect("/Libro");
     }
 
@@ -175,22 +211,22 @@ public class LibroEditModel : PageModel
         return dataTable;
     }
 
-    private void ActualizarLibro()
+    private void ActualizarLibro(Libro libro)
     {
         using (var connection = new MySqlConnection(ConnectionString))
         {
             connection.Open();
             using (var command = new MySqlCommand(QueryUpdateLibro, connection))
             {
-                command.Parameters.AddWithValue("@LibroId", LibroId);
-                command.Parameters.AddWithValue("@AutorId", AutorId);
-                command.Parameters.AddWithValue("@Titulo", Titulo);
-                command.Parameters.AddWithValue("@Editorial", Editorial ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Edicion", Edicion ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@AñoPublicacion", AñoPublicacion ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Descripcion", Descripcion ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Estado", Estado);
-                command.Parameters.AddWithValue("@UltimaActualizacion", DateTime.Now);
+                command.Parameters.AddWithValue("@LibroId", libro.LibroId);
+                command.Parameters.AddWithValue("@AutorId", libro.AutorId);
+                command.Parameters.AddWithValue("@Titulo", libro.Titulo);
+                command.Parameters.AddWithValue("@Editorial", libro.Editorial ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Edicion", libro.Edicion ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@AñoPublicacion", libro.AñoPublicacion ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Descripcion", libro.Descripcion ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Estado", libro.Estado);
+                command.Parameters.AddWithValue("@UltimaActualizacion", libro.UltimaActualizacion ?? DateTime.Now);
 
                 command.ExecuteNonQuery();
             }
@@ -206,6 +242,7 @@ public class LibroEditModel : PageModel
         }
 
         LibroId = libro.Field<int>("LibroId");
+        LibroToken = _routeTokenService.CrearToken(LibroId);
         AutorId = libro.Field<int>("AutorId");
         Titulo = libro.Field<string>("Titulo") ?? string.Empty;
         Editorial = libro.Field<string>("Editorial");

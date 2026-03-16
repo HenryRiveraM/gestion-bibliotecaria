@@ -80,7 +80,7 @@ else
 
             @foreach (System.Data.DataRow row in Model.Libros.Rows)
             {
-                var libroId = row.Field<int>("LibroId");
+                var libroToken = row.Field<string>("LibroToken") ?? string.Empty;
                 var autorId = row.Field<int>("AutorId");
                 var titulo = row.Field<string>("Titulo");
                 var editorial = row.Field<string>("Editorial");
@@ -122,7 +122,7 @@ else
 
                     <td class="acciones">
 
-                        <a href="/Libro/Edit/@libroId" class="btn-editar">
+                        <a href="/Libro/Edit/@libroToken" class="btn-editar">
 
                             <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                  class="icono-btn icon-white">
@@ -130,7 +130,7 @@ else
                             Editar
                         </a>
 
-                        <a href="/Libro/Delete/@libroId" class="btn-eliminar">
+                        <a href="/Libro/Delete/@libroToken" class="btn-eliminar">
 
                             <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                  class="icono-btn icon-white">

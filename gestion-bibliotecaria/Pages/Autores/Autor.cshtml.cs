@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MySql.Data.MySqlClient;
 using System.Data;
+using gestion_bibliotecaria.Security;
+using gestion_bibliotecaria.FactoryCreators;
+using gestion_bibliotecaria.Models;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -9,7 +11,8 @@ public class AutorModel : PageModel
 {
     public DataTable AutorDataTable { get; set; } = new DataTable();
 
-    private readonly IConfiguration configuration;
+    private readonly RepositoryFactory<Autor> _autorRepositoryFactory;
+    private readonly RouteTokenService _routeTokenService;
 
     [BindProperty(SupportsGet = true)]
     public string? Buscar { get; set; }
@@ -17,45 +20,26 @@ public class AutorModel : PageModel
     [BindProperty(SupportsGet = true)]
     public string? Orden { get; set; }
 
-    public AutorModel(IConfiguration configuration)
+    public AutorModel(RepositoryFactory<Autor> autorRepositoryFactory, RouteTokenService routeTokenService)
     {
-        this.configuration = configuration;
+        _autorRepositoryFactory = autorRepositoryFactory;
+        _routeTokenService = routeTokenService;
     }
 
     public void OnGet()
     {
-        Select();
-    }
+        var repository = _autorRepositoryFactory.CreateRepository();
+        AutorDataTable = repository.GetAll();
 
-    void Select()
-    {
-        string connectionString = configuration.GetConnectionString("DefaultConnection")!;
-
-        string orderBy = "Apellidos ASC";
-
-        if (Orden == "nombre")
-            orderBy = "Nombres ASC";
-
-        string query = $@"
-        SELECT AutorId, Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado
-        FROM autor
-        WHERE (@buscar IS NULL
-            OR Nombres LIKE CONCAT('%', @buscar, '%')
-            OR Apellidos LIKE CONCAT('%', @buscar, '%')
-            OR Nacionalidad LIKE CONCAT('%', @buscar, '%'))
-        ORDER BY {orderBy}";
-
-        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        if (!AutorDataTable.Columns.Contains("AutorToken"))
         {
-            connection.Open();
+            AutorDataTable.Columns.Add("AutorToken", typeof(string));
+        }
 
-            MySqlCommand command = new MySqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@buscar", Buscar);
-
-            MySqlDataAdapter adapter = new MySqlDataAdapter(command);
-
-            adapter.Fill(AutorDataTable);
+        foreach (DataRow row in AutorDataTable.Rows)
+        {
+            var autorId = Convert.ToInt32(row["AutorId"]);
+            row["AutorToken"] = _routeTokenService.CrearToken(autorId);
         }
     }
 }

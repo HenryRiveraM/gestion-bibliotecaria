@@ -2,68 +2,61 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Security;
+using gestion_bibliotecaria.FactoryCreators;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class AutorDeleteModel : PageModel
 {
-    private readonly IConfiguration configuration;
+    private readonly RepositoryFactory<Autor> _autorRepositoryFactory;
+    private readonly RouteTokenService _routeTokenService;
 
     [BindProperty]
     public Autor Autor { get; set; } = new Autor();
 
-    public AutorDeleteModel(IConfiguration configuration)
+    [BindProperty]
+    public string AutorToken { get; set; } = string.Empty;
+
+    public AutorDeleteModel(RepositoryFactory<Autor> autorRepositoryFactory, RouteTokenService routeTokenService)
     {
-        this.configuration = configuration;
+        _autorRepositoryFactory = autorRepositoryFactory;
+        _routeTokenService = routeTokenService;
     }
 
-    public void OnGet(int id)
+    public IActionResult OnGet(string token)
     {
-        string connectionString = configuration.GetConnectionString("DefaultConnection")!;
-
-        string query = @"SELECT AutorId, Nombres, Apellidos, Nacionalidad
-                         FROM autor
-                         WHERE AutorId=@id";
-
-        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        if (!_routeTokenService.TryObtenerId(token, out var id))
         {
-            connection.Open();
-
-            MySqlCommand command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@id", id);
-
-            using (var reader = command.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    Autor.AutorId = reader.GetInt32("AutorId");
-                    Autor.Nombres = reader.GetString("Nombres");
-                    Autor.Apellidos = reader.GetString("Apellidos");
-                    Autor.Nacionalidad = reader["Nacionalidad"]?.ToString();
-                }
-            }
+            return NotFound();
         }
+
+        AutorToken = token;
+
+        var repository = _autorRepositoryFactory.CreateRepository();
+        var autor = repository.GetById(id);
+
+        if (autor == null)
+        {
+            return NotFound();
+        }
+
+        Autor = autor;
+
+        return Page();
     }
 
     public IActionResult OnPost()
     {
-        string connectionString = configuration.GetConnectionString("DefaultConnection")!;
-
-        string query = @"UPDATE autor
-                         SET
-                            Estado= 0,
-                            UltimaActualizacion=NOW()
-                         WHERE AutorId=@AutorId";
-
-        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        if (!_routeTokenService.TryObtenerId(AutorToken, out var autorId))
         {
-            connection.Open();
-
-            MySqlCommand command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@AutorId", Autor.AutorId);
-
-            command.ExecuteNonQuery();
+            return NotFound();
         }
+
+        Autor.AutorId = autorId;
+
+        var repository = _autorRepositoryFactory.CreateRepository();
+        repository.Delete(Autor);
 
         return RedirectToPage("Autor");
     }

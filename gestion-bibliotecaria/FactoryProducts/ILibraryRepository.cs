@@ -2,11 +2,15 @@ using System.Data;
 
 namespace gestion_bibliotecaria.FactoryProducts;
 
+/// <summary>
+/// Interfaz genérica para repositorios (Repository Pattern).
+/// </summary>
+/// <typeparam name="T">Entidad del dominio</typeparam>
 public interface ILibraryRepository<T>
 {
-    void Create(T item);
-    T GetById(int id);
     DataTable GetAll();
-    void Update(T item);
-    void Delete(int id);
+    void Insert(T t);
+    void Update(T t);
+    void Delete(T t);
+    T? GetById(int id);
 }

@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Security;
 using MySql.Data.MySqlClient;
+using gestion_bibliotecaria.FactoryProducts;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -13,18 +15,31 @@ public class EjemplarModel : PageModel
     private const string QueryTitulos = "SELECT LibroId, Titulo FROM libro";
 
     private readonly IConfiguration _configuration;
+    private readonly RouteTokenService _routeTokenService;
+    private readonly IEjemplarFactory _ejemplarFactory;
 
     public List<Ejemplar> Ejemplares { get; set; } = new();
     public Dictionary<int, string> LibrosTitulos { get; set; } = new();
 
-    public EjemplarModel(IConfiguration configuration)
+    public EjemplarModel(
+        IConfiguration configuration,
+        RouteTokenService routeTokenService,
+        IEjemplarFactory ejemplarFactory)
     {
         _configuration = configuration;
+        _routeTokenService = routeTokenService;
+        _ejemplarFactory = ejemplarFactory;
     }
 
     public async Task OnGetAsync()
     {
         Ejemplares = await ObtenerEjemplaresAsync();
+
+        foreach (var ejemplar in Ejemplares)
+        {
+            ejemplar.RouteToken = _routeTokenService.CrearToken(ejemplar.EjemplarId);
+        }
+
         LibrosTitulos = await ObtenerTitulosLibrosAsync();
     }
 
@@ -74,15 +89,22 @@ public class EjemplarModel : PageModel
             EjemplarId = reader.GetInt32("EjemplarId"),
             LibroId = reader.GetInt32("LibroId"),
             CodigoInventario = reader.GetString("CodigoInventario"),
-            EstadoConservacion = reader.IsDBNull(reader.GetOrdinal("EstadoConservacion")) ? null : reader.GetString("EstadoConservacion"),
+            EstadoConservacion = reader.IsDBNull(reader.GetOrdinal("EstadoConservacion"))
+                ? null
+                : reader.GetString("EstadoConservacion"),
             Disponible = reader.GetBoolean("Disponible"),
             DadoDeBaja = reader.GetBoolean("DadoDeBaja"),
-            MotivoBaja = reader.IsDBNull(reader.GetOrdinal("MotivoBaja")) ? null : reader.GetString("MotivoBaja"),
-            Ubicacion = reader.IsDBNull(reader.GetOrdinal("Ubicacion")) ? null : reader.GetString("Ubicacion"),
+            MotivoBaja = reader.IsDBNull(reader.GetOrdinal("MotivoBaja"))
+                ? null
+                : reader.GetString("MotivoBaja"),
+            Ubicacion = reader.IsDBNull(reader.GetOrdinal("Ubicacion"))
+                ? null
+                : reader.GetString("Ubicacion"),
             Estado = reader.GetBoolean("Estado"),
             FechaRegistro = reader.GetDateTime("FechaRegistro"),
-            UltimaActualizacion = reader.IsDBNull(reader.GetOrdinal("UltimaActualizacion")) ? null : reader.GetDateTime("UltimaActualizacion")
+            UltimaActualizacion = reader.IsDBNull(reader.GetOrdinal("UltimaActualizacion"))
+                ? null
+                : reader.GetDateTime("UltimaActualizacion")
         };
     }
-
 }

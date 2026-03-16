@@ -3,53 +3,59 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Validaciones;
 using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Security;
+using gestion_bibliotecaria.FactoryCreators;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class AutorEditModel : PageModel
 {
-    private readonly IConfiguration configuration;
+    private readonly RepositoryFactory<Autor> _autorRepositoryFactory;
+    private readonly RouteTokenService _routeTokenService;
 
     [BindProperty]
     public Autor Autor { get; set; } = new Autor();
 
-    public AutorEditModel(IConfiguration configuration)
+    [BindProperty]
+    public string AutorToken { get; set; } = string.Empty;
+
+    public AutorEditModel(RepositoryFactory<Autor> autorRepositoryFactory, RouteTokenService routeTokenService)
     {
-        this.configuration = configuration;
+        _autorRepositoryFactory = autorRepositoryFactory;
+        _routeTokenService = routeTokenService;
     }
 
-    public void OnGet(int id)
+    public IActionResult OnGet(string token)
     {
-        string connectionString = configuration.GetConnectionString("DefaultConnection")!;
-
-        string query = @"SELECT AutorId, Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado
-                         FROM autor
-                         WHERE AutorId=@id";
-
-        using (MySqlConnection connection = new MySqlConnection(connectionString))
+        if (!_routeTokenService.TryObtenerId(token, out var id))
         {
-            connection.Open();
-
-            MySqlCommand command = new MySqlCommand(query, connection);
-            command.Parameters.AddWithValue("@id", id);
-
-            using (var reader = command.ExecuteReader())
-            {
-                if (reader.Read())
-                {
-                    Autor.AutorId = reader.GetInt32("AutorId");
-                    Autor.Nombres = reader.GetString("Nombres");
-                    Autor.Apellidos = reader.GetString("Apellidos");
-                    Autor.Nacionalidad = reader["Nacionalidad"]?.ToString();
-                    Autor.FechaNacimiento = reader["FechaNacimiento"] as DateTime?;
-                    Autor.Estado = reader.GetBoolean("Estado");
-                }
-            }
+            return NotFound();
         }
+
+        AutorToken = token;
+
+        var repository = _autorRepositoryFactory.CreateRepository();
+        var autor = repository.GetById(id);
+
+        if (autor == null)
+        {
+            return NotFound();
+        }
+
+        Autor = autor;
+
+        return Page();
     }
 
     public IActionResult OnPost()
     {
+        if (!_routeTokenService.TryObtenerId(AutorToken, out var autorId))
+        {
+            return NotFound();
+        }
+
+        Autor.AutorId = autorId;
+
         Autor.Nombres = ValidadorEntrada.NormalizarEspacios(Autor.Nombres);
         Autor.Apellidos = ValidadorEntrada.NormalizarEspacios(Autor.Apellidos);
         Autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(Autor.Nacionalidad);
@@ -104,33 +110,8 @@ public class AutorEditModel : PageModel
             return Page();
         }
 
-        string connectionString = configuration.GetConnectionString("DefaultConnection")!;
-
-        string query = @"UPDATE autor
-                         SET
-                            Nombres=@Nombres,
-                            Apellidos=@Apellidos,
-                            Nacionalidad=@Nacionalidad,
-                            FechaNacimiento=@FechaNacimiento,
-                            Estado=@Estado,
-                            UltimaActualizacion=NOW()
-                         WHERE AutorId=@AutorId";
-
-        using (MySqlConnection connection = new MySqlConnection(connectionString))
-        {
-            connection.Open();
-
-            MySqlCommand command = new MySqlCommand(query, connection);
-
-            command.Parameters.AddWithValue("@AutorId", Autor.AutorId);
-            command.Parameters.AddWithValue("@Nombres", Autor.Nombres);
-            command.Parameters.AddWithValue("@Apellidos", Autor.Apellidos);
-            command.Parameters.AddWithValue("@Nacionalidad", Autor.Nacionalidad);
-            command.Parameters.AddWithValue("@FechaNacimiento", Autor.FechaNacimiento);
-            command.Parameters.AddWithValue("@Estado", Autor.Estado);
-
-            command.ExecuteNonQuery();
-        }
+        var repository = _autorRepositoryFactory.CreateRepository();
+        repository.Update(Autor);
 
         return RedirectToPage("Autor");
     }

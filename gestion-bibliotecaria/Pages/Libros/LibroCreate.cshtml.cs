@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Validaciones;
+using gestion_bibliotecaria.FactoryProducts;
+using gestion_bibliotecaria.Models;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -17,6 +19,7 @@ public class LibroCreateModel : PageModel
                                               VALUES (@AutorId, @Titulo, @Editorial, @Edicion, @AñoPublicacion, @Descripcion, @Estado, @FechaRegistro)";
 
     private readonly IConfiguration _configuration;
+    private readonly ILibroFactory _libroFactory;
 
     [BindProperty]
     public int AutorId { get; set; }
@@ -41,9 +44,10 @@ public class LibroCreateModel : PageModel
 
     public DataTable Autores { get; set; } = new DataTable();
 
-    public LibroCreateModel(IConfiguration configuration)
+    public LibroCreateModel(IConfiguration configuration, ILibroFactory libroFactory)
     {
         _configuration = configuration;
+        _libroFactory = libroFactory;
     }
 
     public void OnGet()
@@ -102,7 +106,16 @@ public class LibroCreateModel : PageModel
             return Page();
         }
 
-        InsertarLibro();
+        var libro = _libroFactory.CreateForInsert(
+            AutorId,
+            Titulo,
+            Editorial,
+            Edicion,
+            AñoPublicacion,
+            Descripcion,
+            Estado);
+
+        InsertarLibro(libro);
         return Redirect("/Libro");
     }
 
@@ -128,21 +141,21 @@ public class LibroCreateModel : PageModel
         return dataTable;
     }
 
-    private void InsertarLibro()
+    private void InsertarLibro(Libro libro)
     {
         using (var connection = new MySqlConnection(ConnectionString))
         {
             connection.Open();
             using (var command = new MySqlCommand(QueryInsertLibro, connection))
             {
-                command.Parameters.AddWithValue("@AutorId", AutorId);
-                command.Parameters.AddWithValue("@Titulo", Titulo);
-                command.Parameters.AddWithValue("@Editorial", Editorial ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Edicion", Edicion ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@AñoPublicacion", AñoPublicacion ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Descripcion", Descripcion ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Estado", Estado);
-                command.Parameters.AddWithValue("@FechaRegistro", DateTime.Now);
+                command.Parameters.AddWithValue("@AutorId", libro.AutorId);
+                command.Parameters.AddWithValue("@Titulo", libro.Titulo);
+                command.Parameters.AddWithValue("@Editorial", libro.Editorial ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Edicion", libro.Edicion ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@AñoPublicacion", libro.AñoPublicacion ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Descripcion", libro.Descripcion ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Estado", libro.Estado);
+                command.Parameters.AddWithValue("@FechaRegistro", libro.FechaRegistro);
 
                 command.ExecuteNonQuery();
             }
