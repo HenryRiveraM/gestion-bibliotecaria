@@ -12,7 +12,9 @@ public class AutorDeleteModel : PageModel
                                              FROM autor
                                              WHERE AutorId = @AutorId";
 
-    private const string QueryDeleteAutor = "DELETE FROM autor WHERE AutorId = @AutorId";
+    private const string QueryDeleteAutor = @"UPDATE autor
+                                              SET Estado = 0, UltimaActualizacion = @UltimaActualizacion
+                                              WHERE AutorId = @AutorId";
 
     private readonly IConfiguration _configuration;
     private readonly RouteTokenService _routeTokenService;
@@ -60,7 +62,7 @@ public class AutorDeleteModel : PageModel
 
             if (success)
             {
-                return Redirect("/Autores/Autor");
+                return Redirect("/Autor");
             }
 
             ErrorMessage = "No se pudo eliminar el autor.";
@@ -102,6 +104,7 @@ public class AutorDeleteModel : PageModel
 
         using var command = new MySqlCommand(QueryDeleteAutor, connection);
         command.Parameters.AddWithValue("@AutorId", id);
+        command.Parameters.AddWithValue("@UltimaActualizacion", DateTime.Now);
 
         var rowsAffected = await command.ExecuteNonQueryAsync();
         return rowsAffected > 0;
