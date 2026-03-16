@@ -3,10 +3,13 @@ using gestion_bibliotecaria.FactoryProducts;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDataProtection();
+
 builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
 builder.Services.AddScoped<ILibroFactory, LibroFactory>();
 builder.Services.AddScoped<IEjemplarFactory, EjemplarFactory>();
+
+// Registro de Factory Method para Autor
+builder.Services.AddScoped<gestion_bibliotecaria.FactoryCreators.RepositoryFactory<gestion_bibliotecaria.Models.Autor>, gestion_bibliotecaria.FactoryCreators.AutorRepositoryCreator>();
 
 builder.Services.AddRazorPages(options =>
 {
