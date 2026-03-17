@@ -1,7 +1,7 @@
 @page "/Ejemplar"
 @model gestion_bibliotecaria.Pages.EjemplarModel
 @{
-    ViewData["Title"] = "Gestion de Ejemplares";
+    ViewData["Title"] = "Gestión de Ejemplares";
 }
 
 @section Styles {
@@ -14,7 +14,7 @@
 
         <div class="titulo-logo">
             @* <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header"> *@
-            <h1>Gestion de Ejemplares</h1>
+            <h1>Gestión de Ejemplares</h1>
         </div>
 
         <a href="/Ejemplar/Create" class="btn-nuevo">
@@ -27,14 +27,14 @@
     <div class="filtros-barra">
         <div class="filtro-item filtro-buscar">
             <input id="buscador-ejemplar"
-                   type="text"
-                   class="input-filtro"
-                   placeholder="Buscar por codigo, libro, ubicacion o estado..."
-                   autocomplete="off" />
+                    type="text"
+                    class="input-filtro"
+                    placeholder="Buscar por código, libro, ubicación o estado..."
+                    autocomplete="off" />
         </div>
         <div class="filtro-item">
             <select id="orden-ejemplar" class="input-filtro">
-                <option value="codigo_asc">Codigo A-Z</option>
+                <option value="codigo_asc">Código A-Z</option>
                 <option value="titulo_asc">Libro A-Z</option>
             </select>
         </div>
@@ -59,9 +59,9 @@ else
 
             <thead>
                 <tr>
-                    <th>Codigo Ejemplar</th>
+                    <th>Código Ejemplar</th>
                     <th>Libro</th>
-                    <th>Estado Conservación</th>
+                    <th>Estado de Conservación</th>
                     <th>Disponible</th>
                     <th>Dado de Baja</th>
                     <th>Ubicación</th>
@@ -161,7 +161,7 @@ else
 
                 <tr id="fila-sin-resultados" style="display:none;">
                     <td colspan="8" style="text-align:center; padding:20px; color:#9ca3af;">
-                        No hay ejemplares que coincidan con la busqueda.
+                        No hay ejemplares que coincidan con la búsqueda.
                     </td>
                 </tr>
             </tbody>
@@ -192,56 +192,3 @@ else
 }
 
 </div>
-
-@section Scripts {
-<script>
-    (function () {
-        var input = document.getElementById('buscador-ejemplar');
-        var select = document.getElementById('orden-ejemplar');
-        var tabla = document.getElementById('tabla-ejemplar');
-
-        if (!input || !tabla) return;
-
-        function normalizar(s) {
-            return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-        }
-
-        function aplicar() {
-            var termino = normalizar(input.value);
-            var orden = select ? select.value : 'codigo_asc';
-            var tbody = tabla.querySelector('tbody');
-            var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
-
-            // Ordenar
-            var colIndex = orden.startsWith('titulo') ? 1 : 0;
-            var asc = orden.endsWith('_asc');
-            filas.sort(function (a, b) {
-                var va = normalizar(a.cells[colIndex] ? a.cells[colIndex].textContent : '');
-                var vb = normalizar(b.cells[colIndex] ? b.cells[colIndex].textContent : '');
-                return asc ? va.localeCompare(vb) : vb.localeCompare(va);
-            });
-            filas.forEach(function (f) { tbody.appendChild(f); });
-
-            // Filtrar
-            var visibles = 0;
-            filas.forEach(function (fila) {
-                var texto = normalizar(fila.textContent);
-                var coincide = termino === '' || texto.includes(termino);
-                fila.style.display = coincide ? '' : 'none';
-                if (coincide) visibles++;
-            });
-
-            var sinResultados = document.getElementById('fila-sin-resultados');
-            if (sinResultados) {
-                sinResultados.style.display = visibles === 0 ? '' : 'none';
-                tbody.appendChild(sinResultados);
-            }
-        }
-
-        input.addEventListener('input', aplicar);
-        if (select) select.addEventListener('change', aplicar);
-
-        aplicar();
-    })();
-</script>
-}

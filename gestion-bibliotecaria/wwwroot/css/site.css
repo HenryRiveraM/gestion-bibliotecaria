@@ -54,6 +54,66 @@ body{
     background:#020617;
 }
 
+/* ===== DROPDOWN ===== */
+
+.dropdown-menu.custom-dropdown-menu{
+    background:#1c1c1c;
+    border:1px solid #1e293b;
+    border-radius:10px;
+    padding:8px;
+    min-width:145px;
+    margin-top:10px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.45);
+}
+
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item{
+    color:#e5e7eb;
+    border-radius:8px;
+    padding:10px 14px;
+    font-weight:500;
+    transition:all .2s ease;
+}
+
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item:hover,
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item:focus{
+    background:#00A67E;
+    color:#ffffff;
+}
+
+.dropdown-menu.custom-dropdown-menu .dropdown-item.custom-dropdown-item:active{
+    background:#008f6c;
+    color:#ffffff;
+}
+
+/* Hace que el botón Biblioteca quede marcado mientras el dropdown está abierto */
+.nav-item.dropdown.show .nav-btn,
+.nav-item.dropdown .nav-link.show{
+    background:#00A67E;
+    color:#ffffff !important;
+}
+
+.nav-item.dropdown.show .nav-btn img,
+.nav-item.dropdown .nav-link.show img{
+    filter:brightness(0) invert(1);
+}
+
+/* Quita el fondo blanco raro del dropdown de Bootstrap */
+.dropdown-menu{
+    --bs-dropdown-bg:#1c1c1c;
+    --bs-dropdown-border-color:#1e293b;
+    --bs-dropdown-link-hover-bg:#00A67E;
+    --bs-dropdown-link-hover-color:#ffffff;
+    --bs-dropdown-link-active-bg:#008f6c;
+    --bs-dropdown-link-active-color:#ffffff;
+    --bs-dropdown-color:#e5e7eb;
+}
+
+/* Flechita del dropdown en blanco */
+.dropdown-toggle::after{
+    vertical-align:middle;
+    margin-left:6px;
+    border-top-color:#ffffff;
+}
 
 .main-content{
     padding-top:30px;
@@ -70,7 +130,6 @@ body{
     box-shadow:0 4px 10px rgba(0,0,0,0.4);
     padding:20px;
 }
-
 
 table{
     color:#e5e7eb;
