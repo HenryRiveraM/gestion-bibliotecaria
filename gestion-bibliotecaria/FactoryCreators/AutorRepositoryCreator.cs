@@ -8,6 +8,7 @@ public class AutorRepositoryCreator : RepositoryFactory<Autor>
     private readonly IConfiguration _configuration;
 
     public AutorRepositoryCreator(IConfiguration configuration)
+        : base(configuration.GetConnectionString("DefaultConnection")!)
     {
         _configuration = configuration;
     }
