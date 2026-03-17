@@ -52,24 +52,40 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Ejemplar">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+
                             <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Ejemplar
+                            Biblioteca
                         </a>
+
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="/Ejemplar">
+                                    Ejemplares
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/Libro">
+                                    Libros
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="/Autor">
+                                    Autores
+                                </a>
+                            </li>
+                        </ul>
                     </li>
 
                     <li class="nav-item">
-                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Libro">
-                            <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Libros
-                        </a>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Autor">
+                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="#">
                             <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Autores
+                            Prestamos
                         </a>
                     </li>
 
