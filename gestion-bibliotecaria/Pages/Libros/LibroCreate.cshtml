@@ -14,8 +14,6 @@
     <!-- HEADER -->
     <div class="page-header">
         <div class="titulo-logo">
-            @* <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" *@
-                    < img class="icono-header">
             <h1>Nuevo Libro</h1>
         </div>
     </div>
@@ -31,25 +29,37 @@
 
                 <label asp-for="AutorId">Autor</label>
 
-                <select asp-for="AutorId"
-                        class="input-form"
-                        required>
+                <div class="custom-select-wrapper">
+                    <input type="hidden" id="autor-value" name="AutorId" />
 
-                    <option value="">Seleccione un autor...</option>
+                    <div class="custom-select" id="custom-select-autor">
+                        <div class="select-trigger">
+                            <span id="autor-text">Seleccione un autor...</span>
+                            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
 
-                    @foreach (DataRow row in Model.Autores.Rows)
-                    {
-                        var autorId = (int)row["AutorId"];
-                        var nombres = row["Nombres"]?.ToString() ?? "";
-                        var apellidos = row["Apellidos"]?.ToString() ?? "";
-                        var nacionalidad = row["Nacionalidad"] as string;
+                        <div class="select-dropdown">
+                            <input type="text" class="select-search" id="autor-search" placeholder="Buscar autor..." />
 
-                        <option value="@autorId">
-                            @apellidos, @nombres @(nacionalidad != null ? $"({nacionalidad})" : "")
-                        </option>
-                    }
+                            <div class="select-options" id="autor-options">
+                                @foreach (DataRow row in Model.Autores.Rows)
+                                {
+                                    var autorId = (int)row["AutorId"];
+                                    var nombres = row["Nombres"]?.ToString() ?? "";
+                                    var apellidos = row["Apellidos"]?.ToString() ?? "";
+                                    var nacionalidad = row["Nacionalidad"] as string;
+                                    var displayText = $"{apellidos}, {nombres}{(nacionalidad != null ? $" ({nacionalidad})" : "")}";
 
-                </select>
+                                    <div class="option" data-value="@autorId" data-text="@displayText">
+                                        @displayText
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </div>
 
@@ -150,9 +160,7 @@
             <!-- AÑO PUBLICACION -->
             <div class="form-group">
 
-                <label asp-for="AñoPublicacion">
-                    Año de Publicación
-                </label>
+                <label asp-for="AñoPublicacion">Año de Publicación</label>
 
                 <input asp-for="AñoPublicacion"
                         class="input-form"
@@ -167,9 +175,7 @@
             <!-- DESCRIPCION -->
             <div class="form-group">
 
-                <label asp-for="Descripcion">
-                    Descripción
-                </label>
+                <label asp-for="Descripcion">Descripción</label>
 
                 <textarea asp-for="Descripcion"
                             class="input-form"
@@ -190,7 +196,7 @@
                         type="checkbox"
                         checked />
 
-                <label>
+                <label asp-for="Estado">
                     Activo en el sistema
                 </label>
 
@@ -200,13 +206,11 @@
             <!-- BOTONES -->
             <div class="form-actions">
 
-                <button type="submit"
-                        class="btn-guardar">
+                <button type="submit" class="btn-guardar">
                     Guardar
                 </button>
 
-                <a href="/Libro"
-                    class="btn-cancelar">
+                <a href="/Libro" class="btn-cancelar">
                     Cancelar
                 </a>
 
@@ -220,101 +224,127 @@
 
 @section Scripts {
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const customSelect = document.getElementById('custom-select-edicion');
-            const trigger = customSelect.querySelector('.select-trigger');
-            const dropdown = customSelect.querySelector('.select-dropdown');
-            const search = customSelect.querySelector('.select-search');
-            const options = customSelect.querySelectorAll('.option');
-            const hiddenInput = document.getElementById('edicion-value');
-            const selectText = document.getElementById('select-text');
-            let isOpen = false;
+        document.addEventListener('DOMContentLoaded', function () {
 
-            // Toggle dropdown
-            trigger.addEventListener('click', function(e) {
-                e.stopPropagation();
-                isOpen = !isOpen;
-                customSelect.classList.toggle('active', isOpen);
-                if (isOpen) {
-                    search.focus();
-                    search.value = '';
-                    options.forEach(opt => opt.classList.remove('hidden'));
-                }
-            });
+            // =====================
+            // HELPER: inicializar custom select con búsqueda
+            // =====================
+            function initCustomSelect({ wrapperId, searchId, hiddenInputId, displayTextId }) {
+                const customSelect = document.getElementById(wrapperId);
+                const trigger = customSelect.querySelector('.select-trigger');
+                const dropdown = customSelect.querySelector('.select-dropdown');
+                const search = document.getElementById(searchId);
+                const options = customSelect.querySelectorAll('.option');
+                const hiddenInput = document.getElementById(hiddenInputId);
+                const selectText = document.getElementById(displayTextId);
+                let isOpen = false;
 
-            // Close when clicking outside
-            document.addEventListener('click', function(e) {
-                if (!customSelect.contains(e.target)) {
-                    isOpen = false;
-                    customSelect.classList.remove('active');
-                }
-            });
-
-            // Search functionality
-            search.addEventListener('input', function() {
-                const searchTerm = this.value.toLowerCase();
-                options.forEach(option => {
-                    const text = option.textContent.toLowerCase();
-                    option.classList.toggle('hidden', !text.includes(searchTerm));
-                });
-            });
-
-            // Select option
-            options.forEach(option => {
-                option.addEventListener('click', function(e) {
+                // Toggle dropdown
+                trigger.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    const value = this.dataset.value;
-                    const text = this.textContent;
-                    hiddenInput.value = value;
-                    selectText.textContent = text;
-                    isOpen = false;
-                    customSelect.classList.remove('active');
-
-                    // Trigger change event for validation
-                    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    isOpen = !isOpen;
+                    customSelect.classList.toggle('active', isOpen);
+                    if (isOpen) {
+                        search.focus();
+                        search.value = '';
+                        options.forEach(opt => opt.classList.remove('hidden'));
+                    }
                 });
 
-                // Keyboard navigation
-                option.addEventListener('mouseenter', function() {
-                    options.forEach(opt => opt.classList.remove('highlight'));
-                    this.classList.add('highlight');
+                // Cerrar al hacer click fuera
+                document.addEventListener('click', function (e) {
+                    if (!customSelect.contains(e.target)) {
+                        isOpen = false;
+                        customSelect.classList.remove('active');
+                    }
                 });
-            });
 
-            // Arrow key navigation
-            search.addEventListener('keydown', function(e) {
-                const visibleOptions = Array.from(options).filter(opt => !opt.classList.contains('hidden'));
-                const currentIndex = visibleOptions.findIndex(opt => opt.classList.contains('highlight'));
+                // Búsqueda / filtro mientras escribe
+                search.addEventListener('input', function () {
+                    const searchTerm = this.value.toLowerCase();
+                    options.forEach(option => {
+                        const text = option.textContent.toLowerCase();
+                        option.classList.toggle('hidden', !text.includes(searchTerm));
+                    });
+                });
 
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    const nextIndex = Math.min(currentIndex + 1, visibleOptions.length - 1);
-                    visibleOptions.forEach(opt => opt.classList.remove('highlight'));
-                    visibleOptions[nextIndex].classList.add('highlight');
-                    visibleOptions[nextIndex].scrollIntoView({ block: 'nearest' });
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    const prevIndex = Math.max(currentIndex - 1, 0);
-                    visibleOptions.forEach(opt => opt.classList.remove('highlight'));
-                    visibleOptions[prevIndex].classList.add('highlight');
-                    visibleOptions[prevIndex].scrollIntoView({ block: 'nearest' });
-                } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const highlighted = Array.from(options).find(opt => opt.classList.contains('highlight'));
-                    if (highlighted) {
-                        highlighted.click();
+                // Seleccionar opción
+                options.forEach(option => {
+                    option.addEventListener('click', function (e) {
+                        e.stopPropagation();
+                        const value = this.dataset.value;
+                        const text = this.dataset.text || this.textContent.trim();
+                        hiddenInput.value = value;
+                        selectText.textContent = text;
+                        isOpen = false;
+                        customSelect.classList.remove('active');
+                        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
+                    option.addEventListener('mouseenter', function () {
+                        options.forEach(opt => opt.classList.remove('highlight'));
+                        this.classList.add('highlight');
+                    });
+                });
+
+                // Navegación con teclado
+                search.addEventListener('keydown', function (e) {
+                    const visibleOptions = Array.from(options).filter(opt => !opt.classList.contains('hidden'));
+                    const currentIndex = visibleOptions.findIndex(opt => opt.classList.contains('highlight'));
+
+                    if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        const nextIndex = Math.min(currentIndex + 1, visibleOptions.length - 1);
+                        visibleOptions.forEach(opt => opt.classList.remove('highlight'));
+                        if (visibleOptions[nextIndex]) {
+                            visibleOptions[nextIndex].classList.add('highlight');
+                            visibleOptions[nextIndex].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        const prevIndex = Math.max(currentIndex - 1, 0);
+                        visibleOptions.forEach(opt => opt.classList.remove('highlight'));
+                        if (visibleOptions[prevIndex]) {
+                            visibleOptions[prevIndex].classList.add('highlight');
+                            visibleOptions[prevIndex].scrollIntoView({ block: 'nearest' });
+                        }
+                    } else if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const highlighted = Array.from(options).find(opt => opt.classList.contains('highlight'));
+                        if (highlighted) highlighted.click();
+                    }
+                });
+
+                // Valor inicial si ya existe
+                const initialValue = hiddenInput.value;
+                if (initialValue) {
+                    const matched = Array.from(options).find(opt => opt.dataset.value === initialValue);
+                    if (matched) {
+                        selectText.textContent = matched.dataset.text || matched.textContent.trim();
                     }
                 }
+            }
+
+            // =====================
+            // Inicializar AUTOR
+            // =====================
+            initCustomSelect({
+                wrapperId: 'custom-select-autor',
+                searchId: 'autor-search',
+                hiddenInputId: 'autor-value',
+                displayTextId: 'autor-text'
             });
 
-            // Set initial value if exists
-            const initialValue = hiddenInput.value;
-            if (initialValue) {
-                const matchedOption = Array.from(options).find(opt => opt.dataset.value === initialValue);
-                if (matchedOption) {
-                    selectText.textContent = matchedOption.textContent;
-                }
-            }
+            // =====================
+            // Inicializar EDICIÓN
+            // =====================
+            initCustomSelect({
+                wrapperId: 'custom-select-edicion',
+                searchId: 'edicion-search',
+                hiddenInputId: 'edicion-value',
+                displayTextId: 'select-text'
+            });
+
         });
     </script>
-    }
+}
