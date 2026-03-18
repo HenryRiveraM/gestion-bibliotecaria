@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
 builder.Services.AddScoped<ILibroFactory, LibroFactory>();
+builder.Services.AddScoped<IEjemplarFactory, EjemplarFactory>();
 
 // Registro de Factory Method para Autor impelmtar using para <gestion_bibliotecaria.FactoryCreators.
 builder.Services.AddScoped<RepositoryFactory<Autor,int>, AutorRepositoryCreator>();
