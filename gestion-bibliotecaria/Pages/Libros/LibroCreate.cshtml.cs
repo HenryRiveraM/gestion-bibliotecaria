@@ -20,7 +20,13 @@ public class LibroCreateModel : PageModel
 
     private readonly IConfiguration _configuration;
     private readonly ILibroFactory _libroFactory;
-
+    
+    public LibroCreateModel(IConfiguration configuration, ILibroFactory libroFactory)
+    {
+        _configuration = configuration;
+        _libroFactory = libroFactory;
+    }
+    
     [BindProperty]
     public int AutorId { get; set; }
 
@@ -43,12 +49,6 @@ public class LibroCreateModel : PageModel
     public bool Estado { get; set; } = true;
 
     public DataTable Autores { get; set; } = new DataTable();
-
-    public LibroCreateModel(IConfiguration configuration, ILibroFactory libroFactory)
-    {
-        _configuration = configuration;
-        _libroFactory = libroFactory;
-    }
 
     public void OnGet()
     {
