@@ -1,5 +1,6 @@
 using System.Data;
 using MySql.Data.MySqlClient;
+using gestion_bibliotecaria.Models;
 
 namespace gestion_bibliotecaria.FactoryProducts;
 
@@ -10,6 +11,14 @@ public class LibroRepository
                                          ORDER BY Titulo ASC";
 
     private const string QueryAutores = "SELECT AutorId, Nombres, Apellidos FROM autor";
+
+    private const string QueryAutoresActivos = @"SELECT AutorId, Nombres, Apellidos, Nacionalidad
+                                                 FROM autor
+                                                 WHERE Estado = 1
+                                                 ORDER BY Apellidos, Nombres";
+
+    private const string QueryInsertLibro = @"INSERT INTO libro (AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro)
+                                              VALUES (@AutorId, @Titulo, @Editorial, @Edicion, @AñoPublicacion, @Descripcion, @Estado, @FechaRegistro)";
 
     private readonly IConfiguration _configuration;
 
@@ -62,5 +71,45 @@ public class LibroRepository
         }
 
         return autores;
+    }
+
+    public DataTable ObtenerAutoresActivos()
+    {
+        var dataTable = new DataTable();
+
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+            using (var command = new MySqlCommand(QueryAutoresActivos, connection))
+            {
+                using (var adapter = new MySqlDataAdapter(command))
+                {
+                    adapter.Fill(dataTable);
+                }
+            }
+        }
+
+        return dataTable;
+    }
+
+    public void InsertarLibro(Libro libro)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+            using (var command = new MySqlCommand(QueryInsertLibro, connection))
+            {
+                command.Parameters.AddWithValue("@AutorId", libro.AutorId);
+                command.Parameters.AddWithValue("@Titulo", libro.Titulo);
+                command.Parameters.AddWithValue("@Editorial", libro.Editorial ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Edicion", libro.Edicion ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@AñoPublicacion", libro.AñoPublicacion ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Descripcion", libro.Descripcion ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@Estado", libro.Estado);
+                command.Parameters.AddWithValue("@FechaRegistro", libro.FechaRegistro);
+
+                command.ExecuteNonQuery();
+            }
+        }
     }
 }

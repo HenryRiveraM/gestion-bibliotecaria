@@ -1,30 +1,20 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
-using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Validaciones;
 using gestion_bibliotecaria.FactoryProducts;
-using gestion_bibliotecaria.Models;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class LibroCreateModel : PageModel
 {
-    private const string QueryAutores = @"SELECT AutorId, Nombres, Apellidos, Nacionalidad
-                                         FROM autor
-                                         WHERE Estado = 1
-                                         ORDER BY Apellidos, Nombres";
-
-    private const string QueryInsertLibro = @"INSERT INTO libro (AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro)
-                                              VALUES (@AutorId, @Titulo, @Editorial, @Edicion, @AñoPublicacion, @Descripcion, @Estado, @FechaRegistro)";
-
-    private readonly IConfiguration _configuration;
     private readonly ILibroFactory _libroFactory;
+    private readonly LibroRepository _repository;
     
-    public LibroCreateModel(IConfiguration configuration, ILibroFactory libroFactory)
+    public LibroCreateModel(ILibroFactory libroFactory, LibroRepository repository)
     {
-        _configuration = configuration;
         _libroFactory = libroFactory;
+        _repository = repository;
     }
     
     [BindProperty]
@@ -115,55 +105,12 @@ public class LibroCreateModel : PageModel
             Descripcion,
             Estado);
 
-        InsertarLibro(libro);
+        _repository.InsertarLibro(libro);
         return Redirect("/Libro");
-    }
-
-    private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-    private DataTable ObtenerAutores()
-    {
-        var dataTable = new DataTable();
-
-        using (var connection = new MySqlConnection(ConnectionString))
-        {
-            connection.Open();
-            using (var command = new MySqlCommand(QueryAutores, connection))
-            {
-                using (var adapter = new MySqlDataAdapter(command))
-                {
-                    adapter.Fill(dataTable);
-                }
-            }
-        }
-
-        return dataTable;
-    }
-
-    private void InsertarLibro(Libro libro)
-    {
-        using (var connection = new MySqlConnection(ConnectionString))
-        {
-            connection.Open();
-            using (var command = new MySqlCommand(QueryInsertLibro, connection))
-            {
-                command.Parameters.AddWithValue("@AutorId", libro.AutorId);
-                command.Parameters.AddWithValue("@Titulo", libro.Titulo);
-                command.Parameters.AddWithValue("@Editorial", libro.Editorial ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Edicion", libro.Edicion ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@AñoPublicacion", libro.AñoPublicacion ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Descripcion", libro.Descripcion ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@Estado", libro.Estado);
-                command.Parameters.AddWithValue("@FechaRegistro", libro.FechaRegistro);
-
-                command.ExecuteNonQuery();
-            }
-        }
     }
 
     private void CargarPagina()
     {
-        Autores = ObtenerAutores();
+        Autores = _repository.ObtenerAutoresActivos();
     }
 }
