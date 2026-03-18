@@ -13,7 +13,6 @@
     <div class="page-header">
 
         <div class="titulo-logo">
-            @* <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header"> *@
             <h1>Gestión de Ejemplares</h1>
         </div>
 
@@ -27,10 +26,10 @@
     <div class="filtros-barra">
         <div class="filtro-item filtro-buscar">
             <input id="buscador-ejemplar"
-                    type="text"
-                    class="input-filtro"
-                    placeholder="Buscar por código, libro, ubicación o estado..."
-                    autocomplete="off" />
+                   type="text"
+                   class="input-filtro"
+                   placeholder="Buscar por código, libro, ubicación o estado..."
+                   autocomplete="off" />
         </div>
         <div class="filtro-item">
             <select id="orden-ejemplar" class="input-filtro">
@@ -76,9 +75,7 @@ else
             {
                 <tr class="@(ejemplar.DadoDeBaja ? "fila-baja" : "")">
 
-                    <td>
-                        <strong>@ejemplar.CodigoInventario</strong>
-                    </td>
+                    <td><strong>@ejemplar.CodigoInventario</strong></td>
 
                     <td>
                         @if (Model.LibrosTitulos.TryGetValue(ejemplar.LibroId, out var tituloLibro))
@@ -108,7 +105,6 @@ else
                         @if (ejemplar.DadoDeBaja)
                         {
                             <span class="estado baja">Baja</span>
-
                             @if (!string.IsNullOrEmpty(ejemplar.MotivoBaja))
                             {
                                 <br />
@@ -137,22 +133,23 @@ else
                     <td class="acciones">
 
                         <a href="/Ejemplar/Edit/@ejemplar.RouteToken"
-                            class="btn-editar">
+                           class="btn-editar">
 
                             <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                    class="icono-btn">
+                                 class="icono-btn">
 
                             Editar
                         </a>
 
-                        <a href="/Ejemplar/Delete/@ejemplar.RouteToken"
-                            class="btn-eliminar">
+                        <!-- BOTON MODAL -->
+                        <button class="btn-eliminar"
+                                onclick="abrirModalEliminar('@ejemplar.RouteToken')">
 
                             <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                    class="icono-btn">
+                                 class="icono-btn">
 
                             Eliminar
-                        </a>
+                        </button>
 
                     </td>
 
@@ -164,6 +161,7 @@ else
                         No hay ejemplares que coincidan con la búsqueda.
                     </td>
                 </tr>
+
             </tbody>
 
         </table>
@@ -172,23 +170,63 @@ else
 
     <div class="estadisticas">
 
-        <div class="stat stat-info">
-            Total ejemplares: @total
-        </div>
-
-        <div class="stat stat-success">
-            Disponibles: @disponibles
-        </div>
-
-        <div class="stat stat-warning">
-            No disponibles: @noDisponibles
-        </div>
-
-        <div class="stat stat-danger">
-            Dados de baja: @dadosDeBaja
-        </div>
+        <div class="stat stat-info">Total ejemplares: @total</div>
+        <div class="stat stat-success">Disponibles: @disponibles</div>
+        <div class="stat stat-warning">No disponibles: @noDisponibles</div>
+        <div class="stat stat-danger">Dados de baja: @dadosDeBaja</div>
 
     </div>
 }
 
 </div>
+
+<!-- 🔥 MODAL -->
+<div id="modalEliminar" class="modal">
+
+    <div class="modal-box">
+
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>¿Estás seguro de que quieres eliminar este ejemplar?</h2>
+
+        <p>Esta acción no se puede deshacer.</p>
+
+        <div class="modal-buttons">
+
+            <a id="btnConfirmarEliminar" class="btn-danger">
+                Sí, eliminar
+            </a>
+
+            <button class="btn-secondary" onclick="cerrarModalEliminar()">
+                Cancelar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+<script>
+function abrirModalEliminar(token) {
+    var url = "/Ejemplar/Delete/" + token;
+    document.getElementById("btnConfirmarEliminar").href = url;
+    document.getElementById("modalEliminar").style.display = "flex";
+}
+
+function cerrarModalEliminar() {
+    document.getElementById("modalEliminar").style.display = "none";
+}
+
+window.onclick = function(e) {
+    var modal = document.getElementById("modalEliminar");
+    if (e.target === modal) {
+        cerrarModalEliminar();
+    }
+}
+</script>
+}
