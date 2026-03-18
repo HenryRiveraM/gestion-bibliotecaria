@@ -13,9 +13,9 @@
     <div class="page-header">
 
         <div class="titulo-logo">
-            @* <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header"> *@
             <h1>Gestión de Autores</h1>
         </div>
+
         <a asp-page="AutorCreate" class="btn-nuevo">
             <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
             Nuevo Autor
@@ -28,9 +28,10 @@
             <input id="buscador-autor"
                    type="text"
                    class="input-filtro"
-                   placeholder="Buscar por nombre, apellido o nacionalidad..."
+                   placeholder="Buscar..."
                    autocomplete="off" />
         </div>
+
         <div class="filtro-item">
             <select id="orden-autor" class="input-filtro">
                 <option value="apellido_asc">Apellidos A-Z</option>
@@ -45,10 +46,7 @@
 
             <thead>
                 <tr>
-                    <th>
-                        <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header">
-                        Nombres
-                    </th>
+                    <th>Nombres</th>
                     <th>Apellidos</th>
                     <th>Nacionalidad</th>
                     <th>Fecha Nacimiento</th>
@@ -66,7 +64,7 @@
                         <td>@row["Nombres"]</td>
                         <td>@row["Apellidos"]</td>
                         <td>@row["Nacionalidad"]</td>
-                        <td>@(row.IsNull("FechaNacimiento") ? string.Empty : ((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))</td>
+                        <td>@(row.IsNull("FechaNacimiento") ? "" : ((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))</td>
 
                         <td>
                             @if ((bool)row["Estado"])
@@ -83,33 +81,29 @@
 
                             <a asp-page="AutorEdit"
                                 asp-route-token="@row["AutorToken"]"
-                                class="btn-editar">
+                                    class="btn-editar">
 
                                 <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                        class="icono-btn">
+                                class="icono-btn">
 
                                 Editar
                             </a>
 
-                            <a asp-page="AutorDelete"
-                                asp-route-token="@row["AutorToken"]"
-                                class="btn-eliminar">
+                        <!-- BOTON MODAL ELIMINAR -->
+                            <button class="btn-eliminar"
+                                onclick="abrirModal('@row["AutorToken"]')">
 
                                 <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                        class="icono-btn">
+                                    class="icono-btn">
 
                                 Eliminar
-                            </a>
+                            </button>
 
-                        </td>
+</td>
 
                     </tr>
                 }
-                    <tr id="fila-sin-resultados" style="display:none;">
-                        <td colspan="6" style="text-align:center; padding:20px; color:#9ca3af;">
-                            No hay autores que coincidan con la búsqueda.
-                        </td>
-                    </tr>
+
             </tbody>
 
         </table>
@@ -118,64 +112,46 @@
 
 </div>
 
+<!-- Modal eliminar -->
+<div id="modalEliminar" class="modal">
+
+    <div class="modal-box">
+
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                class="icono-modal">
+        </div>
+
+        <h2>¿Estás seguro de que quieres eliminar este autor?</h2>
+
+        <p>Esta acción no se puede deshacer.</p>
+
+        <div class="modal-buttons">
+
+            <a id="btnConfirmarEliminar" class="btn-danger">
+                Sí, eliminar
+            </a>
+
+            <button class="btn-secondary" onclick="cerrarModal()">
+                Cancelar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
 @section Scripts {
     <script>
-        (function () {
+        function abrirModal(token) {
+            var url = "/Autores/AutorDelete?token=" + token;
+            document.getElementById("btnConfirmarEliminar").href = url;
+            document.getElementById("modalEliminar").style.display = "flex";
+        }
 
-            var input = document.getElementById('buscador-autor');
-            var select = document.getElementById('orden-autor');
-            var tabla = document.getElementById('tabla-autor');
-
-            if (!input || !tabla) return;
-
-            function normalizar(s) {
-                return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-            }
-
-            function aplicar() {
-
-                var termino = normalizar(input.value);
-                var orden = select ? select.value : 'apellido_asc';
-
-                var tbody = tabla.querySelector('tbody');
-                var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
-
-                // ORDENAR
-                var colIndex = orden.startsWith('apellido') ? 1 : 0;
-
-                filas.sort(function (a, b) {
-                    var va = normalizar(a.cells[colIndex] ? a.cells[colIndex].textContent : '');
-                    var vb = normalizar(b.cells[colIndex] ? b.cells[colIndex].textContent : '');
-                    return va.localeCompare(vb);
-                });
-
-                filas.forEach(function (f) { tbody.appendChild(f); });
-
-                // FILTRAR
-                var visibles = 0;
-
-                filas.forEach(function (fila) {
-                    var texto = normalizar(fila.textContent);
-                    var coincide = termino === '' || texto.includes(termino);
-                    fila.style.display = coincide ? '' : 'none';
-                    if (coincide) visibles++;
-                });
-
-                var sinResultados = document.getElementById('fila-sin-resultados');
-
-                if (sinResultados) {
-                    sinResultados.style.display = visibles === 0 ? '' : 'none';
-                    tbody.appendChild(sinResultados);
-                }
-
-            }
-
-            input.addEventListener('input', aplicar);
-            if (select) select.addEventListener('change', aplicar);
-
-            aplicar();
-
-        })();
+        function cerrarModal() {
+            document.getElementById("modalEliminar").style.display = "none";
+        }
     </script>
 }

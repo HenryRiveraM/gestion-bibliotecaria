@@ -14,12 +14,12 @@
     <div class="page-header">
 
         <div class="titulo-logo">
-            @* <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header"> *@
             <h1>Gestión de Libros</h1>
         </div>
 
         <a href="/Libro/Create" class="btn-nuevo">
-            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn icon-white">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-btn icon-white">
             Nuevo Libro
         </a>
 
@@ -35,6 +35,7 @@ else
 {
     var total = Model.Libros.Rows.Count;
     var activos = 0;
+
     foreach (DataRow row in Model.Libros.Rows)
     {
         if (row.Field<bool>("Estado"))
@@ -42,6 +43,7 @@ else
             activos++;
         }
     }
+
     var inactivos = total - activos;
 
     <div class="filtros-barra">
@@ -52,6 +54,7 @@ else
                    placeholder="Buscar por título, autor, editorial o estado..."
                    autocomplete="off" />
         </div>
+
         <div class="filtro-item">
             <select id="orden-libro" class="input-filtro">
                 <option value="titulo_asc">Título A-Z</option>
@@ -78,7 +81,7 @@ else
 
             <tbody>
 
-            @foreach (System.Data.DataRow row in Model.Libros.Rows)
+            @foreach (DataRow row in Model.Libros.Rows)
             {
                 var libroToken = row.Field<string>("LibroToken") ?? string.Empty;
                 var autorId = row.Field<int>("AutorId");
@@ -90,9 +93,7 @@ else
 
                 <tr class="@(!estado ? "fila-inactiva" : "")">
 
-                    <td>
-                        <strong>@titulo</strong>
-                    </td>
+                    <td><strong>@titulo</strong></td>
 
                     <td>
                         @if (Model.AutoresNombres.TryGetValue(autorId, out var nombreAutor))
@@ -123,20 +124,20 @@ else
                     <td class="acciones">
 
                         <a href="/Libro/Edit/@libroToken" class="btn-editar">
-
                             <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                  class="icono-btn icon-white">
-
                             Editar
                         </a>
 
-                        <a href="/Libro/Delete/@libroToken" class="btn-eliminar">
+                        <!-- BOTON MODAL -->
+                        <button class="btn-eliminar"
+                                onclick="abrirModalEliminar('@libroToken')">
 
                             <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                  class="icono-btn icon-white">
 
                             Eliminar
-                        </a>
+                        </button>
 
                     </td>
 
@@ -156,21 +157,41 @@ else
     </div>
 
     <div class="estadisticas">
+        <div class="stat stat-info">Total libros: @total</div>
+        <div class="stat stat-success">Activos: @activos</div>
+        <div class="stat stat-secondary">Inactivos: @inactivos</div>
+    </div>
+}
 
-        <div class="stat stat-info">
-            Total libros: @total
+</div>
+
+<!-- MODAL -->
+<div id="modalEliminar" class="modal">
+
+    <div class="modal-box">
+
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
         </div>
 
-        <div class="stat stat-success">
-            Activos: @activos
-        </div>
+        <h2>¿Estás seguro de que quieres eliminar este libro?</h2>
 
-        <div class="stat stat-secondary">
-            Inactivos: @inactivos
+        <p>Esta acción no se puede deshacer.</p>
+
+        <div class="modal-buttons">
+
+            <a id="btnConfirmarEliminar" class="btn-danger">
+                Sí, eliminar
+            </a>
+
+            <button class="btn-secondary" onclick="cerrarModalEliminar()">
+                Cancelar
+            </button>
+
         </div>
 
     </div>
-}
 
 </div>
 
@@ -190,21 +211,22 @@ else
         function aplicar() {
             var termino = normalizar(input.value);
             var orden = select ? select.value : 'titulo_asc';
+
             var tbody = tabla.querySelector('tbody');
             var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
 
-            // Ordenar
-            var colIndex = 0; // Columna Título
             var asc = orden.endsWith('_asc');
+
             filas.sort(function (a, b) {
-                var va = normalizar(a.cells[colIndex] ? a.cells[colIndex].textContent : '');
-                var vb = normalizar(b.cells[colIndex] ? b.cells[colIndex].textContent : '');
+                var va = normalizar(a.cells[0].textContent);
+                var vb = normalizar(b.cells[0].textContent);
                 return asc ? va.localeCompare(vb) : vb.localeCompare(va);
             });
-            filas.forEach(function (f) { tbody.appendChild(f); });
 
-            // Filtrar
+            filas.forEach(f => tbody.appendChild(f));
+
             var visibles = 0;
+
             filas.forEach(function (fila) {
                 var texto = normalizar(fila.textContent);
                 var coincide = termino === '' || texto.includes(termino);
@@ -213,6 +235,7 @@ else
             });
 
             var sinResultados = document.getElementById('fila-sin-resultados');
+
             if (sinResultados) {
                 sinResultados.style.display = visibles === 0 ? '' : 'none';
                 tbody.appendChild(sinResultados);
@@ -224,5 +247,23 @@ else
 
         aplicar();
     })();
+
+    function abrirModalEliminar(token) {
+        var url = "/Libro/Delete/" + token;
+        document.getElementById("btnConfirmarEliminar").href = url;
+        document.getElementById("modalEliminar").style.display = "flex";
+    }
+
+    function cerrarModalEliminar() {
+        document.getElementById("modalEliminar").style.display = "none";
+    }
+
+    // cerrar al hacer click fuera
+    window.onclick = function(e) {
+        var modal = document.getElementById("modalEliminar");
+        if (e.target === modal) {
+            cerrarModalEliminar();
+        }
+    }
 </script>
 }
