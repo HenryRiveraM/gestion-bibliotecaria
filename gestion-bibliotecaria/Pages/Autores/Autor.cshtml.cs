@@ -11,7 +11,7 @@ public class AutorModel : PageModel
 {
     public DataTable AutorDataTable { get; set; } = new DataTable();
 
-    private readonly RepositoryFactory<Autor> _autorRepositoryFactory;
+    private readonly RepositoryFactory<Autor,int> _autorRepositoryFactory;
     private readonly RouteTokenService _routeTokenService;
 
     [BindProperty(SupportsGet = true)]
@@ -20,7 +20,7 @@ public class AutorModel : PageModel
     [BindProperty(SupportsGet = true)]
     public string? Orden { get; set; }
 
-    public AutorModel(RepositoryFactory<Autor> autorRepositoryFactory, RouteTokenService routeTokenService)
+    public AutorModel(RepositoryFactory<Autor,int> autorRepositoryFactory, RouteTokenService routeTokenService)
     {
         _autorRepositoryFactory = autorRepositoryFactory;
         _routeTokenService = routeTokenService;
