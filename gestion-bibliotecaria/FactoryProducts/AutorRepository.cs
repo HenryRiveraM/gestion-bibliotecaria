@@ -4,7 +4,7 @@ using MySql.Data.MySqlClient;
 
 namespace gestion_bibliotecaria.FactoryProducts;
 
-public class AutorRepository : ILibraryRepository<Autor>
+public class AutorRepository : IRepository<Autor,int>
 {
     private readonly string _connectionString;
 

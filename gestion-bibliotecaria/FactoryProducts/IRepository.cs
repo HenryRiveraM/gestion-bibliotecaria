@@ -1,11 +1,11 @@
 using System.Data;
 
 namespace gestion_bibliotecaria.FactoryProducts;
-public interface ILibraryRepository<T>// nom interface
+public interface IRepository<T,TId>
 {
     DataTable GetAll();
     void Insert(T t);
     void Update(T t);
     void Delete(T t);
-    T? GetById(int id); // generico
+    T? GetById(TId id); 
 }

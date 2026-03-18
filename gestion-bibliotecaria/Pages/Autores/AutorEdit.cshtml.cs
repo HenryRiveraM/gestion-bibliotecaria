@@ -10,7 +10,7 @@ namespace gestion_bibliotecaria.Pages;
 
 public class AutorEditModel : PageModel
 {
-    private readonly RepositoryFactory<Autor> _autorRepositoryFactory;
+    private readonly RepositoryFactory<Autor,int> _autorRepositoryFactory;
     private readonly RouteTokenService _routeTokenService;
 
     [BindProperty]
@@ -19,7 +19,7 @@ public class AutorEditModel : PageModel
     [BindProperty]
     public string AutorToken { get; set; } = string.Empty;
 
-    public AutorEditModel(RepositoryFactory<Autor> autorRepositoryFactory, RouteTokenService routeTokenService)
+    public AutorEditModel(RepositoryFactory<Autor,int> autorRepositoryFactory, RouteTokenService routeTokenService)
     {
         _autorRepositoryFactory = autorRepositoryFactory;
         _routeTokenService = routeTokenService;

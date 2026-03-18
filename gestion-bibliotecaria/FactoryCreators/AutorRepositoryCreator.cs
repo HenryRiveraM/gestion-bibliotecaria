@@ -3,7 +3,7 @@ using gestion_bibliotecaria.Models;
 
 namespace gestion_bibliotecaria.FactoryCreators;
 
-public class AutorRepositoryCreator : RepositoryFactory<Autor>
+public class AutorRepositoryCreator : RepositoryFactory<Autor,int>
 {
     private readonly IConfiguration _configuration;
 
@@ -13,7 +13,7 @@ public class AutorRepositoryCreator : RepositoryFactory<Autor>
         _configuration = configuration;
     }
 
-    public override ILibraryRepository<Autor> CreateRepository()
+    public override IRepository<Autor,int> CreateRepository()
     {
         return new AutorRepository(_configuration);
     }

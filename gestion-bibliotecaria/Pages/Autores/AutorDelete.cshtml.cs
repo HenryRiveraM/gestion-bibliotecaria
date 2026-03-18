@@ -9,7 +9,7 @@ namespace gestion_bibliotecaria.Pages;
 
 public class AutorDeleteModel : PageModel
 {
-    private readonly RepositoryFactory<Autor> _autorRepositoryFactory;
+    private readonly RepositoryFactory<Autor,int> _autorRepositoryFactory;
     private readonly RouteTokenService _routeTokenService;
 
     [BindProperty]
@@ -18,7 +18,7 @@ public class AutorDeleteModel : PageModel
     [BindProperty]
     public string AutorToken { get; set; } = string.Empty;
 
-    public AutorDeleteModel(RepositoryFactory<Autor> autorRepositoryFactory, RouteTokenService routeTokenService)
+    public AutorDeleteModel(RepositoryFactory<Autor,int> autorRepositoryFactory, RouteTokenService routeTokenService)
     {
         _autorRepositoryFactory = autorRepositoryFactory;
         _routeTokenService = routeTokenService;

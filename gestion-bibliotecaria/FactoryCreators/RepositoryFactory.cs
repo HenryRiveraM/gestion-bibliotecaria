@@ -2,7 +2,7 @@ using gestion_bibliotecaria.FactoryProducts;
 
 namespace gestion_bibliotecaria.FactoryCreators;
 
-public abstract class RepositoryFactory<T>
+public abstract class RepositoryFactory<T,TId>
 {
     protected readonly string ConnectionString;
 
@@ -10,5 +10,5 @@ public abstract class RepositoryFactory<T>
     {
         ConnectionString = connectionString;
     }
-    public abstract ILibraryRepository<T> CreateRepository();
+    public abstract IRepository<T,TId> CreateRepository();
 }

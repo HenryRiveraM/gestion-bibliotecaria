@@ -8,12 +8,12 @@ namespace gestion_bibliotecaria.Pages;
 
 public class AutorCreateModel : PageModel
 {
-    private readonly RepositoryFactory<Autor> _autorRepositoryFactory;
+    private readonly RepositoryFactory<Autor,int> _autorRepositoryFactory;
 
     [BindProperty]
     public Autor Autor { get; set; } = new Autor();
 
-    public AutorCreateModel(RepositoryFactory<Autor> autorRepositoryFactory)
+    public AutorCreateModel(RepositoryFactory<Autor,int> autorRepositoryFactory)
     {
         _autorRepositoryFactory = autorRepositoryFactory;
     }
