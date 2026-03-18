@@ -20,6 +20,17 @@ public class LibroRepository
     private const string QueryInsertLibro = @"INSERT INTO libro (AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro)
                                               VALUES (@AutorId, @Titulo, @Editorial, @Edicion, @AñoPublicacion, @Descripcion, @Estado, @FechaRegistro)";
 
+    private const string QueryLibroPorId = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro, UltimaActualizacion
+                                             FROM libro
+                                             WHERE LibroId = @LibroId";
+
+    private const string QueryNombreAutor = "SELECT CONCAT(Nombres, ' ', Apellidos) AS NombreCompleto FROM autor WHERE AutorId = @AutorId";
+
+    private const string QueryDeleteLibro = @"UPDATE libro
+                                              SET Estado = 0,
+                                                  UltimaActualizacion = @UltimaActualizacion
+                                              WHERE LibroId = @LibroId";
+
     private readonly IConfiguration _configuration;
 
     public LibroRepository(IConfiguration configuration)
@@ -108,6 +119,60 @@ public class LibroRepository
                 command.Parameters.AddWithValue("@Estado", libro.Estado);
                 command.Parameters.AddWithValue("@FechaRegistro", libro.FechaRegistro);
 
+                command.ExecuteNonQuery();
+            }
+        }
+    }
+
+    public DataRow? ObtenerLibroPorId(int id)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+            using (var command = new MySqlCommand(QueryLibroPorId, connection))
+            {
+                command.Parameters.AddWithValue("@LibroId", id);
+
+                using (var adapter = new MySqlDataAdapter(command))
+                {
+                    var dataTable = new DataTable();
+                    adapter.Fill(dataTable);
+
+                    if (dataTable.Rows.Count > 0)
+                    {
+                        return dataTable.Rows[0];
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    public string ObtenerNombreAutor(int autorId)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+            using (var command = new MySqlCommand(QueryNombreAutor, connection))
+            {
+                command.Parameters.AddWithValue("@AutorId", autorId);
+
+                var result = command.ExecuteScalar();
+                return result?.ToString() ?? "Autor no encontrado";
+            }
+        }
+    }
+
+    public void EliminarLibro(int id)
+    {
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+            using (var command = new MySqlCommand(QueryDeleteLibro, connection))
+            {
+                command.Parameters.AddWithValue("@LibroId", id);
+                command.Parameters.AddWithValue("@UltimaActualizacion", DateTime.Now);
                 command.ExecuteNonQuery();
             }
         }
