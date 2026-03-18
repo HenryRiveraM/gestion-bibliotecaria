@@ -1,0 +1,66 @@
+using System.Data;
+using MySql.Data.MySqlClient;
+
+namespace gestion_bibliotecaria.FactoryProducts;
+
+public class LibroRepository
+{
+    private const string QueryLibros = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro, UltimaActualizacion
+                                         FROM libro
+                                         ORDER BY Titulo ASC";
+
+    private const string QueryAutores = "SELECT AutorId, Nombres, Apellidos FROM autor";
+
+    private readonly IConfiguration _configuration;
+
+    public LibroRepository(IConfiguration configuration)
+    {
+        _configuration = configuration;
+    }
+
+    private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+    public DataTable ObtenerLibros()
+    {
+        var dataTable = new DataTable();
+
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+            using (var command = new MySqlCommand(QueryLibros, connection))
+            {
+                using (var adapter = new MySqlDataAdapter(command))
+                {
+                    adapter.Fill(dataTable);
+                }
+            }
+        }
+
+        return dataTable;
+    }
+
+    public Dictionary<int, string> ObtenerNombresAutores()
+    {
+        var autores = new Dictionary<int, string>();
+
+        using (var connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+            using (var command = new MySqlCommand(QueryAutores, connection))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var nombres = reader.GetString("Nombres");
+                        var apellidos = reader.GetString("Apellidos");
+                        autores[reader.GetInt32("AutorId")] = $"{nombres} {apellidos}";
+                    }
+                }
+            }
+        }
+
+        return autores;
+    }
+}
