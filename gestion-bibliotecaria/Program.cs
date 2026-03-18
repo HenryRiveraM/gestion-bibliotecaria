@@ -4,9 +4,9 @@ using gestion_bibliotecaria.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
 builder.Services.AddScoped<ILibroFactory, LibroFactory>();
+builder.Services.AddScoped<LibroRepository>();
 builder.Services.AddScoped<IEjemplarFactory, EjemplarFactory>();
 
 // Registro de Factory Method para Autor impelmtar using para <gestion_bibliotecaria.FactoryCreators.
@@ -37,6 +37,6 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapRazorPages()
-   .WithStaticAssets();
+    .WithStaticAssets();
 
 app.Run();

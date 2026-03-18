@@ -1,21 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
-using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Security;
+using gestion_bibliotecaria.FactoryProducts;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class LibroDeleteModel : PageModel
 {
-    private const string QueryLibroPorId = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro, UltimaActualizacion
-                                             FROM libro
-                                             WHERE LibroId = @LibroId";
-
-    private const string QueryNombreAutor = "SELECT CONCAT(Nombres, ' ', Apellidos) AS NombreCompleto FROM autor WHERE AutorId = @AutorId";
-    private const string QueryDeleteLibro = "UPDATE libro SET Estado = 0, UltimaActualizacion = @UltimaActualizacion WHERE LibroId = @LibroId";
-
-    private readonly IConfiguration _configuration;
+    private readonly LibroRepository _repository;
     private readonly RouteTokenService _routeTokenService;
 
     public int LibroId { get; set; }
@@ -34,9 +27,9 @@ public class LibroDeleteModel : PageModel
     [BindProperty]
     public string LibroToken { get; set; } = string.Empty;
 
-    public LibroDeleteModel(IConfiguration configuration, RouteTokenService routeTokenService)
+    public LibroDeleteModel(LibroRepository repository, RouteTokenService routeTokenService)
     {
-        _configuration = configuration;
+        _repository = repository;
         _routeTokenService = routeTokenService;
     }
 
@@ -64,70 +57,13 @@ public class LibroDeleteModel : PageModel
             return NotFound();
         }
 
-        EliminarLibro(id);
+        _repository.EliminarLibro(id);
         return Redirect("/Libro");
-    }
-
-    private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-    private DataRow? ObtenerLibroPorId(int id)
-    {
-        using (var connection = new MySqlConnection(ConnectionString))
-        {
-            connection.Open();
-            using (var command = new MySqlCommand(QueryLibroPorId, connection))
-            {
-                command.Parameters.AddWithValue("@LibroId", id);
-
-                using (var adapter = new MySqlDataAdapter(command))
-                {
-                    var dataTable = new DataTable();
-                    adapter.Fill(dataTable);
-
-                    if (dataTable.Rows.Count > 0)
-                    {
-                        return dataTable.Rows[0];
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private string ObtenerNombreAutor(int autorId)
-    {
-        using (var connection = new MySqlConnection(ConnectionString))
-        {
-            connection.Open();
-            using (var command = new MySqlCommand(QueryNombreAutor, connection))
-            {
-                command.Parameters.AddWithValue("@AutorId", autorId);
-
-                var result = command.ExecuteScalar();
-                return result?.ToString() ?? "Autor no encontrado";
-            }
-        }
-    }
-
-    private void EliminarLibro(int id)
-    {
-        using (var connection = new MySqlConnection(ConnectionString))
-        {
-            connection.Open();
-            using (var command = new MySqlCommand(QueryDeleteLibro, connection))
-            {
-                command.Parameters.AddWithValue("@LibroId", id);
-                command.Parameters.AddWithValue("@UltimaActualizacion", DateTime.Now);
-                command.ExecuteNonQuery();
-            }
-        }
     }
 
     private bool CargarDetalleLibro(int id)
     {
-        var libro = ObtenerLibroPorId(id);
+        var libro = _repository.ObtenerLibroPorId(id);
         if (libro == null)
         {
             return false;
@@ -144,7 +80,7 @@ public class LibroDeleteModel : PageModel
         FechaRegistro = libro.Field<DateTime>("FechaRegistro");
         UltimaActualizacion = libro.Field<DateTime?>("UltimaActualizacion");
 
-        NombreAutor = ObtenerNombreAutor(AutorId);
+        NombreAutor = _repository.ObtenerNombreAutor(AutorId);
         return true;
     }
 }
