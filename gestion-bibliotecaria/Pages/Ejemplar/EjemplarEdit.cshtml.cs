@@ -96,7 +96,20 @@ public class EjemplarEditModel : PageModel
             Ejemplar.Estado
         );
 
-        await ActualizarEjemplarAsync(ejemplar);
+        try
+        {
+            await ActualizarEjemplarAsync(ejemplar);
+        }
+        catch (MySql.Data.MySqlClient.MySqlException ex) when (ex.Number == 1062)
+        {
+            ModelState.AddModelError("CodigoInventario", "Ya existe un ejemplar con ese código de inventario.");
+            return Page();
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error al actualizar el ejemplar. Por favor, intentá nuevamente.");
+            return Page();
+        }
 
         return Redirect("/Ejemplar");
     }
