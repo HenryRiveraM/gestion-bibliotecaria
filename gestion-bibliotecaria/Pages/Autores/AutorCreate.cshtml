@@ -34,19 +34,75 @@
 
             <div class="form-group">
                 <label>Apellidos</label>
-        <input asp-for="Autor.Apellidos" class="input-form" />
+                <input asp-for="Autor.Apellidos" class="input-form" />
                 <span asp-validation-for="Autor.Apellidos" class="text-error"></span>
             </div>
 
             <div class="form-group">
                 <label>Nacionalidad</label>
-                <input asp-for="Autor.Nacionalidad" class="input-form" />
+
+                <div class="custom-select-wrapper">
+                    <input type="hidden" id="nacionalidad-value" name="Autor.Nacionalidad" value="@Model.Autor?.Nacionalidad" />
+
+                    <div class="custom-select" id="custom-select-nacionalidad">
+                        <div class="select-trigger">
+                            <span id="nacionalidad-text">-- Seleccione una nacionalidad --</span>
+                            <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+
+                        <div class="select-dropdown">
+                            <input type="text" class="select-search" id="nacionalidad-search" placeholder="Buscar o escribir nacionalidad..." />
+
+                            <div class="select-options">
+                                <div class="option-group">
+                                    <div class="option-group-label">Sudamérica</div>
+                                    <div class="option" data-value="Boliviana">Boliviana</div>
+                                    <div class="option" data-value="Argentina">Argentina</div>
+                                    <div class="option" data-value="Brasileña">Brasileña</div>
+                                    <div class="option" data-value="Chilena">Chilena</div>
+                                    <div class="option" data-value="Colombiana">Colombiana</div>
+                                    <div class="option" data-value="Ecuatoriana">Ecuatoriana</div>
+                                    <div class="option" data-value="Paraguaya">Paraguaya</div>
+                                    <div class="option" data-value="Peruana">Peruana</div>
+                                    <div class="option" data-value="Uruguaya">Uruguaya</div>
+                                    <div class="option" data-value="Venezolana">Venezolana</div>
+                                </div>
+
+                                <div class="option-group">
+                                    <div class="option-group-label">América y Europa</div>
+                                    <div class="option" data-value="Mexicana">Mexicana</div>
+                                    <div class="option" data-value="Estadounidense">Estadounidense</div>
+                                    <div class="option" data-value="Canadiense">Canadiense</div>
+                                    <div class="option" data-value="Española">Española</div>
+                                    <div class="option" data-value="Francesa">Francesa</div>
+                                    <div class="option" data-value="Alemana">Alemana</div>
+                                    <div class="option" data-value="Italiana">Italiana</div>
+                                    <div class="option" data-value="Portuguesa">Portuguesa</div>
+                                    <div class="option" data-value="Británica">Británica</div>
+                                </div>
+
+                                <div class="option-group">
+                                    <div class="option-group-label">Asia y otros</div>
+                                    <div class="option" data-value="Japonesa">Japonesa</div>
+                                    <div class="option" data-value="China">China</div>
+                                    <div class="option" data-value="Coreana">Coreana</div>
+                                    <div class="option" data-value="India">India</div>
+                                    <div class="option" data-value="Otra">Otra</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <span asp-validation-for="Autor.Nacionalidad" class="text-error"></span>
             </div>
 
             <div class="form-group">
                 <label>Fecha de Nacimiento</label>
-                <input asp-for="Autor.FechaNacimiento" type="date" class="input-form" />
+                <input type="hidden" id="Autor_FechaNacimiento" name="Autor.FechaNacimiento" value="@(Model.Autor?.FechaNacimiento?.ToString("yyyy-MM-dd"))" />
+                <input type="text" id="Autor_FechaNacimiento_Display" class="input-form" value="@(Model.Autor?.FechaNacimiento?.ToString("dd/MM/yyyy"))" placeholder="dd/mm/aaaa" autocomplete="off" />
                 <span asp-validation-for="Autor.FechaNacimiento" class="text-error"></span>
             </div>
 
@@ -72,3 +128,268 @@
     </div>
 
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const customSelect = document.getElementById('custom-select-nacionalidad');
+            if (!customSelect) return;
+
+            const trigger = customSelect.querySelector('.select-trigger');
+            const search = document.getElementById('nacionalidad-search');
+            const options = customSelect.querySelectorAll('.option');
+            const hiddenInput = document.getElementById('nacionalidad-value');
+            const selectText = document.getElementById('nacionalidad-text');
+            let isOpen = false;
+
+            function applyManualValue() {
+                const customValue = search.value.trim();
+                if (!customValue) return;
+                hiddenInput.value = customValue;
+                selectText.textContent = customValue;
+                hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+
+            trigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                isOpen = !isOpen;
+                customSelect.classList.toggle('active', isOpen);
+                if (isOpen) {
+                    search.focus();
+                    search.value = '';
+                    options.forEach(opt => opt.classList.remove('hidden'));
+                }
+            });
+
+            document.addEventListener('click', function (e) {
+                if (!customSelect.contains(e.target)) {
+                    if (isOpen) {
+                        applyManualValue();
+                    }
+                    isOpen = false;
+                    customSelect.classList.remove('active');
+                }
+            });
+
+            search.addEventListener('input', function () {
+                const searchTerm = this.value.toLowerCase();
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    option.classList.toggle('hidden', !text.includes(searchTerm));
+                });
+            });
+
+            options.forEach(option => {
+                option.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const value = this.dataset.value;
+                    hiddenInput.value = value;
+                    selectText.textContent = this.textContent.trim();
+                    isOpen = false;
+                    customSelect.classList.remove('active');
+                    hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+
+                option.addEventListener('mouseenter', function () {
+                    options.forEach(opt => opt.classList.remove('highlight'));
+                    this.classList.add('highlight');
+                });
+            });
+
+            search.addEventListener('keydown', function (e) {
+                const visibleOptions = Array.from(options).filter(opt => !opt.classList.contains('hidden'));
+                const currentIndex = visibleOptions.findIndex(opt => opt.classList.contains('highlight'));
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const nextIndex = Math.min(currentIndex + 1, visibleOptions.length - 1);
+                    visibleOptions.forEach(opt => opt.classList.remove('highlight'));
+                    if (visibleOptions[nextIndex]) {
+                        visibleOptions[nextIndex].classList.add('highlight');
+                        visibleOptions[nextIndex].scrollIntoView({ block: 'nearest' });
+                    }
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prevIndex = Math.max(currentIndex - 1, 0);
+                    visibleOptions.forEach(opt => opt.classList.remove('highlight'));
+                    if (visibleOptions[prevIndex]) {
+                        visibleOptions[prevIndex].classList.add('highlight');
+                        visibleOptions[prevIndex].scrollIntoView({ block: 'nearest' });
+                    }
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const highlighted = Array.from(options).find(opt => opt.classList.contains('highlight'));
+                    if (highlighted) {
+                        highlighted.click();
+                    } else {
+                        applyManualValue();
+                        isOpen = false;
+                        customSelect.classList.remove('active');
+                    }
+                }
+            });
+
+            const initialValue = hiddenInput.value;
+            if (initialValue) {
+                const matched = Array.from(options).find(opt => opt.dataset.value === initialValue);
+                if (matched) {
+                    selectText.textContent = matched.textContent.trim();
+                } else {
+                    selectText.textContent = initialValue;
+                }
+            }
+
+            const fechaInput = document.getElementById('Autor_FechaNacimiento');
+            const fechaInputDisplay = document.getElementById('Autor_FechaNacimiento_Display');
+
+            if (fechaInput && fechaInputDisplay) {
+                const convertirADisplay = function (valorIso) {
+                    if (!valorIso) return '';
+                    const partes = valorIso.split('-');
+                    if (partes.length !== 3) return '';
+                    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+                };
+
+                const formatearFecha = function (valor) {
+                    const digitos = (valor || '').replace(/\D/g, '').slice(0, 8);
+                    const dia = digitos.slice(0, 2);
+                    const mes = digitos.slice(2, 4);
+                    const anio = digitos.slice(4, 8);
+
+                    if (digitos.length <= 2) return dia;
+                    if (digitos.length <= 4) return `${dia}/${mes}`;
+                    return `${dia}/${mes}/${anio}`;
+                };
+
+                const contarDigitosAntes = function (texto, posicion) {
+                    return (texto.slice(0, posicion).match(/\d/g) || []).length;
+                };
+
+                const posicionPorCantidadDigitos = function (texto, cantidad) {
+                    if (cantidad <= 0) return 0;
+                    let vistos = 0;
+                    for (let i = 0; i < texto.length; i++) {
+                        if (/\d/.test(texto[i])) {
+                            vistos++;
+                            if (vistos >= cantidad) {
+                                return i + 1;
+                            }
+                        }
+                    }
+                    return texto.length;
+                };
+
+                const convertirAIso = function (valorDisplay) {
+                    const valor = (valorDisplay || '').trim();
+                    const partes = valor.split('/');
+                    if (partes.length !== 3) return null;
+
+                    const [diaTxt, mesTxt, anioTxt] = partes;
+                    if (!/^\d{2}$/.test(diaTxt) || !/^\d{2}$/.test(mesTxt) || !/^\d{4}$/.test(anioTxt)) {
+                        return null;
+                    }
+
+                    const dia = parseInt(diaTxt, 10);
+                    const mes = parseInt(mesTxt, 10);
+                    const anio = parseInt(anioTxt, 10);
+
+                    const fecha = new Date(Date.UTC(anio, mes - 1, dia));
+                    const fechaValida =
+                        fecha.getUTCFullYear() === anio &&
+                        fecha.getUTCMonth() === mes - 1 &&
+                        fecha.getUTCDate() === dia;
+
+                    if (!fechaValida) return null;
+
+                    return `${anioTxt}-${mesTxt}-${diaTxt}`;
+                };
+
+                const sincronizarOculto = function () {
+                    const valor = fechaInputDisplay.value.trim();
+
+                    if (!valor) {
+                        fechaInput.value = '';
+                        fechaInputDisplay.setCustomValidity('');
+                        return true;
+                    }
+
+                    const iso = convertirAIso(valor);
+                    if (!iso) {
+                        fechaInputDisplay.setCustomValidity('Ingrese una fecha válida en formato dd/mm/aaaa.');
+                        return false;
+                    }
+
+                    fechaInputDisplay.setCustomValidity('');
+                    fechaInput.value = iso;
+                    return true;
+                };
+
+                if (!fechaInputDisplay.value && fechaInput.value) {
+                    fechaInputDisplay.value = convertirADisplay(fechaInput.value);
+                }
+
+                fechaInputDisplay.addEventListener('dblclick', function () {
+                    fechaInputDisplay.select();
+                });
+
+                fechaInputDisplay.addEventListener('keydown', function (e) {
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'a') {
+                        e.preventDefault();
+                        fechaInputDisplay.select();
+                        return;
+                    }
+
+                    const inicio = fechaInputDisplay.selectionStart ?? 0;
+                    const fin = fechaInputDisplay.selectionEnd ?? 0;
+
+                    if (inicio === fin) {
+                        if (e.key === 'Backspace' && (inicio === 3 || inicio === 6)) {
+                            e.preventDefault();
+                            fechaInputDisplay.setSelectionRange(inicio - 1, inicio - 1);
+                        }
+
+                        if (e.key === 'Delete' && (inicio === 2 || inicio === 5)) {
+                            e.preventDefault();
+                            fechaInputDisplay.setSelectionRange(inicio + 1, inicio + 1);
+                        }
+                    }
+                });
+
+                fechaInputDisplay.addEventListener('input', function () {
+                    fechaInputDisplay.setCustomValidity('');
+
+                    const valorOriginal = fechaInputDisplay.value;
+                    const cursorOriginal = fechaInputDisplay.selectionStart ?? valorOriginal.length;
+                    const digitosAntesCursor = contarDigitosAntes(valorOriginal, cursorOriginal);
+
+                    const valorFormateado = formatearFecha(valorOriginal);
+                    fechaInputDisplay.value = valorFormateado;
+
+                    if (!fechaInputDisplay.value.trim()) {
+                        fechaInput.value = '';
+                    }
+
+                    const nuevaPosicion = posicionPorCantidadDigitos(fechaInputDisplay.value, digitosAntesCursor);
+                    fechaInputDisplay.setSelectionRange(nuevaPosicion, nuevaPosicion);
+                });
+
+                fechaInputDisplay.addEventListener('blur', function () {
+                    if (!sincronizarOculto()) {
+                        fechaInputDisplay.reportValidity();
+                    }
+                });
+
+                const form = fechaInputDisplay.closest('form');
+                if (form) {
+                    form.addEventListener('submit', function (e) {
+                        if (!sincronizarOculto()) {
+                            e.preventDefault();
+                            fechaInputDisplay.reportValidity();
+                            fechaInputDisplay.focus();
+                        }
+                    });
+                }
+            }
+        });
+    </script>
+}

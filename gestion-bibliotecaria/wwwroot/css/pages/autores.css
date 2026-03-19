@@ -78,33 +78,35 @@
 
 
 .filtros-barra {
-    display: flex;
-    gap: 16px;
-    margin-bottom: 20px;
-    align-items: center;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-bottom:18px;
+    flex-wrap:wrap;
 }
 
 .filtro-item {
-    display: flex;
+    min-width:200px;
 }
 
 .filtro-buscar {
-    flex: 1;
+    flex:1;
+    min-width:280px;
 }
 
 .input-filtro {
-    width: 100%;
-    padding: 10px 14px;
-    border-radius: 8px;
-    border: 1px solid #2d2d2d;
-    background: #282828;
-    color: #fff;
-    font-size: 14px;
+    width:100%;
+    background:#1b1c1d;
+    border:1px solid #282828;
+    color:#e5e7eb;
+    border-radius:8px;
+    padding:10px 12px;
+    font-size:14px;
 }
 
     .input-filtro:focus {
-        outline: none;
-        border-color: #10b981;
+        outline:none;
+        border-color:#10a37f;
     }
 
 
