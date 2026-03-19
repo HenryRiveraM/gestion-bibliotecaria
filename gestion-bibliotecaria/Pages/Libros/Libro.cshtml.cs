@@ -74,8 +74,7 @@ public class LibroModel : PageModel
         string? Edicion,
         int? AñoPublicacion,
         string? Descripcion,
-        bool Estado,
-        DateTime FechaRegistro)
+        bool Estado)
     {
         if (!_routeTokenService.TryObtenerId(token, out var id))
         {
@@ -137,7 +136,7 @@ public class LibroModel : PageModel
             AñoPublicacion = AñoPublicacion,
             Descripcion = Descripcion,
             Estado = Estado,
-            FechaRegistro = FechaRegistro,
+            FechaRegistro = DateTime.Now,
             UltimaActualizacion = DateTime.Now
         };
 
