@@ -4,7 +4,7 @@ using gestion_bibliotecaria.Models;
 
 namespace gestion_bibliotecaria.FactoryProducts;
 
-public class LibroRepository
+public class LibroRepository : IRepository<Libro, int>
 {
     private readonly IConfiguration _configuration;
 
@@ -52,7 +52,7 @@ public class LibroRepository
                                                   UltimaActualizacion = @UltimaActualizacion
                                               WHERE LibroId = @LibroId";
 
-    public DataTable ObtenerLibros()
+    public DataTable GetAll()
     {
         var dataTable = new DataTable();
 
@@ -64,6 +64,88 @@ public class LibroRepository
         adapter.Fill(dataTable);
 
         return dataTable;
+    }
+
+    public Libro? GetById(int id)
+    {
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+
+        using var command = new MySqlCommand(QueryLibroPorId, connection);
+        command.Parameters.AddWithValue("@LibroId", id);
+
+        using var reader = command.ExecuteReader();
+
+        if (!reader.Read())
+            return null;
+
+        return new Libro
+        {
+            LibroId = reader.GetInt32("LibroId"),
+            AutorId = reader.GetInt32("AutorId"),
+            Titulo = reader.GetString("Titulo"),
+            Editorial = reader["Editorial"] == DBNull.Value ? null : reader["Editorial"].ToString(),
+            Edicion = reader["Edicion"] == DBNull.Value ? null : reader["Edicion"].ToString(),
+            AñoPublicacion = reader["AñoPublicacion"] == DBNull.Value ? null : Convert.ToInt32(reader["AñoPublicacion"]),
+            Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString(),
+            Estado = Convert.ToBoolean(reader["Estado"]),
+            FechaRegistro = Convert.ToDateTime(reader["FechaRegistro"]),
+            UltimaActualizacion = reader["UltimaActualizacion"] == DBNull.Value
+                ? null
+                : Convert.ToDateTime(reader["UltimaActualizacion"])
+        };
+    }
+
+    public void Insert(Libro libro)
+    {
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+
+        using var command = new MySqlCommand(QueryInsertLibro, connection);
+
+        command.Parameters.AddWithValue("@AutorId", libro.AutorId);
+        command.Parameters.AddWithValue("@Titulo", libro.Titulo);
+        command.Parameters.AddWithValue("@Editorial", libro.Editorial ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Edicion", libro.Edicion ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@AñoPublicacion", libro.AñoPublicacion ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Descripcion", libro.Descripcion ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Estado", libro.Estado);
+        command.Parameters.AddWithValue("@FechaRegistro", libro.FechaRegistro);
+
+        command.ExecuteNonQuery();
+    }
+
+    public void Update(Libro libro)
+    {
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+
+        using var command = new MySqlCommand(QueryUpdateLibro, connection);
+
+        command.Parameters.AddWithValue("@LibroId", libro.LibroId);
+        command.Parameters.AddWithValue("@AutorId", libro.AutorId);
+        command.Parameters.AddWithValue("@Titulo", libro.Titulo);
+        command.Parameters.AddWithValue("@Editorial", libro.Editorial ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Edicion", libro.Edicion ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@AñoPublicacion", libro.AñoPublicacion ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Descripcion", libro.Descripcion ?? (object)DBNull.Value);
+        command.Parameters.AddWithValue("@Estado", libro.Estado);
+        command.Parameters.AddWithValue("@UltimaActualizacion", libro.UltimaActualizacion ?? DateTime.Now);
+
+        command.ExecuteNonQuery();
+    }
+
+    public void Delete(Libro libro)
+    {
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+
+        using var command = new MySqlCommand(QueryDeleteLibro, connection);
+
+        command.Parameters.AddWithValue("@LibroId", libro.LibroId);
+        command.Parameters.AddWithValue("@UltimaActualizacion", DateTime.Now);
+
+        command.ExecuteNonQuery();
     }
 
     public Dictionary<int, string> ObtenerNombresAutores()
@@ -100,21 +182,6 @@ public class LibroRepository
         return dataTable;
     }
 
-    public DataRow? ObtenerLibroPorId(int id)
-    {
-        using var connection = new MySqlConnection(ConnectionString);
-        connection.Open();
-
-        using var command = new MySqlCommand(QueryLibroPorId, connection);
-        command.Parameters.AddWithValue("@LibroId", id);
-
-        using var adapter = new MySqlDataAdapter(command);
-        var dataTable = new DataTable();
-        adapter.Fill(dataTable);
-
-        return dataTable.Rows.Count > 0 ? dataTable.Rows[0] : null;
-    }
-
     public string ObtenerNombreAutor(int autorId)
     {
         using var connection = new MySqlConnection(ConnectionString);
@@ -125,57 +192,5 @@ public class LibroRepository
 
         var result = command.ExecuteScalar();
         return result?.ToString() ?? "Autor no encontrado";
-    }
-
-    public void InsertarLibro(Libro libro)
-    {
-        using var connection = new MySqlConnection(ConnectionString);
-        connection.Open();
-
-        using var command = new MySqlCommand(QueryInsertLibro, connection);
-
-        command.Parameters.AddWithValue("@AutorId", libro.AutorId);
-        command.Parameters.AddWithValue("@Titulo", libro.Titulo);
-        command.Parameters.AddWithValue("@Editorial", libro.Editorial ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Edicion", libro.Edicion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@AñoPublicacion", libro.AñoPublicacion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Descripcion", libro.Descripcion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Estado", libro.Estado);
-        command.Parameters.AddWithValue("@FechaRegistro", libro.FechaRegistro);
-
-        command.ExecuteNonQuery();
-    }
-
-    public void ActualizarLibro(Libro libro)
-    {
-        using var connection = new MySqlConnection(ConnectionString);
-        connection.Open();
-
-        using var command = new MySqlCommand(QueryUpdateLibro, connection);
-
-        command.Parameters.AddWithValue("@LibroId", libro.LibroId);
-        command.Parameters.AddWithValue("@AutorId", libro.AutorId);
-        command.Parameters.AddWithValue("@Titulo", libro.Titulo);
-        command.Parameters.AddWithValue("@Editorial", libro.Editorial ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Edicion", libro.Edicion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@AñoPublicacion", libro.AñoPublicacion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Descripcion", libro.Descripcion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Estado", libro.Estado);
-        command.Parameters.AddWithValue("@UltimaActualizacion", libro.UltimaActualizacion ?? DateTime.Now);
-
-        command.ExecuteNonQuery();
-    }
-
-    public void EliminarLibro(int id)
-    {
-        using var connection = new MySqlConnection(ConnectionString);
-        connection.Open();
-
-        using var command = new MySqlCommand(QueryDeleteLibro, connection);
-
-        command.Parameters.AddWithValue("@LibroId", id);
-        command.Parameters.AddWithValue("@UltimaActualizacion", DateTime.Now);
-
-        command.ExecuteNonQuery();
     }
 }

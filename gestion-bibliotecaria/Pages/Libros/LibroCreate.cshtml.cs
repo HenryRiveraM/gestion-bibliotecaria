@@ -3,20 +3,20 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using gestion_bibliotecaria.Validaciones;
 using gestion_bibliotecaria.FactoryProducts;
+using gestion_bibliotecaria.FactoryCreators;
+using gestion_bibliotecaria.Models;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class LibroCreateModel : PageModel
 {
-    private readonly ILibroFactory _libroFactory;
-    private readonly LibroRepository _repository;
-    
-    public LibroCreateModel(ILibroFactory libroFactory, LibroRepository repository)
+    private readonly RepositoryFactory<Libro, int> _libroRepositoryFactory;
+
+    public LibroCreateModel(RepositoryFactory<Libro, int> libroRepositoryFactory)
     {
-        _libroFactory = libroFactory;
-        _repository = repository;
+        _libroRepositoryFactory = libroRepositoryFactory;
     }
-    
+
     [BindProperty]
     public int AutorId { get; set; }
 
@@ -61,28 +61,22 @@ public class LibroCreateModel : PageModel
             ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 100 caracteres.");
         }
 
-        if (!string.IsNullOrWhiteSpace(Editorial))
+        if (!string.IsNullOrWhiteSpace(Editorial) &&
+            ValidadorEntrada.ExcedeLongitud(Editorial, 100))
         {
-            if (ValidadorEntrada.ExcedeLongitud(Editorial, 100))
-            {
-                ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
-            }
+            ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
         }
 
-        if (!string.IsNullOrWhiteSpace(Edicion))
+        if (!string.IsNullOrWhiteSpace(Edicion) &&
+            ValidadorEntrada.ExcedeLongitud(Edicion, 50))
         {
-            if (ValidadorEntrada.ExcedeLongitud(Edicion, 50))
-            {
-                ModelState.AddModelError("Edicion", "La edición excede la longitud máxima de 50 caracteres.");
-            }
+            ModelState.AddModelError("Edicion", "La edición excede la longitud máxima de 50 caracteres.");
         }
 
-        if (!string.IsNullOrWhiteSpace(Descripcion))
+        if (!string.IsNullOrWhiteSpace(Descripcion) &&
+            ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
         {
-            if (ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
-            {
-                ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
-            }
+            ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
         }
 
         if (!ValidadorEntrada.ValidYear(AñoPublicacion))
@@ -96,21 +90,31 @@ public class LibroCreateModel : PageModel
             return Page();
         }
 
-        var libro = _libroFactory.CreateForInsert(
-            AutorId,
-            Titulo,
-            Editorial,
-            Edicion,
-            AñoPublicacion,
-            Descripcion,
-            Estado);
+        var libro = new Libro
+        {
+            AutorId = AutorId,
+            Titulo = Titulo,
+            Editorial = Editorial,
+            Edicion = Edicion,
+            AñoPublicacion = AñoPublicacion,
+            Descripcion = Descripcion,
+            Estado = Estado,
+            FechaRegistro = DateTime.Now
+        };
 
-        _repository.InsertarLibro(libro);
+        var repository = _libroRepositoryFactory.CreateRepository();
+        repository.Insert(libro);
+
         return Redirect("/Libro");
     }
 
     private void CargarPagina()
     {
-        Autores = _repository.ObtenerAutoresActivos();
+        var repository = _libroRepositoryFactory.CreateRepository();
+
+        if (repository is LibroRepository libroRepository)
+        {
+            Autores = libroRepository.ObtenerAutoresActivos();
+        }
     }
 }

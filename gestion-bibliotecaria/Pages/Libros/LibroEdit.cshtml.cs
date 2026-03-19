@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using gestion_bibliotecaria.Validaciones;
 using gestion_bibliotecaria.FactoryProducts;
+using gestion_bibliotecaria.FactoryCreators;
 using gestion_bibliotecaria.Models;
 using gestion_bibliotecaria.Security;
 
@@ -10,40 +11,60 @@ namespace gestion_bibliotecaria.Pages;
 
 public class LibroEditModel : PageModel
 {
-    private readonly ILibroFactory _libroFactory;
-    private readonly LibroRepository _repository;
+    private readonly RepositoryFactory<Libro, int> _libroRepositoryFactory;
     private readonly RouteTokenService _routeTokenService;
 
     public LibroEditModel(
-        ILibroFactory libroFactory,
-        LibroRepository repository,
+        RepositoryFactory<Libro, int> libroRepositoryFactory,
         RouteTokenService routeTokenService)
     {
-        _libroFactory = libroFactory;
-        _repository = repository;
+        _libroRepositoryFactory = libroRepositoryFactory;
         _routeTokenService = routeTokenService;
     }
 
-    [BindProperty] public int LibroId { get; set; }
-    [BindProperty] public string LibroToken { get; set; } = string.Empty;
-    [BindProperty] public int AutorId { get; set; }
-    [BindProperty] public string Titulo { get; set; } = string.Empty;
-    [BindProperty] public string? Editorial { get; set; }
-    [BindProperty] public string? Edicion { get; set; }
-    [BindProperty] public int? AñoPublicacion { get; set; }
-    [BindProperty] public string? Descripcion { get; set; }
-    [BindProperty] public bool Estado { get; set; }
-    [BindProperty] public DateTime FechaRegistro { get; set; }
+    [BindProperty]
+    public int LibroId { get; set; }
+
+    [BindProperty]
+    public string LibroToken { get; set; } = string.Empty;
+
+    [BindProperty]
+    public int AutorId { get; set; }
+
+    [BindProperty]
+    public string Titulo { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string? Editorial { get; set; }
+
+    [BindProperty]
+    public string? Edicion { get; set; }
+
+    [BindProperty]
+    public int? AñoPublicacion { get; set; }
+
+    [BindProperty]
+    public string? Descripcion { get; set; }
+
+    [BindProperty]
+    public bool Estado { get; set; }
+
+    [BindProperty]
+    public DateTime FechaRegistro { get; set; }
 
     public DataTable Autores { get; set; } = new();
 
     public IActionResult OnGet(string token)
     {
         if (!_routeTokenService.TryObtenerId(token, out var id))
+        {
             return NotFound();
+        }
 
         if (!CargarPagina(id))
+        {
             return NotFound();
+        }
 
         return Page();
     }
@@ -51,7 +72,9 @@ public class LibroEditModel : PageModel
     public IActionResult OnPost()
     {
         if (!_routeTokenService.TryObtenerId(LibroToken, out var id))
+        {
             return NotFound();
+        }
 
         LibroId = id;
 
@@ -69,17 +92,20 @@ public class LibroEditModel : PageModel
             ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 100 caracteres.");
         }
 
-        if (!string.IsNullOrWhiteSpace(Editorial) && ValidadorEntrada.ExcedeLongitud(Editorial, 100))
+        if (!string.IsNullOrWhiteSpace(Editorial) &&
+            ValidadorEntrada.ExcedeLongitud(Editorial, 100))
         {
             ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
         }
 
-        if (!string.IsNullOrWhiteSpace(Edicion) && ValidadorEntrada.ExcedeLongitud(Edicion, 50))
+        if (!string.IsNullOrWhiteSpace(Edicion) &&
+            ValidadorEntrada.ExcedeLongitud(Edicion, 50))
         {
             ModelState.AddModelError("Edicion", "La edición excede la longitud máxima de 50 caracteres.");
         }
 
-        if (!string.IsNullOrWhiteSpace(Descripcion) && ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
+        if (!string.IsNullOrWhiteSpace(Descripcion) &&
+            ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
         {
             ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
         }
@@ -91,42 +117,63 @@ public class LibroEditModel : PageModel
 
         if (!ModelState.IsValid)
         {
-            Autores = _repository.ObtenerAutoresActivos();
+            CargarAutores();
             return Page();
         }
 
-        var libro = _libroFactory.CreateForUpdate(
-            LibroId,
-            AutorId,
-            Titulo,
-            Editorial,
-            Edicion,
-            AñoPublicacion,
-            Descripcion,
-            Estado);
+        var repository = _libroRepositoryFactory.CreateRepository();
 
-        _repository.ActualizarLibro(libro);
+        var libro = new Libro
+        {
+            LibroId = LibroId,
+            AutorId = AutorId,
+            Titulo = Titulo,
+            Editorial = Editorial,
+            Edicion = Edicion,
+            AñoPublicacion = AñoPublicacion,
+            Descripcion = Descripcion,
+            Estado = Estado,
+            FechaRegistro = FechaRegistro,
+            UltimaActualizacion = DateTime.Now
+        };
+
+        repository.Update(libro);
 
         return Redirect("/Libro");
     }
 
     private bool CargarPagina(int id)
     {
-        var libro = _repository.ObtenerLibroPorId(id);
-        if (libro == null) return false;
+        var repository = _libroRepositoryFactory.CreateRepository();
+        var libro = repository.GetById(id);
 
-        LibroId = libro.Field<int>("LibroId");
+        if (libro == null)
+        {
+            return false;
+        }
+
+        LibroId = libro.LibroId;
         LibroToken = _routeTokenService.CrearToken(LibroId);
-        AutorId = libro.Field<int>("AutorId");
-        Titulo = libro.Field<string>("Titulo") ?? string.Empty;
-        Editorial = libro.Field<string>("Editorial");
-        Edicion = libro.Field<string>("Edicion");
-        AñoPublicacion = libro.Field<int?>("AñoPublicacion");
-        Descripcion = libro.Field<string>("Descripcion");
-        Estado = libro.Field<bool>("Estado");
-        FechaRegistro = libro.Field<DateTime>("FechaRegistro");
+        AutorId = libro.AutorId;
+        Titulo = libro.Titulo;
+        Editorial = libro.Editorial;
+        Edicion = libro.Edicion;
+        AñoPublicacion = libro.AñoPublicacion;
+        Descripcion = libro.Descripcion;
+        Estado = libro.Estado;
+        FechaRegistro = libro.FechaRegistro;
 
-        Autores = _repository.ObtenerAutoresActivos();
+        CargarAutores();
         return true;
+    }
+
+    private void CargarAutores()
+    {
+        var repository = _libroRepositoryFactory.CreateRepository();
+
+        if (repository is LibroRepository libroRepository)
+        {
+            Autores = libroRepository.ObtenerAutoresActivos();
+        }
     }
 }
