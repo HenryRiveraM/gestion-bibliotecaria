@@ -55,6 +55,40 @@ public class LibroEditModel : PageModel
 
         LibroId = id;
 
+        Titulo = ValidadorEntrada.NormalizarEspacios(Titulo);
+        Editorial = ValidadorEntrada.NormalizarEspacios(Editorial);
+        Edicion = ValidadorEntrada.NormalizarEspacios(Edicion);
+        Descripcion = ValidadorEntrada.NormalizarEspacios(Descripcion);
+
+        if (ValidadorEntrada.EstaVacio(Titulo))
+        {
+            ModelState.AddModelError("Titulo", "El título es obligatorio.");
+        }
+        else if (ValidadorEntrada.ExcedeLongitud(Titulo, 100))
+        {
+            ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 100 caracteres.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Editorial) && ValidadorEntrada.ExcedeLongitud(Editorial, 100))
+        {
+            ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Edicion) && ValidadorEntrada.ExcedeLongitud(Edicion, 50))
+        {
+            ModelState.AddModelError("Edicion", "La edición excede la longitud máxima de 50 caracteres.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(Descripcion) && ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
+        {
+            ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
+        }
+
+        if (!ValidadorEntrada.ValidYear(AñoPublicacion))
+        {
+            ModelState.AddModelError("AñoPublicacion", "El año de publicación no es válido.");
+        }
+
         if (!ModelState.IsValid)
         {
             Autores = _repository.ObtenerAutoresActivos();

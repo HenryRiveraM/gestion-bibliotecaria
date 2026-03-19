@@ -61,6 +61,29 @@ public class EjemplarEditModel : PageModel
             return NotFound();
         }
 
+        Ejemplar.CodigoInventario = ValidadorEntrada.NormalizarEspacios(Ejemplar.CodigoInventario);
+        Ejemplar.EstadoConservacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.EstadoConservacion);
+        Ejemplar.Ubicacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.Ubicacion);
+        Ejemplar.MotivoBaja = ValidadorEntrada.NormalizarEspacios(Ejemplar.MotivoBaja);
+
+        if (ValidadorEntrada.EstaVacio(Ejemplar.CodigoInventario))
+        {
+            ModelState.AddModelError("CodigoInventario", "El código de inventario es obligatorio.");
+        }
+        else if (!ValidadorEntrada.CodigoInventarioValido(Ejemplar.CodigoInventario))
+        {
+            ModelState.AddModelError("CodigoInventario", "El código de inventario solo puede tener letras, números o guiones.");
+        }
+        else if (ValidadorEntrada.ExcedeLongitud(Ejemplar.CodigoInventario, 30))
+        {
+            ModelState.AddModelError("CodigoInventario", "El código de inventario excede la longitud máxima de 30 caracteres.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            return Page();
+        }
+
         var ejemplar = _ejemplarFactory.CreateForUpdate(
             ejemplarId,
             Ejemplar.LibroId,
