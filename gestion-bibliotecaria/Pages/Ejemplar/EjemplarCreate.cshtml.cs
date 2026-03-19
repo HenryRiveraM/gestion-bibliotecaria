@@ -84,7 +84,7 @@ public class EjemplarCreateModel : PageModel
         }
         catch (MySql.Data.MySqlClient.MySqlException ex) when (ex.Number == 1062)
         {
-            ModelState.AddModelError("CodigoInventario", "Ya existe un ejemplar con ese código de inventario.");
+            ModelState.AddModelError("Ejemplar.CodigoInventario", "Ya existe un ejemplar con ese código de inventario.");
             await CargarPaginaAsync();
             return Page();
         }

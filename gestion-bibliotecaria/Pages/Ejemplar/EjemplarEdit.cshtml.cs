@@ -68,15 +68,15 @@ public class EjemplarEditModel : PageModel
 
         if (ValidadorEntrada.EstaVacio(Ejemplar.CodigoInventario))
         {
-            ModelState.AddModelError("CodigoInventario", "El código de inventario es obligatorio.");
+            ModelState.AddModelError("Ejemplar.CodigoInventario", "El código de inventario es obligatorio.");
         }
         else if (!ValidadorEntrada.CodigoInventarioValido(Ejemplar.CodigoInventario))
         {
-            ModelState.AddModelError("CodigoInventario", "El código de inventario solo puede tener letras, números o guiones.");
+            ModelState.AddModelError("Ejemplar.CodigoInventario", "El código de inventario solo puede tener letras, números o guiones.");
         }
         else if (ValidadorEntrada.ExcedeLongitud(Ejemplar.CodigoInventario, 30))
         {
-            ModelState.AddModelError("CodigoInventario", "El código de inventario excede la longitud máxima de 30 caracteres.");
+            ModelState.AddModelError("Ejemplar.CodigoInventario", "El código de inventario excede la longitud máxima de 30 caracteres.");
         }
 
         if (!ModelState.IsValid)
@@ -102,7 +102,7 @@ public class EjemplarEditModel : PageModel
         }
         catch (MySql.Data.MySqlClient.MySqlException ex) when (ex.Number == 1062)
         {
-            ModelState.AddModelError("CodigoInventario", "Ya existe un ejemplar con ese código de inventario.");
+            ModelState.AddModelError("Ejemplar.CodigoInventario", "Ya existe un ejemplar con ese código de inventario.");
             return Page();
         }
         catch (Exception)
