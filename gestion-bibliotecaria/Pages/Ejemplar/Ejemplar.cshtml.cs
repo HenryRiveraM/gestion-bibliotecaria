@@ -1,68 +1,63 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using gestion_bibliotecaria.Models;
 using gestion_bibliotecaria.Security;
-using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.FactoryProducts;
+using gestion_bibliotecaria.FactoryCreators;
+using MySql.Data.MySqlClient;
+using System.Data;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class EjemplarModel : PageModel
 {
-    private const string QueryEjemplares = @"SELECT EjemplarId, LibroId, CodigoInventario, EstadoConservacion, Disponible, DadoDeBaja, MotivoBaja, Ubicacion, Estado, FechaRegistro, UltimaActualizacion
-                                             FROM ejemplar
-                                             ORDER BY EjemplarId DESC";
-
-    private const string QueryTitulos = "SELECT LibroId, Titulo FROM libro";
-
-    private readonly IConfiguration _configuration;
+    private readonly IRepository<Ejemplar, int> _repository;
     private readonly RouteTokenService _routeTokenService;
-    private readonly IEjemplarFactory _ejemplarFactory;
+    private readonly IConfiguration _configuration;
 
     public List<Ejemplar> Ejemplares { get; set; } = new();
     public Dictionary<int, string> LibrosTitulos { get; set; } = new();
 
     public EjemplarModel(
-        IConfiguration configuration,
+        RepositoryFactory<Ejemplar, int> factory,
         RouteTokenService routeTokenService,
-        IEjemplarFactory ejemplarFactory)
+        IConfiguration configuration)
     {
-        _configuration = configuration;
+        _repository = factory.CreateRepository();
         _routeTokenService = routeTokenService;
-        _ejemplarFactory = ejemplarFactory;
+        _configuration = configuration;
     }
 
     public async Task OnGetAsync()
     {
-        Ejemplares = await ObtenerEjemplaresAsync();
+        var tabla = _repository.GetAll();
 
-        foreach (var ejemplar in Ejemplares)
+        Ejemplares = new List<Ejemplar>();
+
+        foreach (DataRow row in tabla.Rows)
         {
+            var ejemplar = new Ejemplar
+            {
+                EjemplarId = Convert.ToInt32(row["EjemplarId"]),
+                LibroId = Convert.ToInt32(row["LibroId"]),
+                CodigoInventario = row["CodigoInventario"].ToString()!,
+                EstadoConservacion = row["EstadoConservacion"] == DBNull.Value ? null : row["EstadoConservacion"].ToString(),
+                Disponible = Convert.ToBoolean(row["Disponible"]),
+                DadoDeBaja = Convert.ToBoolean(row["DadoDeBaja"]),
+                MotivoBaja = row["MotivoBaja"] == DBNull.Value ? null : row["MotivoBaja"].ToString(),
+                Ubicacion = row["Ubicacion"] == DBNull.Value ? null : row["Ubicacion"].ToString(),
+                Estado = Convert.ToBoolean(row["Estado"])
+            };
+
             ejemplar.RouteToken = _routeTokenService.CrearToken(ejemplar.EjemplarId);
+
+            Ejemplares.Add(ejemplar);
         }
 
         LibrosTitulos = await ObtenerTitulosLibrosAsync();
     }
 
     private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-    private async Task<List<Ejemplar>> ObtenerEjemplaresAsync()
-    {
-        var ejemplares = new List<Ejemplar>();
-
-        using var connection = new MySqlConnection(ConnectionString);
-        await connection.OpenAsync();
-
-        using var command = new MySqlCommand(QueryEjemplares, connection);
-        using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
-
-        while (await reader.ReadAsync())
-        {
-            ejemplares.Add(MapEjemplar(reader));
-        }
-
-        return ejemplares;
-    }
+        ?? throw new InvalidOperationException("Connection string not found.");
 
     private async Task<Dictionary<int, string>> ObtenerTitulosLibrosAsync()
     {
@@ -71,8 +66,10 @@ public class EjemplarModel : PageModel
         using var connection = new MySqlConnection(ConnectionString);
         await connection.OpenAsync();
 
-        using var command = new MySqlCommand(QueryTitulos, connection);
-        using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
+        string query = "SELECT LibroId, Titulo FROM libro";
+
+        using var command = new MySqlCommand(query, connection);
+        using var reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
         {
@@ -80,31 +77,5 @@ public class EjemplarModel : PageModel
         }
 
         return titulos;
-    }
-
-    private static Ejemplar MapEjemplar(MySqlDataReader reader)
-    {
-        return new Ejemplar
-        {
-            EjemplarId = reader.GetInt32("EjemplarId"),
-            LibroId = reader.GetInt32("LibroId"),
-            CodigoInventario = reader.GetString("CodigoInventario"),
-            EstadoConservacion = reader.IsDBNull(reader.GetOrdinal("EstadoConservacion"))
-                ? null
-                : reader.GetString("EstadoConservacion"),
-            Disponible = reader.GetBoolean("Disponible"),
-            DadoDeBaja = reader.GetBoolean("DadoDeBaja"),
-            MotivoBaja = reader.IsDBNull(reader.GetOrdinal("MotivoBaja"))
-                ? null
-                : reader.GetString("MotivoBaja"),
-            Ubicacion = reader.IsDBNull(reader.GetOrdinal("Ubicacion"))
-                ? null
-                : reader.GetString("Ubicacion"),
-            Estado = reader.GetBoolean("Estado"),
-            FechaRegistro = reader.GetDateTime("FechaRegistro"),
-            UltimaActualizacion = reader.IsDBNull(reader.GetOrdinal("UltimaActualizacion"))
-                ? null
-                : reader.GetDateTime("UltimaActualizacion")
-        };
     }
 }
