@@ -17,11 +17,11 @@
             <h1>Gestión de Libros</h1>
         </div>
 
-        <a href="/Libro/Create" class="btn-nuevo">
-            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                 class="icono-btn icon-white">
-            Nuevo Libro
-        </a>
+<button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
+    <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+         class="icono-btn icon-white">
+    Nuevo Libro
+</button>
 
     </div>
 
@@ -90,6 +90,8 @@ else
                 var edicion = row.Field<string>("Edicion");
                 var añoPublicacion = row.Field<int?>("AñoPublicacion");
                 var estado = row.Field<bool>("Estado");
+                var descripcion = row.Table.Columns.Contains("Descripcion") ? row["Descripcion"]?.ToString() : "";
+                var fechaRegistro = row.Field<DateTime>("FechaRegistro");
 
                 <tr class="@(!estado ? "fila-inactiva" : "")">
 
@@ -123,14 +125,27 @@ else
 
                     <td class="acciones">
 
-                        <a href="/Libro/Edit/@libroToken" class="btn-editar">
+                        <button type="button"
+                                class="btn-editar"
+                                onclick="abrirModalEditar(
+                                    '@libroToken',
+                                    '@autorId',
+                                    '@Html.Raw((titulo ?? "").Replace("'", "\\'"))',
+                                    '@Html.Raw((editorial ?? "").Replace("'", "\\'"))',
+                                    '@Html.Raw((edicion ?? "").Replace("'", "\\'"))',
+                                    '@(añoPublicacion?.ToString() ?? "")',
+                                    '@Html.Raw((descripcion ?? "").Replace("'", "\\'"))',
+                                    '@estado',
+                                    '@fechaRegistro.ToString("yyyy-MM-ddTHH:mm:ss")'
+                                )">
+
                             <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                  class="icono-btn icon-white">
                             Editar
-                        </a>
+                        </button>
 
-                        <!-- BOTON MODAL -->
-                        <button class="btn-eliminar"
+                        <button type="button"
+                                class="btn-eliminar"
                                 onclick="abrirModalEliminar('@libroToken')">
 
                             <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
@@ -165,9 +180,8 @@ else
 
 </div>
 
-<!-- MODAL -->
+<!-- MODAL ELIMINAR -->
 <div id="modalEliminar" class="modal">
-
     <div class="modal-box">
 
         <div class="modal-icon">
@@ -176,94 +190,489 @@ else
         </div>
 
         <h2>¿Estás seguro de que quieres eliminar este libro?</h2>
-
         <p>Esta acción no se puede deshacer.</p>
 
-        <div class="modal-buttons">
+        <form method="post" asp-page-handler="Eliminar">
+            @Html.AntiForgeryToken()
 
-            <a id="btnConfirmarEliminar" class="btn-danger">
-                Sí, eliminar
-            </a>
+            <input type="hidden" id="libroTokenInput" name="token" />
 
-            <button class="btn-secondary" onclick="cerrarModalEliminar()">
-                Cancelar
-            </button>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-danger">
+                    Sí, eliminar
+                </button>
 
-        </div>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEliminar()">
+                    Cancelar
+                </button>
+            </div>
+        </form>
 
     </div>
+</div>
 
+<!-- MODAL EDITAR -->
+<div id="modalEditar" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon editar">
+            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>Editar libro</h2>
+        <p>Modifica la información del libro.</p>
+
+        <form method="post" asp-page-handler="Editar">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" id="editToken" name="token" />
+            <input type="hidden" id="editFechaRegistro" name="FechaRegistro" />
+
+            <!-- AUTOR -->
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="editAutorId" name="AutorId" />
+
+                <div class="custom-select" id="custom-select-autor-edit">
+                    <div class="select-trigger">
+                        <span id="editAutorText">-- Seleccione un autor --</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+
+                    <div class="select-dropdown">
+                        <input type="text"
+                               class="select-search"
+                               id="autor-search-edit"
+                               placeholder="Buscar autor..." />
+
+                        <div class="select-options">
+                            @foreach (DataRow autorRow in Model.Autores.Rows)
+                            {
+                                var aId = (int)autorRow["AutorId"];
+                                var nombres = autorRow["Nombres"]?.ToString() ?? "";
+                                var apellidos = autorRow["Apellidos"]?.ToString() ?? "";
+                                var nacionalidad = autorRow["Nacionalidad"] as string;
+                                var textoAutor = $"{apellidos}, {nombres}" + (!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "");
+
+                                <div class="option" data-value="@aId">@textoAutor</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TITULO -->
+            <input type="text" id="editTitulo" name="Titulo" placeholder="Título" required />
+
+            <!-- EDITORIAL -->
+            <input type="text" id="editEditorial" name="Editorial" placeholder="Editorial" />
+
+            <!-- EDICION -->
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="editEdicion" name="Edicion" />
+
+                <div class="custom-select" id="custom-select-edicion-edit">
+                    <div class="select-trigger">
+                        <span id="editEdicionText">-- Seleccione una edición --</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+
+                    <div class="select-dropdown">
+                        <input type="text"
+                               class="select-search"
+                               id="edicion-search-edit"
+                               placeholder="Buscar edición..." />
+
+                        <div class="select-options">
+                            <div class="option" data-value="1ra Edición">1ra Edición</div>
+                            <div class="option" data-value="2da Edición">2da Edición</div>
+                            <div class="option" data-value="3ra Edición">3ra Edición</div>
+                            <div class="option" data-value="4ta Edición">4ta Edición</div>
+                            <div class="option" data-value="5ta Edición">5ta Edición</div>
+                            <div class="option" data-value="6ta Edición">6ta Edición</div>
+                            <div class="option" data-value="7ma Edición">7ma Edición</div>
+                            <div class="option" data-value="8va Edición">8va Edición</div>
+                            <div class="option" data-value="9na Edición">9na Edición</div>
+                            <div class="option" data-value="10ma Edición">10ma Edición</div>
+                            <div class="option" data-value="Edición Revisada">Edición Revisada</div>
+                            <div class="option" data-value="Edición Actualizada">Edición Actualizada</div>
+                            <div class="option" data-value="Edición Ampliada">Edición Ampliada</div>
+                            <div class="option" data-value="Edición Internacional">Edición Internacional</div>
+                            <div class="option" data-value="Edición de Bolsillo">Edición de Bolsillo</div>
+                            <div class="option" data-value="Edición Ilustrada">Edición Ilustrada</div>
+                            <div class="option" data-value="Edición Especial">Edición Especial / Conmemorativa</div>
+                            <div class="option" data-value="Edición Crítica">Edición Crítica</div>
+                            <div class="option" data-value="Otra">Otra / No especificada</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AÑO -->
+            <input type="number"
+                   id="editAnioPublicacion"
+                   name="AñoPublicacion"
+                   placeholder="Año de publicación"
+                   min="1000"
+                   max="2100" />
+
+            <!-- DESCRIPCION -->
+            <textarea id="editDescripcion"
+                      name="Descripcion"
+                      placeholder="Descripción"
+                      rows="4"></textarea>
+
+            <!-- ESTADO -->
+            <select id="editEstado" name="Estado">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-warning">Guardar cambios</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- MODAL CREAR -->
+<div id="modalCrear" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>Nuevo libro</h2>
+        <p>Ingresa la información del libro.</p>
+
+        <form method="post" asp-page-handler="Crear">
+            @Html.AntiForgeryToken()
+
+            <!-- AUTOR -->
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="createAutorId" name="AutorId" />
+
+                <div class="custom-select" id="custom-select-autor-create">
+                    <div class="select-trigger">
+                        <span id="createAutorText">Seleccione un autor...</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+
+                    <div class="select-dropdown">
+                        <input type="text"
+                               class="select-search"
+                               id="autor-search-create"
+                               placeholder="Buscar autor..." />
+
+                        <div class="select-options">
+                            @foreach (DataRow autorRow in Model.Autores.Rows)
+                            {
+                                var aId = (int)autorRow["AutorId"];
+                                var nombres = autorRow["Nombres"]?.ToString() ?? "";
+                                var apellidos = autorRow["Apellidos"]?.ToString() ?? "";
+                                var nacionalidad = autorRow["Nacionalidad"] as string;
+                                var displayText = $"{apellidos}, {nombres}{(!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "")}";
+
+                                <div class="option"
+                                     data-value="@aId"
+                                     data-text="@displayText">
+                                    @displayText
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TITULO -->
+            <input type="text"
+                   id="createTitulo"
+                   name="Titulo"
+                   placeholder="Título del libro"
+                   required />
+
+            <!-- EDITORIAL -->
+            <input type="text"
+                   id="createEditorial"
+                   name="Editorial"
+                   placeholder="Ej: Penguin Books, Planeta" />
+
+            <!-- EDICION -->
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="createEdicion" name="Edicion" />
+
+                <div class="custom-select" id="custom-select-edicion-create">
+                    <div class="select-trigger">
+                        <span id="createEdicionText">-- Seleccione una edición --</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+
+                    <div class="select-dropdown">
+                        <input type="text"
+                               class="select-search"
+                               id="edicion-search-create"
+                               placeholder="Buscar edición..." />
+
+                        <div class="select-options">
+                            <div class="option" data-value="1ra Edición">1ra Edición</div>
+                            <div class="option" data-value="2da Edición">2da Edición</div>
+                            <div class="option" data-value="3ra Edición">3ra Edición</div>
+                            <div class="option" data-value="4ta Edición">4ta Edición</div>
+                            <div class="option" data-value="5ta Edición">5ta Edición</div>
+                            <div class="option" data-value="6ta Edición">6ta Edición</div>
+                            <div class="option" data-value="7ma Edición">7ma Edición</div>
+                            <div class="option" data-value="8va Edición">8va Edición</div>
+                            <div class="option" data-value="9na Edición">9na Edición</div>
+                            <div class="option" data-value="10ma Edición">10ma Edición</div>
+                            <div class="option" data-value="Edición Revisada">Edición Revisada</div>
+                            <div class="option" data-value="Edición Actualizada">Edición Actualizada</div>
+                            <div class="option" data-value="Edición Ampliada">Edición Ampliada</div>
+                            <div class="option" data-value="Edición Internacional">Edición Internacional</div>
+                            <div class="option" data-value="Edición de Bolsillo">Edición de Bolsillo</div>
+                            <div class="option" data-value="Edición Ilustrada">Edición Ilustrada</div>
+                            <div class="option" data-value="Edición Especial">Edición Especial / Conmemorativa</div>
+                            <div class="option" data-value="Edición Crítica">Edición Crítica</div>
+                            <div class="option" data-value="Otra">Otra / No especificada</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AÑO -->
+            <input type="number"
+                   id="createAnioPublicacion"
+                   name="AñoPublicacion"
+                   placeholder="Año de publicación"
+                   min="1000"
+                   max="2100" />
+
+            <!-- DESCRIPCION -->
+            <textarea id="createDescripcion"
+                      name="Descripcion"
+                      placeholder="Descripción breve del contenido del libro"
+                      rows="4"></textarea>
+
+            <!-- ESTADO -->
+            <select id="createEstado" name="Estado">
+                <option value="true" selected>Activo</option>
+                <option value="false">Inactivo</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">Crear libro</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
+            </div>
+        </form>
+
+    </div>
 </div>
 
 @section Scripts {
 <script>
-    (function () {
-        var input = document.getElementById('buscador-libro');
-        var select = document.getElementById('orden-libro');
-        var tabla = document.getElementById('tabla-libro');
+(function () {
+    var input = document.getElementById('buscador-libro');
+    var select = document.getElementById('orden-libro');
+    var tabla = document.getElementById('tabla-libro');
 
-        if (!input || !tabla) return;
+    if (!input || !tabla) return;
 
-        function normalizar(s) {
-            return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    function normalizar(s) {
+        return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    }
+
+    function aplicar() {
+        var termino = normalizar(input.value);
+        var orden = select ? select.value : 'titulo_asc';
+
+        var tbody = tabla.querySelector('tbody');
+        var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
+
+        var asc = orden.endsWith('_asc');
+
+        filas.sort(function (a, b) {
+            var va = normalizar(a.cells[0].textContent);
+            var vb = normalizar(b.cells[0].textContent);
+            return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+        });
+
+        filas.forEach(f => tbody.appendChild(f));
+
+        var visibles = 0;
+
+        filas.forEach(function (fila) {
+            var texto = normalizar(fila.textContent);
+            var coincide = termino === '' || texto.includes(termino);
+            fila.style.display = coincide ? '' : 'none';
+            if (coincide) visibles++;
+        });
+
+        var sinResultados = document.getElementById('fila-sin-resultados');
+        if (sinResultados) {
+            sinResultados.style.display = visibles === 0 ? '' : 'none';
+            tbody.appendChild(sinResultados);
         }
+    }
 
-        function aplicar() {
-            var termino = normalizar(input.value);
-            var orden = select ? select.value : 'titulo_asc';
+    input.addEventListener('input', aplicar);
+    if (select) select.addEventListener('change', aplicar);
 
-            var tbody = tabla.querySelector('tbody');
-            var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
+    aplicar();
+})();
 
-            var asc = orden.endsWith('_asc');
+function abrirModalEliminar(token) {
+    document.getElementById("libroTokenInput").value = token;
+    document.getElementById("modalEliminar").style.display = "flex";
+}
 
-            filas.sort(function (a, b) {
-                var va = normalizar(a.cells[0].textContent);
-                var vb = normalizar(b.cells[0].textContent);
-                return asc ? va.localeCompare(vb) : vb.localeCompare(va);
-            });
+function cerrarModalEliminar() {
+    document.getElementById("modalEliminar").style.display = "none";
+}
 
-            filas.forEach(f => tbody.appendChild(f));
+function abrirModalEditar(token, autorId, titulo, editorial, edicion, anio, descripcion, estado, fechaRegistro) {
+    document.getElementById("editToken").value = token;
+    document.getElementById("editAutorId").value = autorId;
+    document.getElementById("editTitulo").value = titulo || "";
+    document.getElementById("editEditorial").value = editorial || "";
+    document.getElementById("editEdicion").value = edicion || "";
+    document.getElementById("editAnioPublicacion").value = anio || "";
+    document.getElementById("editDescripcion").value = descripcion || "";
+    document.getElementById("editEstado").value = estado === "True" ? "true" : "false";
+    document.getElementById("editFechaRegistro").value = fechaRegistro || "";
 
-            var visibles = 0;
+    const autorOption = document.querySelector('#custom-select-autor-edit .option[data-value="' + autorId + '"]');
+    document.getElementById("editAutorText").textContent =
+        autorOption ? autorOption.textContent.trim() : "-- Seleccione un autor --";
 
-            filas.forEach(function (fila) {
-                var texto = normalizar(fila.textContent);
-                var coincide = termino === '' || texto.includes(termino);
-                fila.style.display = coincide ? '' : 'none';
-                if (coincide) visibles++;
-            });
+    const edicionOption = document.querySelector('#custom-select-edicion-edit .option[data-value="' + edicion + '"]');
+    document.getElementById("editEdicionText").textContent =
+        edicionOption ? edicionOption.textContent.trim() : (edicion || "-- Seleccione una edición --");
 
-            var sinResultados = document.getElementById('fila-sin-resultados');
+    document.getElementById("modalEditar").style.display = "flex";
+}
 
-            if (sinResultados) {
-                sinResultados.style.display = visibles === 0 ? '' : 'none';
-                tbody.appendChild(sinResultados);
+function cerrarModalEditar() {
+    document.getElementById("modalEditar").style.display = "none";
+}
+
+function abrirModalCrear() {
+    document.getElementById("createAutorId").value = "";
+    document.getElementById("createAutorText").textContent = "Seleccione un autor...";
+    document.getElementById("createTitulo").value = "";
+    document.getElementById("createEditorial").value = "";
+    document.getElementById("createEdicion").value = "";
+    document.getElementById("createEdicionText").textContent = "-- Seleccione una edición --";
+    document.getElementById("createAnioPublicacion").value = "";
+    document.getElementById("createDescripcion").value = "";
+    document.getElementById("createEstado").value = "true";
+
+    document.getElementById("modalCrear").style.display = "flex";
+}
+
+function cerrarModalCrear() {
+    document.getElementById("modalCrear").style.display = "none";
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    function initCustomSelect(config) {
+        const customSelect = document.getElementById(config.selectId);
+        if (!customSelect) return;
+
+        const trigger = customSelect.querySelector('.select-trigger');
+        const search = customSelect.querySelector('.select-search');
+        const options = customSelect.querySelectorAll('.option');
+        const hiddenInput = document.getElementById(config.hiddenInputId);
+        const selectText = document.getElementById(config.textId);
+        let isOpen = false;
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            isOpen = !isOpen;
+            customSelect.classList.toggle('active', isOpen);
+
+            if (isOpen) {
+                search.focus();
+                search.value = '';
+                options.forEach(opt => opt.classList.remove('hidden'));
             }
-        }
+        });
 
-        input.addEventListener('input', aplicar);
-        if (select) select.addEventListener('change', aplicar);
+        document.addEventListener('click', function (e) {
+            if (!customSelect.contains(e.target)) {
+                isOpen = false;
+                customSelect.classList.remove('active');
+            }
+        });
 
-        aplicar();
-    })();
+        search.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase();
 
-    function abrirModalEliminar(token) {
-        var url = "/Libro/Delete/" + token;
-        document.getElementById("btnConfirmarEliminar").href = url;
-        document.getElementById("modalEliminar").style.display = "flex";
+            options.forEach(option => {
+                const text = option.textContent.toLowerCase();
+                option.classList.toggle('hidden', !text.includes(searchTerm));
+            });
+        });
+
+        options.forEach(option => {
+            option.addEventListener('click', function (e) {
+                e.stopPropagation();
+
+                const value = this.dataset.value;
+                const text = this.dataset.text || this.textContent.trim();
+
+                hiddenInput.value = value;
+                selectText.textContent = text;
+                isOpen = false;
+                customSelect.classList.remove('active');
+            });
+        });
     }
 
-    function cerrarModalEliminar() {
-        document.getElementById("modalEliminar").style.display = "none";
-    }
+    initCustomSelect({
+        selectId: 'custom-select-autor-edit',
+        hiddenInputId: 'editAutorId',
+        textId: 'editAutorText'
+    });
 
-    // cerrar al hacer click fuera
-    window.onclick = function(e) {
-        var modal = document.getElementById("modalEliminar");
-        if (e.target === modal) {
-            cerrarModalEliminar();
-        }
-    }
+    initCustomSelect({
+        selectId: 'custom-select-edicion-edit',
+        hiddenInputId: 'editEdicion',
+        textId: 'editEdicionText'
+    });
+
+    initCustomSelect({
+        selectId: 'custom-select-autor-create',
+        hiddenInputId: 'createAutorId',
+        textId: 'createAutorText'
+    });
+
+    initCustomSelect({
+        selectId: 'custom-select-edicion-create',
+        hiddenInputId: 'createEdicion',
+        textId: 'createEdicionText'
+    });
+});
+
+window.onclick = function(e) {
+    var modalEliminar = document.getElementById("modalEliminar");
+    var modalEditar = document.getElementById("modalEditar");
+    var modalCrear = document.getElementById("modalCrear");
+
+    if (e.target === modalEliminar) cerrarModalEliminar();
+    if (e.target === modalEditar) cerrarModalEditar();
+    if (e.target === modalCrear) cerrarModalCrear();
+}
 </script>
 }

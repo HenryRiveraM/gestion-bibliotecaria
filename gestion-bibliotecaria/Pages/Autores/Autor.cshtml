@@ -11,16 +11,15 @@
 <div class="autores-container">
 
     <div class="page-header">
-
         <div class="titulo-logo">
             <h1>Gestión de Autores</h1>
         </div>
 
-        <a asp-page="AutorCreate" class="btn-nuevo">
-            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
+        <button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-btn">
             Nuevo Autor
-        </a>
-
+        </button>
     </div>
 
     <div class="filtros-barra">
@@ -28,32 +27,28 @@
             <input id="buscador-autor"
                    type="text"
                    class="input-filtro"
-                   placeholder="Buscar por nombres, apellidos, nacionalidad o estado..."
+                   placeholder="Buscar..."
                    autocomplete="off" />
         </div>
     </div>
 
-    <div id="tabla-autor" class="tabla-container">
-
+    <div class="tabla-container">
         <table id="tabla-autores" class="tabla-autores">
-
             <thead>
                 <tr>
                     <th>Nombres</th>
                     <th>Apellidos</th>
                     <th>Nacionalidad</th>
-                    <th>Fecha Nacimiento</th>
+                    <th>Fecha</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
 
             <tbody>
-
                 @foreach (System.Data.DataRow row in Model.AutorDataTable.Rows)
                 {
                     <tr>
-
                         <td>@row["Nombres"]</td>
                         <td>@row["Apellidos"]</td>
                         <td>@row["Nacionalidad"]</td>
@@ -71,29 +66,31 @@
                         </td>
 
                         <td class="acciones">
-
-                            <a asp-page="AutorEdit"
-                                asp-route-token="@row["AutorToken"]"
-                                    class="btn-editar">
+                            <button type="button"
+                                    class="btn-editar"
+                                    onclick="abrirModalEditar(
+                                        '@row["AutorToken"]',
+                                        '@Html.Raw((row["Nombres"]?.ToString() ?? "").Replace("'", "\\'"))',
+                                        '@Html.Raw((row["Apellidos"]?.ToString() ?? "").Replace("'", "\\'"))',
+                                        '@Html.Raw((row["Nacionalidad"]?.ToString() ?? "").Replace("'", "\\'"))',
+                                        '@(row.IsNull("FechaNacimiento") ? "" : ((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))',
+                                        '@((bool)row["Estado"])'
+                                    )">
 
                                 <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                class="icono-btn">
-
+                                     class="icono-btn">
                                 Editar
-                            </a>
-
-                        <!-- BOTON MODAL ELIMINAR -->
-                            <button class="btn-eliminar"
-                                onclick="abrirModal('@row["AutorToken"]')">
-
-                                <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                    class="icono-btn">
-
-                                Eliminar
                             </button>
 
-                        </td>
+                            <button type="button"
+                                    class="btn-eliminar"
+                                    onclick="abrirModal('@row["AutorToken"]')">
 
+                                <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                     class="icono-btn">
+                                Eliminar
+                            </button>
+                        </td>
                     </tr>
                 }
 
@@ -102,90 +99,513 @@
                         No hay autores que coincidan con la búsqueda.
                     </td>
                 </tr>
-
             </tbody>
-
         </table>
-
     </div>
-
 </div>
 
-<!-- Modal eliminar -->
+<!-- MODAL ELIMINAR -->
 <div id="modalEliminar" class="modal">
-
     <div class="modal-box">
-
         <div class="modal-icon">
             <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                class="icono-modal">
+                 class="icono-modal">
         </div>
 
-        <h2>¿Estás seguro de que quieres eliminar este autor?</h2>
+        <h2>¿Eliminar autor?</h2>
+        <p>No se puede deshacer.</p>
 
-        <p>Esta acción no se puede deshacer.</p>
+        <form method="post" asp-page-handler="Eliminar">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="autorTokenInput" name="token" />
 
-        <div class="modal-buttons">
-
-            <a id="btnConfirmarEliminar" class="btn-danger">
-                Sí, eliminar
-            </a>
-
-            <button class="btn-secondary" onclick="cerrarModal()">
-                Cancelar
-            </button>
-
-        </div>
-
+            <div class="modal-buttons">
+                <button type="submit" class="btn-danger">Eliminar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            </div>
+        </form>
     </div>
+</div>
 
+<!-- MODAL EDITAR -->
+<div id="modalEditar" class="modal">
+    <div class="modal-box">
+        <div class="modal-icon editar">
+            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>Editar Autor</h2>
+        <p>Modifica la información del autor.</p>
+
+        <form method="post" asp-page-handler="Editar">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" id="editToken" name="token" />
+
+            <input type="text" id="editNombres" name="Nombres" placeholder="Nombres" required />
+            <input type="text" id="editApellidos" name="Apellidos" placeholder="Apellidos" />
+
+            <!-- NACIONALIDAD CON DROPDOWN -->
+            <div class="custom-select-wrapper">
+                <input type="hidden"
+                       id="editNacionalidad"
+                       name="Nacionalidad" />
+
+                <div class="custom-select" id="custom-select-nacionalidad-edit">
+                    <div class="select-trigger">
+                        <span id="editNacionalidadText">-- Seleccione una nacionalidad --</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+
+                    <div class="select-dropdown">
+                        <input type="text"
+                               class="select-search"
+                               id="editNacionalidadSearch"
+                               placeholder="Buscar nacionalidad..." />
+
+                        <div class="select-options">
+                            <div class="option" data-value="Boliviana">Boliviana</div>
+                            <div class="option" data-value="Argentina">Argentina</div>
+                            <div class="option" data-value="Brasileña">Brasileña</div>
+                            <div class="option" data-value="Chilena">Chilena</div>
+                            <div class="option" data-value="Colombiana">Colombiana</div>
+                            <div class="option" data-value="Ecuatoriana">Ecuatoriana</div>
+                            <div class="option" data-value="Paraguaya">Paraguaya</div>
+                            <div class="option" data-value="Peruana">Peruana</div>
+                            <div class="option" data-value="Uruguaya">Uruguaya</div>
+                            <div class="option" data-value="Venezolana">Venezolana</div>
+                            <div class="option" data-value="Mexicana">Mexicana</div>
+                            <div class="option" data-value="Estadounidense">Estadounidense</div>
+                            <div class="option" data-value="Canadiense">Canadiense</div>
+                            <div class="option" data-value="Española">Española</div>
+                            <div class="option" data-value="Francesa">Francesa</div>
+                            <div class="option" data-value="Alemana">Alemana</div>
+                            <div class="option" data-value="Italiana">Italiana</div>
+                            <div class="option" data-value="Portuguesa">Portuguesa</div>
+                            <div class="option" data-value="Británica">Británica</div>
+                            <div class="option" data-value="China">China</div>
+                            <div class="option" data-value="Japonesa">Japonesa</div>
+                            <div class="option" data-value="Coreana">Coreana</div>
+                            <div class="option" data-value="India">India</div>
+                            <div class="option" data-value="Australiana">Australiana</div>
+                            <div class="option" data-value="Sudafricana">Sudafricana</div>
+                            <div class="option" data-value="Egipcia">Egipcia</div>
+                            <div class="option" data-value="Otra">Otra</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FECHA QUE SE PUEDE BORRAR -->
+            <input type="hidden" id="editFechaNacimiento" name="FechaNacimiento" />
+            <input type="text"
+                   id="editFechaNacimientoDisplay"
+                   placeholder="dd/mm/aaaa"
+                   autocomplete="off" />
+
+            <select id="editEstado" name="Estado">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-warning">Guardar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL CREAR -->
+<div id="modalCrear" class="modal">
+    <div class="modal-box">
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>Nuevo Autor</h2>
+        <p>Ingresa los datos del autor</p>
+
+        <form method="post" asp-page-handler="Crear">
+            @Html.AntiForgeryToken()
+
+            <input type="text"
+                   name="Autor.Nombres"
+                   placeholder="Nombres"
+                   required />
+
+            <input type="text"
+                   name="Autor.Apellidos"
+                   placeholder="Apellidos" />
+
+            <div class="custom-select-wrapper">
+                <input type="hidden"
+                       id="nacionalidad-value-modal"
+                       name="Autor.Nacionalidad" />
+
+                <div class="custom-select" id="custom-select-nacionalidad-modal">
+                    <div class="select-trigger" id="nacionalidad-trigger-modal">
+                        <span id="nacionalidad-text-modal">-- Seleccione una nacionalidad --</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+
+                    <div class="select-dropdown">
+                        <input type="text"
+                               class="select-search"
+                               id="nacionalidad-search-modal"
+                               placeholder="Buscar nacionalidad..." />
+
+                        <div class="select-options">
+                            <div class="option" data-value="Boliviana">Boliviana</div>
+                            <div class="option" data-value="Argentina">Argentina</div>
+                            <div class="option" data-value="Brasileña">Brasileña</div>
+                            <div class="option" data-value="Chilena">Chilena</div>
+                            <div class="option" data-value="Colombiana">Colombiana</div>
+                            <div class="option" data-value="Ecuatoriana">Ecuatoriana</div>
+                            <div class="option" data-value="Paraguaya">Paraguaya</div>
+                            <div class="option" data-value="Peruana">Peruana</div>
+                            <div class="option" data-value="Uruguaya">Uruguaya</div>
+                            <div class="option" data-value="Venezolana">Venezolana</div>
+                            <div class="option" data-value="Mexicana">Mexicana</div>
+                            <div class="option" data-value="Estadounidense">Estadounidense</div>
+                            <div class="option" data-value="Canadiense">Canadiense</div>
+                            <div class="option" data-value="Española">Española</div>
+                            <div class="option" data-value="Francesa">Francesa</div>
+                            <div class="option" data-value="Alemana">Alemana</div>
+                            <div class="option" data-value="Italiana">Italiana</div>
+                            <div class="option" data-value="Portuguesa">Portuguesa</div>
+                            <div class="option" data-value="Británica">Británica</div>
+                            <div class="option" data-value="China">China</div>
+                            <div class="option" data-value="Japonesa">Japonesa</div>
+                            <div class="option" data-value="Coreana">Coreana</div>
+                            <div class="option" data-value="India">India</div>
+                            <div class="option" data-value="Australiana">Australiana</div>
+                            <div class="option" data-value="Sudafricana">Sudafricana</div>
+                            <div class="option" data-value="Egipcia">Egipcia</div>
+                            <div class="option" data-value="Otra">Otra</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <input type="date" name="Autor.FechaNacimiento" />
+
+            <select name="Autor.Estado">
+                <option value="true">Activo</option>
+                <option value="false">Inactivo</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">Crear</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 @section Scripts {
-    <script>
-        (function () {
-            var input = document.getElementById('buscador-autor');
-            var tabla = document.getElementById('tabla-autores');
+<script>
+(function () {
+    var input = document.getElementById('buscador-autor');
+    var tabla = document.getElementById('tabla-autores');
 
-            if (!input || !tabla) return;
+    if (!input || !tabla) return;
 
-            function normalizar(s) {
-                return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
-            }
+    input.addEventListener('input', function () {
+        var filtro = input.value.toLowerCase();
+        var filas = tabla.querySelectorAll('tbody tr');
 
-            function aplicarBusqueda() {
-                var termino = normalizar(input.value);
-                var tbody = tabla.querySelector('tbody');
-                var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
+        filas.forEach(function (f) {
+            f.style.display = f.textContent.toLowerCase().includes(filtro) ? "" : "none";
+        });
+    });
+})();
 
-                var visibles = 0;
+// =========================
+// MODAL ELIMINAR
+// =========================
+function abrirModal(token) {
+    document.getElementById("autorTokenInput").value = token;
+    document.getElementById("modalEliminar").style.display = "flex";
+}
 
-                filas.forEach(function (fila) {
-                    var texto = normalizar(fila.textContent);
-                    var coincide = termino === '' || texto.includes(termino);
-                    fila.style.display = coincide ? '' : 'none';
-                    if (coincide) visibles++;
-                });
+function cerrarModal() {
+    document.getElementById("modalEliminar").style.display = "none";
+}
 
-                var sinResultados = document.getElementById('fila-sin-resultados');
-                if (sinResultados) {
-                    sinResultados.style.display = visibles === 0 ? '' : 'none';
-                    tbody.appendChild(sinResultados);
-                }
-            }
+// =========================
+// FUNCIONES FECHA
+// =========================
+function convertirADisplay(valorIso) {
+    if (!valorIso) return "";
+    const partes = valorIso.split("-");
+    if (partes.length !== 3) return "";
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+}
 
-            input.addEventListener('input', aplicarBusqueda);
-            aplicarBusqueda();
-        })();
+function convertirAIso(valorDisplay) {
+    const valor = (valorDisplay || "").trim();
+    if (!valor) return "";
 
-        function abrirModal(token) {
-            var url = "/Autor/Delete/" + token;
-            document.getElementById("btnConfirmarEliminar").href = url;
-            document.getElementById("modalEliminar").style.display = "flex";
+    const partes = valor.split("/");
+    if (partes.length !== 3) return "";
+
+    const [diaTxt, mesTxt, anioTxt] = partes;
+
+    if (!/^\d{2}$/.test(diaTxt) || !/^\d{2}$/.test(mesTxt) || !/^\d{4}$/.test(anioTxt)) {
+        return "";
+    }
+
+    const dia = parseInt(diaTxt, 10);
+    const mes = parseInt(mesTxt, 10);
+    const anio = parseInt(anioTxt, 10);
+
+    const fecha = new Date(Date.UTC(anio, mes - 1, dia));
+    const fechaValida =
+        fecha.getUTCFullYear() === anio &&
+        fecha.getUTCMonth() === mes - 1 &&
+        fecha.getUTCDate() === dia;
+
+    if (!fechaValida) return "";
+
+    return `${anioTxt}-${mesTxt}-${diaTxt}`;
+}
+
+function formatearFechaDisplay(valor) {
+    const digitos = (valor || "").replace(/\D/g, "").slice(0, 8);
+    const dia = digitos.slice(0, 2);
+    const mes = digitos.slice(2, 4);
+    const anio = digitos.slice(4, 8);
+
+    if (digitos.length <= 2) return dia;
+    if (digitos.length <= 4) return `${dia}/${mes}`;
+    return `${dia}/${mes}/${anio}`;
+}
+
+// =========================
+// MODAL EDITAR
+// =========================
+function abrirModalEditar(token, nombres, apellidos, nacionalidad, fecha, estado) {
+    document.getElementById("editToken").value = token;
+    document.getElementById("editNombres").value = nombres || "";
+    document.getElementById("editApellidos").value = apellidos || "";
+
+    document.getElementById("editNacionalidad").value = nacionalidad || "";
+    document.getElementById("editNacionalidadText").textContent =
+        nacionalidad && nacionalidad.trim() !== "" ? nacionalidad : "-- Seleccione una nacionalidad --";
+
+    document.getElementById("editFechaNacimiento").value = fecha || "";
+    document.getElementById("editFechaNacimientoDisplay").value = convertirADisplay(fecha || "");
+
+    document.getElementById("editEstado").value = estado === "True" ? "true" : "false";
+
+    document.getElementById("modalEditar").style.display = "flex";
+}
+
+function cerrarModalEditar() {
+    document.getElementById("modalEditar").style.display = "none";
+}
+
+// =========================
+// MODAL CREAR
+// =========================
+function abrirModalCrear() {
+    document.getElementById("modalCrear").style.display = "flex";
+}
+
+function cerrarModalCrear() {
+    document.getElementById("modalCrear").style.display = "none";
+}
+
+// =========================
+// INIT GENERAL
+// =========================
+document.addEventListener("DOMContentLoaded", function () {
+
+    // =========================
+    // DROPDOWN NACIONALIDAD CREAR
+    // =========================
+    const customSelectCrear = document.getElementById("custom-select-nacionalidad-modal");
+    if (customSelectCrear) {
+        const triggerCrear = customSelectCrear.querySelector(".select-trigger");
+        const searchCrear = document.getElementById("nacionalidad-search-modal");
+        const optionsCrear = customSelectCrear.querySelectorAll(".option");
+        const hiddenInputCrear = document.getElementById("nacionalidad-value-modal");
+        const selectTextCrear = document.getElementById("nacionalidad-text-modal");
+        let isOpenCrear = false;
+
+        function openDropdownCrear() {
+            isOpenCrear = true;
+            customSelectCrear.classList.add("active");
+            searchCrear.value = "";
+            optionsCrear.forEach(opt => opt.classList.remove("hidden"));
+            setTimeout(() => searchCrear.focus(), 50);
         }
 
-        function cerrarModal() {
-            document.getElementById("modalEliminar").style.display = "none";
+        function closeDropdownCrear() {
+            isOpenCrear = false;
+            customSelectCrear.classList.remove("active");
         }
-    </script>
+
+        function applyManualValueCrear() {
+            const value = searchCrear.value.trim();
+            if (!value) return;
+            hiddenInputCrear.value = value;
+            selectTextCrear.textContent = value;
+        }
+
+        triggerCrear.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (isOpenCrear) closeDropdownCrear();
+            else openDropdownCrear();
+        });
+
+        searchCrear.addEventListener("click", function (e) {
+            e.stopPropagation();
+        });
+
+        searchCrear.addEventListener("input", function () {
+            const term = this.value.toLowerCase();
+            optionsCrear.forEach(option => {
+                option.classList.toggle("hidden", !option.textContent.toLowerCase().includes(term));
+            });
+        });
+
+        optionsCrear.forEach(option => {
+            option.addEventListener("click", function (e) {
+                e.stopPropagation();
+                hiddenInputCrear.value = this.dataset.value;
+                selectTextCrear.textContent = this.textContent.trim();
+                closeDropdownCrear();
+            });
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!customSelectCrear.contains(e.target) && isOpenCrear) {
+                applyManualValueCrear();
+                closeDropdownCrear();
+            }
+        });
+    }
+
+    // =========================
+    // DROPDOWN NACIONALIDAD EDITAR
+    // =========================
+    const customSelectEdit = document.getElementById("custom-select-nacionalidad-edit");
+    if (customSelectEdit) {
+        const triggerEdit = customSelectEdit.querySelector(".select-trigger");
+        const searchEdit = document.getElementById("editNacionalidadSearch");
+        const optionsEdit = customSelectEdit.querySelectorAll(".option");
+        const hiddenInputEdit = document.getElementById("editNacionalidad");
+        const selectTextEdit = document.getElementById("editNacionalidadText");
+        let isOpenEdit = false;
+
+        function openDropdownEdit() {
+            isOpenEdit = true;
+            customSelectEdit.classList.add("active");
+            searchEdit.value = "";
+            optionsEdit.forEach(opt => opt.classList.remove("hidden"));
+            setTimeout(() => searchEdit.focus(), 50);
+        }
+
+        function closeDropdownEdit() {
+            isOpenEdit = false;
+            customSelectEdit.classList.remove("active");
+        }
+
+        function applyManualValueEdit() {
+            const value = searchEdit.value.trim();
+            if (!value) return;
+            hiddenInputEdit.value = value;
+            selectTextEdit.textContent = value;
+        }
+
+        triggerEdit.addEventListener("click", function (e) {
+            e.stopPropagation();
+            if (isOpenEdit) closeDropdownEdit();
+            else openDropdownEdit();
+        });
+
+        searchEdit.addEventListener("click", function (e) {
+            e.stopPropagation();
+        });
+
+        searchEdit.addEventListener("input", function () {
+            const term = this.value.toLowerCase();
+            optionsEdit.forEach(option => {
+                option.classList.toggle("hidden", !option.textContent.toLowerCase().includes(term));
+            });
+        });
+
+        optionsEdit.forEach(option => {
+            option.addEventListener("click", function (e) {
+                e.stopPropagation();
+                hiddenInputEdit.value = this.dataset.value;
+                selectTextEdit.textContent = this.textContent.trim();
+                closeDropdownEdit();
+            });
+        });
+
+        document.addEventListener("click", function (e) {
+            if (!customSelectEdit.contains(e.target) && isOpenEdit) {
+                applyManualValueEdit();
+                closeDropdownEdit();
+            }
+        });
+    }
+
+    // =========================
+    // FECHA EDITAR BORRABLE
+    // =========================
+    const fechaInputEdit = document.getElementById("editFechaNacimiento");
+    const fechaDisplayEdit = document.getElementById("editFechaNacimientoDisplay");
+
+    if (fechaInputEdit && fechaDisplayEdit) {
+        fechaDisplayEdit.addEventListener("input", function () {
+            this.value = formatearFechaDisplay(this.value);
+            fechaInputEdit.value = convertirAIso(this.value);
+        });
+
+        fechaDisplayEdit.addEventListener("blur", function () {
+            fechaInputEdit.value = convertirAIso(this.value);
+        });
+    }
+
+    // =========================
+    // FECHA CREAR BORRABLE
+    // =========================
+    const fechaInputCrear = document.getElementById("crearFechaNacimiento");
+    const fechaDisplayCrear = document.getElementById("crearFechaNacimientoDisplay");
+
+    if (fechaInputCrear && fechaDisplayCrear) {
+        fechaDisplayCrear.addEventListener("input", function () {
+            this.value = formatearFechaDisplay(this.value);
+            fechaInputCrear.value = convertirAIso(this.value);
+        });
+
+        fechaDisplayCrear.addEventListener("blur", function () {
+            fechaInputCrear.value = convertirAIso(this.value);
+        });
+    }
+});
+
+// =========================
+// CLICK FUERA
+// =========================
+window.onclick = function (e) {
+    let m1 = document.getElementById("modalEliminar");
+    let m2 = document.getElementById("modalEditar");
+    let m3 = document.getElementById("modalCrear");
+
+    if (e.target === m1) cerrarModal();
+    if (e.target === m2) cerrarModalEditar();
+    if (e.target === m3) cerrarModalCrear();
+}
+</script>
 }

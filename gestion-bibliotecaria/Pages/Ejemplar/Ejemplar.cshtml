@@ -16,10 +16,10 @@
             <h1>Gestión de Ejemplares</h1>
         </div>
 
-        <a href="/Ejemplar/Create" class="btn-nuevo">
-            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
-            Nuevo Ejemplar
-        </a>
+<button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
+    <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
+    Nuevo Ejemplar
+</button>
 
     </div>
 
@@ -126,14 +126,25 @@ else
 
                     <td class="acciones">
 
-                        <a href="/Ejemplar/Edit/@ejemplar.RouteToken"
-                           class="btn-editar">
+<button type="button"
+        class="btn-editar"
+        onclick="abrirModalEditar(
+            '@ejemplar.RouteToken',
+            '@ejemplar.LibroId',
+            '@Html.Raw((ejemplar.CodigoInventario ?? "").Replace("'", "\\'"))',
+            '@Html.Raw((ejemplar.EstadoConservacion ?? "").Replace("'", "\\'"))',
+            '@ejemplar.Disponible',
+            '@ejemplar.DadoDeBaja',
+            '@Html.Raw((ejemplar.MotivoBaja ?? "").Replace("'", "\\'"))',
+            '@Html.Raw((ejemplar.Ubicacion ?? "").Replace("'", "\\'"))',
+            '@ejemplar.Estado'
+        )">
 
-                            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                 class="icono-btn">
+    <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+         class="icono-btn">
 
-                            Editar
-                        </a>
+    Editar
+</button>
 
                         <!-- BOTON MODAL -->
                         <button class="btn-eliminar"
@@ -174,7 +185,8 @@ else
 
 </div>
 
-<!-- 🔥 MODAL -->
+
+<!-- MODAL ELIMINAR -->
 <div id="modalEliminar" class="modal">
 
     <div class="modal-box">
@@ -185,20 +197,267 @@ else
         </div>
 
         <h2>¿Estás seguro de que quieres eliminar este ejemplar?</h2>
-
         <p>Esta acción no se puede deshacer.</p>
 
-        <div class="modal-buttons">
+        <form method="post" asp-page-handler="Eliminar">
+            @Html.AntiForgeryToken()
 
-            <a id="btnConfirmarEliminar" class="btn-danger">
-                Sí, eliminar
-            </a>
+            <input type="hidden" id="ejemplarTokenInput" name="token" />
 
-            <button class="btn-secondary" onclick="cerrarModalEliminar()">
-                Cancelar
-            </button>
+            <div class="modal-buttons">
 
+                <button type="submit" class="btn-danger">
+                    Sí, eliminar
+                </button>
+
+                <button type="button" class="btn-secondary" onclick="cerrarModalEliminar()">
+                    Cancelar
+                </button>
+
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<!-- MODAL EDITAR -->
+<div id="modalEditar" class="modal">
+
+    <div class="modal-box">
+
+        <div class="modal-icon editar">
+            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
         </div>
+
+        <h2>Editar ejemplar</h2>
+        <p>Modifica la información del ejemplar.</p>
+
+        <form method="post" asp-page-handler="Editar">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" id="editToken" name="token" />
+
+            <!-- LIBRO -->
+            <select id="editLibroId" name="LibroId" class="input-form" required>
+                <option value="">Seleccione un libro...</option>
+                @foreach (var libro in Model.LibrosTitulos)
+                {
+                    <option value="@libro.Key">@libro.Value</option>
+                }
+            </select>
+
+            <!-- CODIGO -->
+            <input type="text"
+                   id="editCodigoInventario"
+                   name="CodigoInventario"
+                   class="input-form"
+                   placeholder="Código de Ejemplar"
+                   required />
+
+            <!-- ESTADO CONSERVACION -->
+            <select id="editEstadoConservacion" name="EstadoConservacion" class="input-form">
+                <option value="">Seleccione...</option>
+                <option value="Excelente">Excelente</option>
+                <option value="Muy Bueno">Muy Bueno</option>
+                <option value="Bueno">Bueno</option>
+                <option value="Regular">Regular</option>
+                <option value="Malo">Malo</option>
+            </select>
+
+            <!-- UBICACION -->
+            <input type="text"
+                   id="editUbicacion"
+                   name="Ubicacion"
+                   class="input-form"
+                   placeholder="Ubicación" />
+
+            <!-- DISPONIBLE -->
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="editDisponible"
+                       name="Disponible"
+                       class="check-input" />
+                <label for="editDisponible">Disponible para préstamo</label>
+            </div>
+
+            <!-- DADO DE BAJA -->
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="editDadoDeBaja"
+                       name="DadoDeBaja"
+                       class="check-input"
+                       onchange="toggleMotivoBajaModal()" />
+                <label for="editDadoDeBaja">Dado de baja</label>
+            </div>
+
+            <!-- MOTIVO BAJA -->
+            <div id="editMotivoBajaDiv">
+                <textarea id="editMotivoBaja"
+                          name="MotivoBaja"
+                          class="input-form"
+                          rows="3"
+                          placeholder="Motivo de baja"></textarea>
+            </div>
+
+            <!-- ESTADO -->
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="editEstado"
+                       name="Estado"
+                       class="check-input" />
+                <label for="editEstado">Activo en el sistema</label>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-warning">Guardar cambios</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
+            </div>
+        </form>
+
+    </div>
+
+</div>
+
+<!-- MODAL CREAR -->
+<div id="modalCrear" class="modal">
+
+    <div class="modal-box">
+
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>Nuevo ejemplar</h2>
+        <p>Ingresa la información del ejemplar.</p>
+
+        <form method="post" asp-page-handler="Crear">
+            @Html.AntiForgeryToken()
+
+            <!-- LIBRO -->
+            <input type="hidden" id="createLibroIdHidden" name="Ejemplar.LibroId" />
+
+            <div class="libro-search-wrapper">
+                <input type="text"
+                       id="createBuscarLibro"
+                       class="input-form"
+                       placeholder="Escribe para buscar un libro..."
+                       autocomplete="off" />
+
+                <ul id="createListaLibros" class="libro-dropdown" style="display:none;">
+                    @foreach (var libro in Model.Libros)
+                    {
+                        var editorialTexto = string.IsNullOrWhiteSpace(libro.Editorial) ? "Sin editorial" : libro.Editorial;
+                        <li class="libro-opcion"
+                            data-id="@libro.LibroId"
+                            data-texto="@($"{libro.Titulo} ({editorialTexto})")">
+                            @libro.Titulo <span class="libro-editorial">(@editorialTexto)</span>
+                        </li>
+                    }
+                </ul>
+            </div>
+
+            <small class="text-muted" id="createLibroSeleccionadoTexto"></small>
+
+            <!-- CODIGO -->
+            <input type="text"
+                   name="Ejemplar.CodigoInventario"
+                   id="createCodigoInventario"
+                   class="input-form"
+                   placeholder="Ej: INV-001-2026"
+                   required />
+
+            <!-- ESTADO CONSERVACION -->
+            <select name="Ejemplar.EstadoConservacion"
+                    id="createEstadoConservacion"
+                    class="input-form">
+                <option value="">Seleccione...</option>
+                <option value="Excelente">Excelente</option>
+                <option value="Muy Bueno">Muy Bueno</option>
+                <option value="Bueno">Bueno</option>
+                <option value="Regular">Regular</option>
+                <option value="Malo">Malo</option>
+            </select>
+
+            <!-- UBICACION -->
+            <div class="custom-select-wrapper">
+                <input type="hidden" name="Ejemplar.Ubicacion" id="createUbicacionValue" />
+
+                <div class="custom-select" id="custom-select-ubicacion-create">
+                    <div class="select-trigger">
+                        <span id="createUbicacionText">-- Seleccione una ubicación --</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+
+                    <div class="select-dropdown">
+                        <input type="text"
+                               class="select-search"
+                               id="createUbicacionSearch"
+                               placeholder="Buscar ubicación..." />
+
+                        <div class="select-options">
+                            <div class="option" data-value="Estantería A1">A1</div>
+                            <div class="option" data-value="Estantería A2">A2</div>
+                            <div class="option" data-value="Estantería A3">A3</div>
+                            <div class="option" data-value="Estantería B1">B1</div>
+                            <div class="option" data-value="Estantería B2">B2</div>
+                            <div class="option" data-value="Estantería B3">B3</div>
+                            <div class="option" data-value="Estantería C1">C1</div>
+                            <div class="option" data-value="Estantería C2">C2</div>
+                            <div class="option" data-value="Estantería C3">C3</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DISPONIBLE -->
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="createDisponible"
+                       name="Ejemplar.Disponible"
+                       class="check-input"
+                       checked />
+                <label for="createDisponible">Disponible para préstamo</label>
+            </div>
+
+            <!-- DADO DE BAJA -->
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="createDadoBajaCheck"
+                       name="Ejemplar.DadoDeBaja"
+                       class="check-input"
+                       onchange="toggleMotivoBajaCrear()" />
+                <label for="createDadoBajaCheck">Dado de baja</label>
+            </div>
+
+            <!-- MOTIVO BAJA -->
+            <div id="createMotivoBajaDiv" style="display:none;">
+                <textarea name="Ejemplar.MotivoBaja"
+                          id="createMotivoBaja"
+                          class="input-form"
+                          rows="3"
+                          placeholder="Motivo de baja"></textarea>
+            </div>
+
+            <!-- ESTADO -->
+            <div class="form-check modal-check">
+                <input type="checkbox"
+                       id="createEstado"
+                       name="Ejemplar.Estado"
+                       class="check-input"
+                       checked />
+                <label for="createEstado">Activo en el sistema</label>
+            </div>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">Crear ejemplar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
+            </div>
+        </form>
 
     </div>
 
@@ -207,8 +466,7 @@ else
 @section Scripts {
 <script>
 function abrirModalEliminar(token) {
-    var url = "/Ejemplar/Delete/" + token;
-    document.getElementById("btnConfirmarEliminar").href = url;
+    document.getElementById("ejemplarTokenInput").value = token;
     document.getElementById("modalEliminar").style.display = "flex";
 }
 
@@ -216,26 +474,90 @@ function cerrarModalEliminar() {
     document.getElementById("modalEliminar").style.display = "none";
 }
 
-window.onclick = function(e) {
-    var modal = document.getElementById("modalEliminar");
-    if (e.target === modal) {
-        cerrarModalEliminar();
+function abrirModalEditar(token, libroId, codigo, estadoConservacion, disponible, dadoDeBaja, motivoBaja, ubicacion, estado) {
+    document.getElementById("editToken").value = token;
+    document.getElementById("editLibroId").value = libroId || "";
+    document.getElementById("editCodigoInventario").value = codigo || "";
+    document.getElementById("editEstadoConservacion").value = estadoConservacion || "";
+    document.getElementById("editUbicacion").value = ubicacion || "";
+    document.getElementById("editMotivoBaja").value = motivoBaja || "";
+
+    document.getElementById("editDisponible").checked = (disponible === "True");
+    document.getElementById("editDadoDeBaja").checked = (dadoDeBaja === "True");
+    document.getElementById("editEstado").checked = (estado === "True");
+
+    toggleMotivoBajaModal();
+
+    document.getElementById("modalEditar").style.display = "flex";
+}
+
+function cerrarModalEditar() {
+    document.getElementById("modalEditar").style.display = "none";
+}
+
+function toggleMotivoBajaModal() {
+    const checkbox = document.getElementById('editDadoDeBaja');
+    const div = document.getElementById('editMotivoBajaDiv');
+
+    if (!checkbox || !div) return;
+
+    div.style.display = checkbox.checked ? 'block' : 'none';
+
+    if (!checkbox.checked) {
+        document.getElementById('editMotivoBaja').value = '';
     }
 }
-</script>
 
-@* busqueda *@
-    <script>
-        const inputBuscador = document.getElementById("buscador-ejemplar");
-        const tabla = document.getElementById("tabla-ejemplar");
+function abrirModalCrear() {
+    document.getElementById("createLibroIdHidden").value = "";
+    document.getElementById("createBuscarLibro").value = "";
+    document.getElementById("createLibroSeleccionadoTexto").textContent = "";
+    document.getElementById("createCodigoInventario").value = "";
+    document.getElementById("createEstadoConservacion").value = "";
+    document.getElementById("createUbicacionValue").value = "";
+    document.getElementById("createUbicacionText").textContent = "-- Seleccione una ubicación --";
+    document.getElementById("createDisponible").checked = true;
+    document.getElementById("createDadoBajaCheck").checked = false;
+    document.getElementById("createMotivoBaja").value = "";
+    document.getElementById("createEstado").checked = true;
+
+    toggleMotivoBajaCrear();
+
+    document.getElementById("modalCrear").style.display = "flex";
+}
+
+function cerrarModalCrear() {
+    document.getElementById("modalCrear").style.display = "none";
+}
+
+function toggleMotivoBajaCrear() {
+    const checkbox = document.getElementById('createDadoBajaCheck');
+    const div = document.getElementById('createMotivoBajaDiv');
+
+    if (!checkbox || !div) return;
+
+    div.style.display = checkbox.checked ? 'block' : 'none';
+
+    if (!checkbox.checked) {
+        document.getElementById('createMotivoBaja').value = '';
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    // buscador tabla
+    const inputBuscador = document.getElementById("buscador-ejemplar");
+    const tabla = document.getElementById("tabla-ejemplar");
+    const filaSinResultados = document.getElementById("fila-sin-resultados");
+
+    if (inputBuscador && tabla) {
         const filas = tabla.getElementsByTagName("tr");
-        const filaSinResultados = document.getElementById("fila-sin-resultados");
 
         inputBuscador.addEventListener("keyup", function () {
             const texto = inputBuscador.value.toLowerCase();
             let hayResultados = false;
 
-            for (let i = 1; i < filas.length; i++) { 
+            for (let i = 1; i < filas.length; i++) {
                 const fila = filas[i];
 
                 if (fila.id === "fila-sin-resultados") continue;
@@ -250,7 +572,118 @@ window.onclick = function(e) {
                 }
             }
 
-            filaSinResultados.style.display = hayResultados ? "none" : "";
+            if (filaSinResultados) {
+                filaSinResultados.style.display = hayResultados ? "none" : "";
+            }
         });
-    </script>
+    }
+
+    // custom select ubicación crear
+    const customCreate = document.getElementById("custom-select-ubicacion-create");
+    if (customCreate) {
+        const trigger = customCreate.querySelector(".select-trigger");
+        const options = customCreate.querySelectorAll(".option");
+        const search = document.getElementById("createUbicacionSearch");
+        const hidden = document.getElementById("createUbicacionValue");
+        const text = document.getElementById("createUbicacionText");
+
+        trigger.addEventListener("click", () => {
+            customCreate.classList.toggle("active");
+            if (customCreate.classList.contains("active")) {
+                search.focus();
+            }
+        });
+
+        options.forEach(option => {
+            option.addEventListener("click", () => {
+                const value = option.getAttribute("data-value");
+                hidden.value = value;
+                text.textContent = value;
+                customCreate.classList.remove("active");
+                search.value = "";
+                options.forEach(o => o.style.display = "");
+            });
+        });
+
+        search.addEventListener("input", () => {
+            const filtro = search.value.toLowerCase().trim();
+
+            options.forEach(option => {
+                const texto = option.textContent.toLowerCase();
+                option.style.display = texto.includes(filtro) ? "" : "none";
+            });
+        });
+
+        document.addEventListener("click", (e) => {
+            if (!customCreate.contains(e.target)) {
+                customCreate.classList.remove("active");
+            }
+        });
+    }
+
+    // buscador de libros crear
+    (function () {
+        var input = document.getElementById('createBuscarLibro');
+        var lista = document.getElementById('createListaLibros');
+        var hidden = document.getElementById('createLibroIdHidden');
+        var textoSel = document.getElementById('createLibroSeleccionadoTexto');
+        var opciones = lista ? Array.from(lista.querySelectorAll('.libro-opcion')) : [];
+
+        if (!input || !lista) return;
+
+        function normalizar(s) {
+            return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+        }
+
+        function mostrar() {
+            var termino = normalizar(input.value);
+            var visibles = 0;
+
+            opciones.forEach(function (li) {
+                var coincide = termino === '' || normalizar(li.dataset.texto).includes(termino);
+                li.style.display = coincide ? '' : 'none';
+                if (coincide) visibles++;
+            });
+
+            lista.style.display = visibles > 0 ? '' : 'none';
+        }
+
+        function seleccionar(li) {
+            hidden.value = li.dataset.id;
+            input.value = li.dataset.texto;
+            textoSel.textContent = '';
+            lista.style.display = 'none';
+        }
+
+        input.addEventListener('input', mostrar);
+
+        input.addEventListener('focus', function () {
+            if (input.value.trim() === '') mostrar();
+        });
+
+        opciones.forEach(function (li) {
+            li.addEventListener('mousedown', function (e) {
+                e.preventDefault();
+                seleccionar(li);
+            });
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!input.contains(e.target) && !lista.contains(e.target)) {
+                lista.style.display = 'none';
+            }
+        });
+    })();
+});
+
+window.onclick = function(e) {
+    var modalEliminar = document.getElementById("modalEliminar");
+    var modalEditar = document.getElementById("modalEditar");
+    var modalCrear = document.getElementById("modalCrear");
+
+    if (e.target === modalEliminar) cerrarModalEliminar();
+    if (e.target === modalEditar) cerrarModalEditar();
+    if (e.target === modalCrear) cerrarModalCrear();
+}
+</script>
 }
