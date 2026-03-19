@@ -263,7 +263,7 @@ else
                                 var nombres = autorRow["Nombres"]?.ToString() ?? "";
                                 var apellidos = autorRow["Apellidos"]?.ToString() ?? "";
                                 var nacionalidad = autorRow["Nacionalidad"] as string;
-                                var textoAutor = $"{apellidos}, {nombres}" + (!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "");
+                                var textoAutor = $"{apellidos} {nombres}" + (!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "");
 
                                 <div class="option" data-value="@aId">@textoAutor</div>
                             }
@@ -430,7 +430,7 @@ else
                                 var nombres = autorRow["Nombres"]?.ToString() ?? "";
                                 var apellidos = autorRow["Apellidos"]?.ToString() ?? "";
                                 var nacionalidad = autorRow["Nacionalidad"] as string;
-                                var displayText = $"{apellidos}, {nombres}{(!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "")}";
+                                var displayText = $"{apellidos} {nombres}{(!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "")}";
 
                                 <div class="option"
                                      data-value="@aId"
