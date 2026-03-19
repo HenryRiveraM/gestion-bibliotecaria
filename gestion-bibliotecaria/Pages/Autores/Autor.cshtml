@@ -84,7 +84,7 @@
                                         '@Html.Raw(apellidos.Replace("'", "\\'"))',
                                         '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
                                         '@fecha',
-                                        '@estado'
+                                        '@(estado.ToString().ToLower())'
                                     )">
                                 <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                      class="icono-btn">
@@ -151,32 +151,43 @@
         <h2>Editar Autor</h2>
         <p>Modifica la información del autor.</p>
 
-        <form method="post" asp-page-handler="Editar">
+        <form method="post" asp-page-handler="Editar" id="editAutorForm">
             @Html.AntiForgeryToken()
 
-            <div asp-validation-summary="All" class="text-error-summary"></div>
+            <input type="hidden" id="editToken" name="token" value="@Model.EditToken" />
 
-            <input type="hidden" id="editToken" name="token" />
-
-            <input type="text" id="editNombres" name="Nombres" placeholder="Nombres" required />
+            <input type="text"
+                   id="editNombres"
+                   name="Nombres"
+                   placeholder="Nombres"
+                   required
+                   value="@Model.EditNombres" />
             @if (ViewData.ModelState.ContainsKey("Nombres"))
             {
                 <span class="text-error">@ViewData.ModelState["Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <input type="text" id="editApellidos" name="Apellidos" placeholder="Apellidos" />
+            <input type="text"
+                   id="editApellidos"
+                   name="Apellidos"
+                   placeholder="Apellidos"
+                   value="@Model.EditApellidos" />
             @if (ViewData.ModelState.ContainsKey("Apellidos"))
             {
                 <span class="text-error">@ViewData.ModelState["Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- NACIONALIDAD EDITAR -->
             <div class="custom-select-wrapper">
-                <input type="hidden" id="editNacionalidadValue" name="Nacionalidad" />
+                <input type="hidden"
+                       id="editNacionalidadValue"
+                       name="Nacionalidad"
+                       value="@Model.EditNacionalidad" />
 
                 <div class="custom-select" id="custom-select-nacionalidad-edit">
                     <div class="select-trigger">
-                        <span id="editNacionalidadText">-- Seleccione una nacionalidad --</span>
+                        <span id="editNacionalidadText">
+                            @(string.IsNullOrWhiteSpace(Model.EditNacionalidad) ? "-- Seleccione una nacionalidad --" : Model.EditNacionalidad)
+                        </span>
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -222,15 +233,23 @@
                 <span class="text-error">@ViewData.ModelState["Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <input type="date" id="editFechaNacimiento" name="FechaNacimiento" />
+            <input type="date"
+                   id="editFechaNacimiento"
+                   name="FechaNacimiento"
+                   value="@(Model.EditFechaNacimiento?.ToString("yyyy-MM-dd"))" />
             @if (ViewData.ModelState.ContainsKey("FechaNacimiento"))
             {
                 <span class="text-error">@ViewData.ModelState["FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <select id="editEstado" name="Estado">
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
+            <input type="hidden"
+                   id="editEstadoHidden"
+                   name="Estado"
+                   value="@(Model.EditEstado.ToString().ToLower())" />
+
+            <select id="editEstado">
+                <option value="true" selected="@(Model.EditEstado ? "selected" : null)">Activo</option>
+                <option value="false" selected="@(!Model.EditEstado ? "selected" : null)">Inactivo</option>
             </select>
 
             <div class="modal-buttons">
@@ -254,85 +273,91 @@
         <p>Ingresa los datos del autor</p>
 
         <form method="post" asp-page-handler="Crear">
-    @Html.AntiForgeryToken()
+            @Html.AntiForgeryToken()
 
-    <div asp-validation-summary="ModelOnly" class="text-error-summary"></div>
+            <div asp-validation-summary="ModelOnly" class="text-error-summary"></div>
 
-    <input type="text"
-           name="Autor.Nombres"
-           id="createNombres"
-           placeholder="Nombres"
-           required />
-    @if (ViewData.ModelState.ContainsKey("Autor.Nombres"))
-    {
-        <span class="text-error">@ViewData.ModelState["Autor.Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-    }
+            <input type="text"
+                   name="Autor.Nombres"
+                   id="createNombres"
+                   placeholder="Nombres"
+                   required
+                   value="@Model.Autor.Nombres" />
+            @if (ViewData.ModelState.ContainsKey("Autor.Nombres"))
+            {
+                <span class="text-error">@ViewData.ModelState["Autor.Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
 
-    <input type="text"
-           name="Autor.Apellidos"
-           id="createApellidos"
-           placeholder="Apellidos" />
-    @if (ViewData.ModelState.ContainsKey("Autor.Apellidos"))
-    {
-        <span class="text-error">@ViewData.ModelState["Autor.Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-    }
+            <input type="text"
+                   name="Autor.Apellidos"
+                   id="createApellidos"
+                   placeholder="Apellidos"
+                   value="@Model.Autor.Apellidos" />
+            @if (ViewData.ModelState.ContainsKey("Autor.Apellidos"))
+            {
+                <span class="text-error">@ViewData.ModelState["Autor.Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
 
-    <div class="custom-select-wrapper">
-        <input type="hidden"
-               id="nacionalidad-value-modal"
-               name="Autor.Nacionalidad" />
+            <div class="custom-select-wrapper">
+                <input type="hidden"
+                       id="nacionalidad-value-modal"
+                       name="Autor.Nacionalidad"
+                       value="@Model.Autor.Nacionalidad" />
 
-        <div class="custom-select" id="custom-select-nacionalidad-modal">
-            <div class="select-trigger">
-                <span id="nacionalidad-text-modal">-- Seleccione una nacionalidad --</span>
-                <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </div>
+                <div class="custom-select" id="custom-select-nacionalidad-modal">
+                    <div class="select-trigger">
+                        <span id="nacionalidad-text-modal">
+                            @(string.IsNullOrWhiteSpace(Model.Autor.Nacionalidad) ? "-- Seleccione una nacionalidad --" : Model.Autor.Nacionalidad)
+                        </span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
 
-            <div class="select-dropdown">
-                <input type="text"
-                       class="select-search"
-                       id="nacionalidad-search-modal"
-                       placeholder="Buscar nacionalidad..." />
+                    <div class="select-dropdown">
+                        <input type="text"
+                               class="select-search"
+                               id="nacionalidad-search-modal"
+                               placeholder="Buscar nacionalidad..." />
 
-                <div class="select-options">
-                    <div class="option" data-value="Boliviana">Boliviana</div>
-                    <div class="option" data-value="Argentina">Argentina</div>
-                    <div class="option" data-value="Brasileña">Brasileña</div>
-                    <div class="option" data-value="Chilena">Chilena</div>
-                    <div class="option" data-value="Colombiana">Colombiana</div>
-                    <div class="option" data-value="Peruana">Peruana</div>
-                    <div class="option" data-value="Mexicana">Mexicana</div>
-                    <div class="option" data-value="Española">Española</div>
-                    <div class="option" data-value="Otra">Otra</div>
+                        <div class="select-options">
+                            <div class="option" data-value="Boliviana">Boliviana</div>
+                            <div class="option" data-value="Argentina">Argentina</div>
+                            <div class="option" data-value="Brasileña">Brasileña</div>
+                            <div class="option" data-value="Chilena">Chilena</div>
+                            <div class="option" data-value="Colombiana">Colombiana</div>
+                            <div class="option" data-value="Peruana">Peruana</div>
+                            <div class="option" data-value="Mexicana">Mexicana</div>
+                            <div class="option" data-value="Española">Española</div>
+                            <div class="option" data-value="Otra">Otra</div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-    @if (ViewData.ModelState.ContainsKey("Autor.Nacionalidad"))
-    {
-        <span class="text-error">@ViewData.ModelState["Autor.Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-    }
+            @if (ViewData.ModelState.ContainsKey("Autor.Nacionalidad"))
+            {
+                <span class="text-error">@ViewData.ModelState["Autor.Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
 
-    <input type="date"
-           id="createFechaNacimiento"
-           name="Autor.FechaNacimiento" />
-    @if (ViewData.ModelState.ContainsKey("Autor.FechaNacimiento"))
-    {
-        <span class="text-error">@ViewData.ModelState["Autor.FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-    }
+            <input type="date"
+                   id="createFechaNacimiento"
+                   name="Autor.FechaNacimiento"
+                   value="@(Model.Autor.FechaNacimiento?.ToString("yyyy-MM-dd"))" />
+            @if (ViewData.ModelState.ContainsKey("Autor.FechaNacimiento"))
+            {
+                <span class="text-error">@ViewData.ModelState["Autor.FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
 
-    <select name="Autor.Estado" id="createEstado">
-        <option value="true">Activo</option>
-        <option value="false">Inactivo</option>
-    </select>
+            <select name="Autor.Estado" id="createEstado">
+                <option value="true" selected="@(Model.Autor.Estado ? "selected" : null)">Activo</option>
+                <option value="false" selected="@(!Model.Autor.Estado ? "selected" : null)">Inactivo</option>
+            </select>
 
-    <div class="modal-buttons">
-        <button type="submit" class="btn-success">Crear</button>
-        <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
-    </div>
-</form>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">Crear</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -354,7 +379,6 @@
     });
 })();
 
-// MODAL ELIMINAR
 function abrirModal(token) {
     document.getElementById("autorTokenInput").value = token;
     document.getElementById("modalEliminar").style.display = "flex";
@@ -364,13 +388,14 @@ function cerrarModal() {
     document.getElementById("modalEliminar").style.display = "none";
 }
 
-// MODAL EDITAR
 function abrirModalEditar(token, nombres, apellidos, nacionalidad, fecha, estado) {
     document.getElementById("editToken").value = token;
     document.getElementById("editNombres").value = nombres || "";
     document.getElementById("editApellidos").value = apellidos || "";
     document.getElementById("editFechaNacimiento").value = fecha || "";
-    document.getElementById("editEstado").value = estado === "True" ? "true" : "false";
+    // SIEMPRE setear el valor desde el botón (el JS manda en este caso)
+    document.getElementById("editEstado").value = (estado === "true") ? "true" : "false";
+    document.getElementById("editEstadoHidden").value = document.getElementById("editEstado").value;
 
     document.getElementById("editNacionalidadValue").value = nacionalidad || "";
     document.getElementById("editNacionalidadText").textContent =
@@ -383,7 +408,6 @@ function cerrarModalEditar() {
     document.getElementById("modalEditar").style.display = "none";
 }
 
-// MODAL CREAR
 function abrirModalCrear() {
     document.getElementById("modalCrear").style.display = "flex";
 }
@@ -392,7 +416,6 @@ function cerrarModalCrear() {
     document.getElementById("modalCrear").style.display = "none";
 }
 
-// CUSTOM SELECT GENERICO
 function initCustomSelect(selectId, searchId, hiddenId, textId) {
     const customSelect = document.getElementById(selectId);
     if (!customSelect) return;
@@ -466,9 +489,24 @@ document.addEventListener('DOMContentLoaded', function () {
         'editNacionalidadValue',
         'editNacionalidadText'
     );
+
+    const editEstadoSelect = document.getElementById("editEstado");
+    const editEstadoHidden = document.getElementById("editEstadoHidden");
+    const editAutorForm = document.getElementById("editAutorForm");
+
+    if (editEstadoSelect && editEstadoHidden) {
+        editEstadoSelect.addEventListener("change", function () {
+            editEstadoHidden.value = editEstadoSelect.value;
+        });
+    }
+
+    if (editAutorForm && editEstadoSelect && editEstadoHidden) {
+        editAutorForm.addEventListener("submit", function () {
+            editEstadoHidden.value = editEstadoSelect.value;
+        });
+    }
 });
 
-// CLICK FUERA
 window.onclick = function (e) {
     let m1 = document.getElementById("modalEliminar");
     let m2 = document.getElementById("modalEditar");
@@ -484,22 +522,15 @@ window.onclick = function (e) {
 {
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var tieneErroresCrear =
-                @Html.Raw(ViewData.ModelState.Keys.Any(k => k.StartsWith("Autor.")).ToString().ToLower());
+            var modalActivo = '@Model.ModalActivo';
 
-            var tieneErroresEditar =
-                @Html.Raw(
-                    (ViewData.ModelState.ContainsKey("Nombres")
-                    || ViewData.ModelState.ContainsKey("Apellidos")
-                    || ViewData.ModelState.ContainsKey("Nacionalidad")
-                    || ViewData.ModelState.ContainsKey("FechaNacimiento")).ToString().ToLower()
-                );
-
-            if (tieneErroresCrear) {
+            if (modalActivo === "crear") {
                 abrirModalCrear();
             }
 
-            if (tieneErroresEditar) {
+            if (modalActivo === "editar") {
+                document.getElementById("editEstado").value = '@(Model.EditEstado.ToString().ToLower())';
+                document.getElementById("editEstadoHidden").value = '@(Model.EditEstado.ToString().ToLower())';
                 document.getElementById("modalEditar").style.display = "flex";
             }
         });

@@ -23,7 +23,36 @@ public class AutorModel : PageModel
         _routeTokenService = routeTokenService;
     }
 
+    [BindProperty]
+    public string ModalActivo { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string EditToken { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string EditNombres { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string? EditApellidos { get; set; }
+
+    [BindProperty]
+    public string? EditNacionalidad { get; set; }
+
+    [BindProperty]
+    public DateTime? EditFechaNacimiento { get; set; }
+
+    [BindProperty]
+    public bool EditEstado { get; set; }
+
+    [BindProperty]
+    public Autor Autor { get; set; } = new Autor();
+
     public void OnGet()
+    {
+        CargarAutores();
+    }
+
+    private void CargarAutores()
     {
         var repository = _autorRepositoryFactory.CreateRepository();
         AutorDataTable = repository.GetAll();
@@ -59,9 +88,14 @@ public class AutorModel : PageModel
 
     public IActionResult OnPostCrear(Autor Autor)
     {
+        ModalActivo = "crear";
+        this.Autor = Autor;
+
         Autor.Nombres = ValidadorEntrada.NormalizarEspacios(Autor.Nombres);
         Autor.Apellidos = ValidadorEntrada.NormalizarEspacios(Autor.Apellidos);
         Autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(Autor.Nacionalidad);
+
+        ModelState.Clear();
 
         if (ValidadorEntrada.EstaVacio(Autor.Nombres))
         {
@@ -110,7 +144,7 @@ public class AutorModel : PageModel
 
         if (!ModelState.IsValid)
         {
-            OnGet();
+            CargarAutores();
             return Page();
         }
 
@@ -125,13 +159,24 @@ public class AutorModel : PageModel
         string Nombres,
         string? Apellidos,
         string? Nacionalidad,
-        DateTime? FechaNacimiento,
-        bool Estado)
+        DateTime? FechaNacimiento)
     {
+        ModalActivo = "editar";
+
+        EditToken = token;
+        EditNombres = Nombres;
+        EditApellidos = Apellidos;
+        EditNacionalidad = Nacionalidad;
+        EditFechaNacimiento = FechaNacimiento;
+
         if (!_routeTokenService.TryObtenerId(token, out var autorId))
         {
             return NotFound();
         }
+
+        var estadoForm = Request.Form["Estado"].ToString();
+        bool estadoParseado = estadoForm == "true" || estadoForm == "True" || estadoForm == "on";
+        EditEstado = estadoParseado;
 
         var autor = new Autor
         {
@@ -140,8 +185,14 @@ public class AutorModel : PageModel
             Apellidos = ValidadorEntrada.NormalizarEspacios(Apellidos),
             Nacionalidad = ValidadorEntrada.NormalizarEspacios(Nacionalidad),
             FechaNacimiento = FechaNacimiento,
-            Estado = Estado
+            Estado = estadoParseado
         };
+
+        EditNombres = autor.Nombres;
+        EditApellidos = autor.Apellidos;
+        EditNacionalidad = autor.Nacionalidad;
+
+        ModelState.Clear();
 
         if (ValidadorEntrada.EstaVacio(autor.Nombres))
         {
@@ -190,7 +241,7 @@ public class AutorModel : PageModel
 
         if (!ModelState.IsValid)
         {
-            OnGet();
+            CargarAutores();
             return Page();
         }
 
