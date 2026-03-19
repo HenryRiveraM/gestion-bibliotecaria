@@ -92,7 +92,6 @@ else
                 var añoPublicacion = row.Field<int?>("AñoPublicacion");
                 var estado = row.Field<bool>("Estado");
                 var descripcion = row.Table.Columns.Contains("Descripcion") ? row["Descripcion"]?.ToString() : "";
-                var fechaRegistro = row.Field<DateTime>("FechaRegistro");
 
                 <tr class="@(!estado ? "fila-inactiva" : "")">
 
@@ -136,8 +135,7 @@ else
                                     '@Html.Raw((edicion ?? "").Replace("'", "\\'"))',
                                     '@(añoPublicacion?.ToString() ?? "")',
                                     '@Html.Raw((descripcion ?? "").Replace("'", "\\'"))',
-                                    '@estado',
-                                    '@fechaRegistro.ToString("yyyy-MM-ddTHH:mm:ss")'
+                                    '@estado'
                                 )">
 
                             <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
@@ -621,7 +619,7 @@ function cerrarModalEliminar() {
     document.getElementById("modalEliminar").style.display = "none";
 }
 
-function abrirModalEditar(token, autorId, titulo, editorial, edicion, anio, descripcion, estado, fechaRegistro) {
+function abrirModalEditar(token, autorId, titulo, editorial, edicion, anio, descripcion, estado) {
     document.getElementById("editToken").value = token;
     document.getElementById("editAutorId").value = autorId;
     document.getElementById("editTitulo").value = titulo || "";
@@ -630,7 +628,6 @@ function abrirModalEditar(token, autorId, titulo, editorial, edicion, anio, desc
     document.getElementById("editAnioPublicacion").value = anio || "";
     document.getElementById("editDescripcion").value = descripcion || "";
     document.getElementById("editEstado").value = estado === "True" ? "true" : "false";
-    document.getElementById("editFechaRegistro").value = fechaRegistro || "";
 
     const autorOption = document.querySelector('#custom-select-autor-edit .option[data-value="' + autorId + '"]');
     document.getElementById("editAutorText").textContent =

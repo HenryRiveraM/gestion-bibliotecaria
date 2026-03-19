@@ -16,7 +16,7 @@ public class LibroRepository : IRepository<Libro, int>
     private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
         ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-    private const string QueryLibros = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro, UltimaActualizacion
+    private const string QueryLibros = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado 
                                          FROM libro
                                          ORDER BY Titulo ASC";
 
@@ -27,7 +27,7 @@ public class LibroRepository : IRepository<Libro, int>
                                                  WHERE Estado = 1
                                                  ORDER BY Apellidos, Nombres";
 
-    private const string QueryLibroPorId = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro, UltimaActualizacion
+    private const string QueryLibroPorId = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado
                                              FROM libro
                                              WHERE LibroId = @LibroId";
 
@@ -89,10 +89,8 @@ public class LibroRepository : IRepository<Libro, int>
             AñoPublicacion = reader["AñoPublicacion"] == DBNull.Value ? null : Convert.ToInt32(reader["AñoPublicacion"]),
             Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString(),
             Estado = Convert.ToBoolean(reader["Estado"]),
-            FechaRegistro = Convert.ToDateTime(reader["FechaRegistro"]),
-            UltimaActualizacion = reader["UltimaActualizacion"] == DBNull.Value
-                ? null
-                : Convert.ToDateTime(reader["UltimaActualizacion"])
+            FechaRegistro = DateTime.Now,
+            UltimaActualizacion = null
         };
     }
 
