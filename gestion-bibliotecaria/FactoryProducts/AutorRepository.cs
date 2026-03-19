@@ -21,7 +21,7 @@ public class AutorRepository : IRepository<Autor,int>
             try
             {
                 connection.Open();
-                string query = "SELECT AutorId, Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado, FechaRegistro, UltimaActualizacion FROM autor ORDER BY Nombres ASC;";
+                string query = "SELECT AutorId, Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado FROM autor ORDER BY Nombres ASC;";
                 using (MySqlCommand command = new MySqlCommand(query, connection))
                 using (MySqlDataAdapter adapter = new MySqlDataAdapter(command))
                 {
