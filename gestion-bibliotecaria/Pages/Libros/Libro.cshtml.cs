@@ -2,26 +2,31 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
 using gestion_bibliotecaria.Security;
 using gestion_bibliotecaria.FactoryProducts;
+using gestion_bibliotecaria.FactoryCreators;
+using gestion_bibliotecaria.Models;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class LibroModel : PageModel
 {
-    private readonly LibroRepository _repository;
+    private readonly RepositoryFactory<Libro, int> _libroRepositoryFactory;
     private readonly RouteTokenService _routeTokenService;
 
     public DataTable Libros { get; set; } = new DataTable();
     public Dictionary<int, string> AutoresNombres { get; set; } = new();
 
-    public LibroModel(LibroRepository repository, RouteTokenService routeTokenService)
+    public LibroModel(
+        RepositoryFactory<Libro, int> libroRepositoryFactory,
+        RouteTokenService routeTokenService)
     {
-        _repository = repository;
+        _libroRepositoryFactory = libroRepositoryFactory;
         _routeTokenService = routeTokenService;
     }
 
     public void OnGet()
     {
-        Libros = _repository.ObtenerLibros();
+        var repository = _libroRepositoryFactory.CreateRepository();
+        Libros = repository.GetAll();
 
         if (!Libros.Columns.Contains("LibroToken"))
         {
@@ -34,6 +39,9 @@ public class LibroModel : PageModel
             row["LibroToken"] = _routeTokenService.CrearToken(libroId);
         }
 
-        AutoresNombres = _repository.ObtenerNombresAutores();
+        if (repository is LibroRepository libroRepository)
+        {
+            AutoresNombres = libroRepository.ObtenerNombresAutores();
+        }
     }
 }

@@ -1,14 +1,15 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Data;
 using gestion_bibliotecaria.Security;
 using gestion_bibliotecaria.FactoryProducts;
+using gestion_bibliotecaria.FactoryCreators;
+using gestion_bibliotecaria.Models;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class LibroDeleteModel : PageModel
 {
-    private readonly LibroRepository _repository;
+    private readonly RepositoryFactory<Libro, int> _libroRepositoryFactory;
     private readonly RouteTokenService _routeTokenService;
 
     public int LibroId { get; set; }
@@ -27,9 +28,11 @@ public class LibroDeleteModel : PageModel
     [BindProperty]
     public string LibroToken { get; set; } = string.Empty;
 
-    public LibroDeleteModel(LibroRepository repository, RouteTokenService routeTokenService)
+    public LibroDeleteModel(
+        RepositoryFactory<Libro, int> libroRepositoryFactory,
+        RouteTokenService routeTokenService)
     {
-        _repository = repository;
+        _libroRepositoryFactory = libroRepositoryFactory;
         _routeTokenService = routeTokenService;
     }
 
@@ -57,30 +60,44 @@ public class LibroDeleteModel : PageModel
             return NotFound();
         }
 
-        _repository.EliminarLibro(id);
+        var repository = _libroRepositoryFactory.CreateRepository();
+        var libro = repository.GetById(id);
+
+        if (libro == null)
+        {
+            return NotFound();
+        }
+
+        repository.Delete(libro);
         return Redirect("/Libro");
     }
 
     private bool CargarDetalleLibro(int id)
     {
-        var libro = _repository.ObtenerLibroPorId(id);
+        var repository = _libroRepositoryFactory.CreateRepository();
+        var libro = repository.GetById(id);
+
         if (libro == null)
         {
             return false;
         }
 
-        LibroId = libro.Field<int>("LibroId");
-        AutorId = libro.Field<int>("AutorId");
-        Titulo = libro.Field<string>("Titulo") ?? string.Empty;
-        Editorial = libro.Field<string>("Editorial");
-        Edicion = libro.Field<string>("Edicion");
-        AñoPublicacion = libro.Field<int?>("AñoPublicacion");
-        Descripcion = libro.Field<string>("Descripcion");
-        Estado = libro.Field<bool>("Estado");
-        FechaRegistro = libro.Field<DateTime>("FechaRegistro");
-        UltimaActualizacion = libro.Field<DateTime?>("UltimaActualizacion");
+        LibroId = libro.LibroId;
+        AutorId = libro.AutorId;
+        Titulo = libro.Titulo;
+        Editorial = libro.Editorial;
+        Edicion = libro.Edicion;
+        AñoPublicacion = libro.AñoPublicacion;
+        Descripcion = libro.Descripcion;
+        Estado = libro.Estado;
+        FechaRegistro = libro.FechaRegistro;
+        UltimaActualizacion = libro.UltimaActualizacion;
 
-        NombreAutor = _repository.ObtenerNombreAutor(AutorId);
+        if (repository is LibroRepository libroRepository)
+        {
+            NombreAutor = libroRepository.ObtenerNombreAutor(AutorId);
+        }
+
         return true;
     }
 }

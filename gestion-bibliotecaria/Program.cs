@@ -5,19 +5,20 @@ using gestion_bibliotecaria.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
-builder.Services.AddScoped<ILibroFactory, LibroFactory>();
-builder.Services.AddScoped<LibroRepository>();
+
+// Se mantiene Ejemplar para no generar conflictos con trabajo de otro dev
 builder.Services.AddScoped<IEjemplarFactory, EjemplarFactory>();
 
-// Registro de Factory Method para Autor impelmtar using para <gestion_bibliotecaria.FactoryCreators.
-builder.Services.AddScoped<RepositoryFactory<Autor,int>, AutorRepositoryCreator>();
+// Factory Method ya usado por Autor
+builder.Services.AddScoped<RepositoryFactory<Autor, int>, AutorRepositoryCreator>();
+
+// Factory Method agregado para Libro
+builder.Services.AddScoped<RepositoryFactory<Libro, int>, LibroRepositoryCreator>();
 
 builder.Services.AddRazorPages(options =>
 {
-    // Keep Ejemplar pages under Services without moving them back to Pages.
     options.RootDirectory = "/";
 
-    // Preserve friendly URLs for default pages under /Pages.
     options.Conventions.AddPageRoute("/Pages/Index", "");
     options.Conventions.AddPageRoute("/Pages/Index", "Index");
     options.Conventions.AddPageRoute("/Pages/Privacy", "Privacy");
