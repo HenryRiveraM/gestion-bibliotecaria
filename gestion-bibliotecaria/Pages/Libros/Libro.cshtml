@@ -1,5 +1,6 @@
 @page "/Libro"
 @using System.Data
+@using System.Linq
 @model gestion_bibliotecaria.Pages.LibroModel
 @{
     ViewData["Title"] = "Gestión de Libros";
@@ -17,11 +18,11 @@
             <h1>Gestión de Libros</h1>
         </div>
 
-<button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
-    <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-         class="icono-btn icon-white">
-    Nuevo Libro
-</button>
+        <button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-btn icon-white">
+            Nuevo Libro
+        </button>
 
     </div>
 
@@ -55,12 +56,12 @@ else
                    autocomplete="off" />
         </div>
 
-        <div class="filtro-item">
+        @* <div class="filtro-item">
             <select id="orden-libro" class="input-filtro">
                 <option value="titulo_asc">Título A-Z</option>
                 <option value="titulo_desc">Título Z-A</option>
             </select>
-        </div>
+        </div> *@
     </div>
 
     <div class="tabla-container">
@@ -229,6 +230,16 @@ else
             <input type="hidden" id="editToken" name="token" />
             <input type="hidden" id="editFechaRegistro" name="FechaRegistro" />
 
+            @if (ViewData.ModelState.ContainsKey(string.Empty))
+            {
+                <div class="text-error-summary">
+                    @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+                    {
+                        <div>• @error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
             <!-- AUTOR -->
             <div class="custom-select-wrapper">
                 <input type="hidden" id="editAutorId" name="AutorId" />
@@ -265,9 +276,21 @@ else
 
             <!-- TITULO -->
             <input type="text" id="editTitulo" name="Titulo" placeholder="Título" required />
+            @if (ViewData.ModelState.ContainsKey("Titulo"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- EDITORIAL -->
             <input type="text" id="editEditorial" name="Editorial" placeholder="Editorial" />
+            @if (ViewData.ModelState.ContainsKey("Editorial"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["Editorial"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- EDICION -->
             <div class="custom-select-wrapper">
@@ -311,6 +334,12 @@ else
                     </div>
                 </div>
             </div>
+            @if (ViewData.ModelState.ContainsKey("Edicion"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["Edicion"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- AÑO -->
             <input type="number"
@@ -319,12 +348,24 @@ else
                    placeholder="Año de publicación"
                    min="1000"
                    max="2100" />
+            @if (ViewData.ModelState.ContainsKey("AñoPublicacion"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["AñoPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- DESCRIPCION -->
             <textarea id="editDescripcion"
                       name="Descripcion"
                       placeholder="Descripción"
                       rows="4"></textarea>
+            @if (ViewData.ModelState.ContainsKey("Descripcion"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["Descripcion"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- ESTADO -->
             <select id="editEstado" name="Estado">
@@ -355,6 +396,16 @@ else
 
         <form method="post" asp-page-handler="Crear">
             @Html.AntiForgeryToken()
+
+            @if (ViewData.ModelState.ContainsKey(string.Empty))
+            {
+                <div class="text-error-summary">
+                    @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+                    {
+                        <div>• @error.ErrorMessage</div>
+                    }
+                </div>
+            }
 
             <!-- AUTOR -->
             <div class="custom-select-wrapper">
@@ -400,12 +451,24 @@ else
                    name="Titulo"
                    placeholder="Título del libro"
                    required />
+            @if (ViewData.ModelState.ContainsKey("Titulo"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- EDITORIAL -->
             <input type="text"
                    id="createEditorial"
                    name="Editorial"
                    placeholder="Ej: Penguin Books, Planeta" />
+            @if (ViewData.ModelState.ContainsKey("Editorial"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["Editorial"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- EDICION -->
             <div class="custom-select-wrapper">
@@ -449,6 +512,12 @@ else
                     </div>
                 </div>
             </div>
+            @if (ViewData.ModelState.ContainsKey("Edicion"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["Edicion"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- AÑO -->
             <input type="number"
@@ -457,12 +526,24 @@ else
                    placeholder="Año de publicación"
                    min="1000"
                    max="2100" />
+            @if (ViewData.ModelState.ContainsKey("AñoPublicacion"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["AñoPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- DESCRIPCION -->
             <textarea id="createDescripcion"
                       name="Descripcion"
                       placeholder="Descripción breve del contenido del libro"
                       rows="4"></textarea>
+            @if (ViewData.ModelState.ContainsKey("Descripcion"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["Descripcion"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
             <!-- ESTADO -->
             <select id="createEstado" name="Estado">
@@ -675,4 +756,35 @@ window.onclick = function(e) {
     if (e.target === modalCrear) cerrarModalCrear();
 }
 </script>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var errorEditar =
+                @Html.Raw((
+                    ViewData.ModelState.ContainsKey("Titulo") ||
+                    ViewData.ModelState.ContainsKey("Editorial") ||
+                    ViewData.ModelState.ContainsKey("Edicion") ||
+                    ViewData.ModelState.ContainsKey("AñoPublicacion") ||
+                    ViewData.ModelState.ContainsKey("Descripcion") ||
+                    ViewData.ModelState.ContainsKey(string.Empty)
+                ).ToString().ToLower());
+
+            var errorCrear =
+                @Html.Raw((
+                    ViewData.ModelState.ContainsKey("Titulo") ||
+                    ViewData.ModelState.ContainsKey("Editorial") ||
+                    ViewData.ModelState.ContainsKey("Edicion") ||
+                    ViewData.ModelState.ContainsKey("AñoPublicacion") ||
+                    ViewData.ModelState.ContainsKey("Descripcion") ||
+                    ViewData.ModelState.ContainsKey(string.Empty)
+                ).ToString().ToLower());
+
+            if (errorCrear) {
+                abrirModalCrear();
+            }
+        });
+    </script>
+}
 }

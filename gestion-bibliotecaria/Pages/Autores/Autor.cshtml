@@ -1,4 +1,5 @@
 ﻿@page "/Autor"
+@using System.Linq
 @model gestion_bibliotecaria.Pages.AutorModel
 @{
     ViewData["Title"] = "Gestión de Autores";
@@ -16,8 +17,7 @@
         </div>
 
         <button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
-            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                 class="icono-btn">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
             Nuevo Autor
         </button>
     </div>
@@ -33,6 +33,7 @@
     </div>
 
     <div class="tabla-container">
+
         <table id="tabla-autores" class="tabla-autores">
             <thead>
                 <tr>
@@ -48,14 +49,23 @@
             <tbody>
                 @foreach (System.Data.DataRow row in Model.AutorDataTable.Rows)
                 {
+                    var token = row["AutorToken"]?.ToString() ?? "";
+                    var nombres = row["Nombres"]?.ToString() ?? "";
+                    var apellidos = row["Apellidos"]?.ToString() ?? "";
+                    var nacionalidad = row["Nacionalidad"]?.ToString() ?? "";
+                    var fecha = row.IsNull("FechaNacimiento")
+                        ? ""
+                        : ((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd");
+                    var estado = (bool)row["Estado"];
+
                     <tr>
-                        <td>@row["Nombres"]</td>
-                        <td>@row["Apellidos"]</td>
-                        <td>@row["Nacionalidad"]</td>
+                        <td>@nombres</td>
+                        <td>@apellidos</td>
+                        <td>@nacionalidad</td>
                         <td>@(row.IsNull("FechaNacimiento") ? "" : ((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))</td>
 
                         <td>
-                            @if ((bool)row["Estado"])
+                            @if (estado)
                             {
                                 <span class="estado activo">Activo</span>
                             }
@@ -69,14 +79,13 @@
                             <button type="button"
                                     class="btn-editar"
                                     onclick="abrirModalEditar(
-                                        '@row["AutorToken"]',
-                                        '@Html.Raw((row["Nombres"]?.ToString() ?? "").Replace("'", "\\'"))',
-                                        '@Html.Raw((row["Apellidos"]?.ToString() ?? "").Replace("'", "\\'"))',
-                                        '@Html.Raw((row["Nacionalidad"]?.ToString() ?? "").Replace("'", "\\'"))',
-                                        '@(row.IsNull("FechaNacimiento") ? "" : ((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))',
-                                        '@((bool)row["Estado"])'
+                                        '@token',
+                                        '@Html.Raw(nombres.Replace("'", "\\'"))',
+                                        '@Html.Raw(apellidos.Replace("'", "\\'"))',
+                                        '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
+                                        '@fecha',
+                                        '@estado'
                                     )">
-
                                 <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                      class="icono-btn">
                                 Editar
@@ -84,8 +93,7 @@
 
                             <button type="button"
                                     class="btn-eliminar"
-                                    onclick="abrirModal('@row["AutorToken"]')">
-
+                                    onclick="abrirModal('@token')">
                                 <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                      class="icono-btn">
                                 Eliminar
@@ -101,12 +109,14 @@
                 </tr>
             </tbody>
         </table>
+
     </div>
 </div>
 
 <!-- MODAL ELIMINAR -->
 <div id="modalEliminar" class="modal">
     <div class="modal-box">
+
         <div class="modal-icon">
             <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                  class="icono-modal">
@@ -117,6 +127,7 @@
 
         <form method="post" asp-page-handler="Eliminar">
             @Html.AntiForgeryToken()
+
             <input type="hidden" id="autorTokenInput" name="token" />
 
             <div class="modal-buttons">
@@ -124,12 +135,14 @@
                 <button type="button" class="btn-secondary" onclick="cerrarModal()">Cancelar</button>
             </div>
         </form>
+
     </div>
 </div>
 
 <!-- MODAL EDITAR -->
 <div id="modalEditar" class="modal">
     <div class="modal-box">
+
         <div class="modal-icon editar">
             <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                  class="icono-modal">
@@ -141,16 +154,25 @@
         <form method="post" asp-page-handler="Editar">
             @Html.AntiForgeryToken()
 
+            <div asp-validation-summary="All" class="text-error-summary"></div>
+
             <input type="hidden" id="editToken" name="token" />
 
             <input type="text" id="editNombres" name="Nombres" placeholder="Nombres" required />
-            <input type="text" id="editApellidos" name="Apellidos" placeholder="Apellidos" />
+            @if (ViewData.ModelState.ContainsKey("Nombres"))
+            {
+                <span class="text-error">@ViewData.ModelState["Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
 
-            <!-- NACIONALIDAD CON DROPDOWN -->
+            <input type="text" id="editApellidos" name="Apellidos" placeholder="Apellidos" />
+            @if (ViewData.ModelState.ContainsKey("Apellidos"))
+            {
+                <span class="text-error">@ViewData.ModelState["Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <!-- NACIONALIDAD EDITAR -->
             <div class="custom-select-wrapper">
-                <input type="hidden"
-                       id="editNacionalidad"
-                       name="Nacionalidad" />
+                <input type="hidden" id="editNacionalidadValue" name="Nacionalidad" />
 
                 <div class="custom-select" id="custom-select-nacionalidad-edit">
                     <div class="select-trigger">
@@ -186,25 +208,25 @@
                             <div class="option" data-value="Italiana">Italiana</div>
                             <div class="option" data-value="Portuguesa">Portuguesa</div>
                             <div class="option" data-value="Británica">Británica</div>
-                            <div class="option" data-value="China">China</div>
                             <div class="option" data-value="Japonesa">Japonesa</div>
+                            <div class="option" data-value="China">China</div>
                             <div class="option" data-value="Coreana">Coreana</div>
                             <div class="option" data-value="India">India</div>
-                            <div class="option" data-value="Australiana">Australiana</div>
-                            <div class="option" data-value="Sudafricana">Sudafricana</div>
-                            <div class="option" data-value="Egipcia">Egipcia</div>
                             <div class="option" data-value="Otra">Otra</div>
                         </div>
                     </div>
                 </div>
             </div>
+            @if (ViewData.ModelState.ContainsKey("Nacionalidad"))
+            {
+                <span class="text-error">@ViewData.ModelState["Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
 
-            <!-- FECHA QUE SE PUEDE BORRAR -->
-            <input type="hidden" id="editFechaNacimiento" name="FechaNacimiento" />
-            <input type="text"
-                   id="editFechaNacimientoDisplay"
-                   placeholder="dd/mm/aaaa"
-                   autocomplete="off" />
+            <input type="date" id="editFechaNacimiento" name="FechaNacimiento" />
+            @if (ViewData.ModelState.ContainsKey("FechaNacimiento"))
+            {
+                <span class="text-error">@ViewData.ModelState["FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
 
             <select id="editEstado" name="Estado">
                 <option value="true">Activo</option>
@@ -222,6 +244,7 @@
 <!-- MODAL CREAR -->
 <div id="modalCrear" class="modal">
     <div class="modal-box">
+
         <div class="modal-icon crear">
             <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                  class="icono-modal">
@@ -231,81 +254,85 @@
         <p>Ingresa los datos del autor</p>
 
         <form method="post" asp-page-handler="Crear">
-            @Html.AntiForgeryToken()
+    @Html.AntiForgeryToken()
 
-            <input type="text"
-                   name="Autor.Nombres"
-                   placeholder="Nombres"
-                   required />
+    <div asp-validation-summary="ModelOnly" class="text-error-summary"></div>
 
-            <input type="text"
-                   name="Autor.Apellidos"
-                   placeholder="Apellidos" />
+    <input type="text"
+           name="Autor.Nombres"
+           id="createNombres"
+           placeholder="Nombres"
+           required />
+    @if (ViewData.ModelState.ContainsKey("Autor.Nombres"))
+    {
+        <span class="text-error">@ViewData.ModelState["Autor.Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+    }
 
-            <div class="custom-select-wrapper">
-                <input type="hidden"
-                       id="nacionalidad-value-modal"
-                       name="Autor.Nacionalidad" />
+    <input type="text"
+           name="Autor.Apellidos"
+           id="createApellidos"
+           placeholder="Apellidos" />
+    @if (ViewData.ModelState.ContainsKey("Autor.Apellidos"))
+    {
+        <span class="text-error">@ViewData.ModelState["Autor.Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+    }
 
-                <div class="custom-select" id="custom-select-nacionalidad-modal">
-                    <div class="select-trigger" id="nacionalidad-trigger-modal">
-                        <span id="nacionalidad-text-modal">-- Seleccione una nacionalidad --</span>
-                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </div>
+    <div class="custom-select-wrapper">
+        <input type="hidden"
+               id="nacionalidad-value-modal"
+               name="Autor.Nacionalidad" />
 
-                    <div class="select-dropdown">
-                        <input type="text"
-                               class="select-search"
-                               id="nacionalidad-search-modal"
-                               placeholder="Buscar nacionalidad..." />
+        <div class="custom-select" id="custom-select-nacionalidad-modal">
+            <div class="select-trigger">
+                <span id="nacionalidad-text-modal">-- Seleccione una nacionalidad --</span>
+                <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
 
-                        <div class="select-options">
-                            <div class="option" data-value="Boliviana">Boliviana</div>
-                            <div class="option" data-value="Argentina">Argentina</div>
-                            <div class="option" data-value="Brasileña">Brasileña</div>
-                            <div class="option" data-value="Chilena">Chilena</div>
-                            <div class="option" data-value="Colombiana">Colombiana</div>
-                            <div class="option" data-value="Ecuatoriana">Ecuatoriana</div>
-                            <div class="option" data-value="Paraguaya">Paraguaya</div>
-                            <div class="option" data-value="Peruana">Peruana</div>
-                            <div class="option" data-value="Uruguaya">Uruguaya</div>
-                            <div class="option" data-value="Venezolana">Venezolana</div>
-                            <div class="option" data-value="Mexicana">Mexicana</div>
-                            <div class="option" data-value="Estadounidense">Estadounidense</div>
-                            <div class="option" data-value="Canadiense">Canadiense</div>
-                            <div class="option" data-value="Española">Española</div>
-                            <div class="option" data-value="Francesa">Francesa</div>
-                            <div class="option" data-value="Alemana">Alemana</div>
-                            <div class="option" data-value="Italiana">Italiana</div>
-                            <div class="option" data-value="Portuguesa">Portuguesa</div>
-                            <div class="option" data-value="Británica">Británica</div>
-                            <div class="option" data-value="China">China</div>
-                            <div class="option" data-value="Japonesa">Japonesa</div>
-                            <div class="option" data-value="Coreana">Coreana</div>
-                            <div class="option" data-value="India">India</div>
-                            <div class="option" data-value="Australiana">Australiana</div>
-                            <div class="option" data-value="Sudafricana">Sudafricana</div>
-                            <div class="option" data-value="Egipcia">Egipcia</div>
-                            <div class="option" data-value="Otra">Otra</div>
-                        </div>
-                    </div>
+            <div class="select-dropdown">
+                <input type="text"
+                       class="select-search"
+                       id="nacionalidad-search-modal"
+                       placeholder="Buscar nacionalidad..." />
+
+                <div class="select-options">
+                    <div class="option" data-value="Boliviana">Boliviana</div>
+                    <div class="option" data-value="Argentina">Argentina</div>
+                    <div class="option" data-value="Brasileña">Brasileña</div>
+                    <div class="option" data-value="Chilena">Chilena</div>
+                    <div class="option" data-value="Colombiana">Colombiana</div>
+                    <div class="option" data-value="Peruana">Peruana</div>
+                    <div class="option" data-value="Mexicana">Mexicana</div>
+                    <div class="option" data-value="Española">Española</div>
+                    <div class="option" data-value="Otra">Otra</div>
                 </div>
             </div>
+        </div>
+    </div>
+    @if (ViewData.ModelState.ContainsKey("Autor.Nacionalidad"))
+    {
+        <span class="text-error">@ViewData.ModelState["Autor.Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+    }
 
-            <input type="date" name="Autor.FechaNacimiento" />
+    <input type="date"
+           id="createFechaNacimiento"
+           name="Autor.FechaNacimiento" />
+    @if (ViewData.ModelState.ContainsKey("Autor.FechaNacimiento"))
+    {
+        <span class="text-error">@ViewData.ModelState["Autor.FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+    }
 
-            <select name="Autor.Estado">
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-            </select>
+    <select name="Autor.Estado" id="createEstado">
+        <option value="true">Activo</option>
+        <option value="false">Inactivo</option>
+    </select>
 
-            <div class="modal-buttons">
-                <button type="submit" class="btn-success">Crear</button>
-                <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
-            </div>
-        </form>
+    <div class="modal-buttons">
+        <button type="submit" class="btn-success">Crear</button>
+        <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
+    </div>
+</form>
     </div>
 </div>
 
@@ -321,15 +348,13 @@
         var filtro = input.value.toLowerCase();
         var filas = tabla.querySelectorAll('tbody tr');
 
-        filas.forEach(function (f) {
+        filas.forEach(f => {
             f.style.display = f.textContent.toLowerCase().includes(filtro) ? "" : "none";
         });
     });
 })();
 
-// =========================
 // MODAL ELIMINAR
-// =========================
 function abrirModal(token) {
     document.getElementById("autorTokenInput").value = token;
     document.getElementById("modalEliminar").style.display = "flex";
@@ -339,71 +364,17 @@ function cerrarModal() {
     document.getElementById("modalEliminar").style.display = "none";
 }
 
-// =========================
-// FUNCIONES FECHA
-// =========================
-function convertirADisplay(valorIso) {
-    if (!valorIso) return "";
-    const partes = valorIso.split("-");
-    if (partes.length !== 3) return "";
-    return `${partes[2]}/${partes[1]}/${partes[0]}`;
-}
-
-function convertirAIso(valorDisplay) {
-    const valor = (valorDisplay || "").trim();
-    if (!valor) return "";
-
-    const partes = valor.split("/");
-    if (partes.length !== 3) return "";
-
-    const [diaTxt, mesTxt, anioTxt] = partes;
-
-    if (!/^\d{2}$/.test(diaTxt) || !/^\d{2}$/.test(mesTxt) || !/^\d{4}$/.test(anioTxt)) {
-        return "";
-    }
-
-    const dia = parseInt(diaTxt, 10);
-    const mes = parseInt(mesTxt, 10);
-    const anio = parseInt(anioTxt, 10);
-
-    const fecha = new Date(Date.UTC(anio, mes - 1, dia));
-    const fechaValida =
-        fecha.getUTCFullYear() === anio &&
-        fecha.getUTCMonth() === mes - 1 &&
-        fecha.getUTCDate() === dia;
-
-    if (!fechaValida) return "";
-
-    return `${anioTxt}-${mesTxt}-${diaTxt}`;
-}
-
-function formatearFechaDisplay(valor) {
-    const digitos = (valor || "").replace(/\D/g, "").slice(0, 8);
-    const dia = digitos.slice(0, 2);
-    const mes = digitos.slice(2, 4);
-    const anio = digitos.slice(4, 8);
-
-    if (digitos.length <= 2) return dia;
-    if (digitos.length <= 4) return `${dia}/${mes}`;
-    return `${dia}/${mes}/${anio}`;
-}
-
-// =========================
 // MODAL EDITAR
-// =========================
 function abrirModalEditar(token, nombres, apellidos, nacionalidad, fecha, estado) {
     document.getElementById("editToken").value = token;
     document.getElementById("editNombres").value = nombres || "";
     document.getElementById("editApellidos").value = apellidos || "";
+    document.getElementById("editFechaNacimiento").value = fecha || "";
+    document.getElementById("editEstado").value = estado === "True" ? "true" : "false";
 
-    document.getElementById("editNacionalidad").value = nacionalidad || "";
+    document.getElementById("editNacionalidadValue").value = nacionalidad || "";
     document.getElementById("editNacionalidadText").textContent =
         nacionalidad && nacionalidad.trim() !== "" ? nacionalidad : "-- Seleccione una nacionalidad --";
-
-    document.getElementById("editFechaNacimiento").value = fecha || "";
-    document.getElementById("editFechaNacimientoDisplay").value = convertirADisplay(fecha || "");
-
-    document.getElementById("editEstado").value = estado === "True" ? "true" : "false";
 
     document.getElementById("modalEditar").style.display = "flex";
 }
@@ -412,9 +383,7 @@ function cerrarModalEditar() {
     document.getElementById("modalEditar").style.display = "none";
 }
 
-// =========================
 // MODAL CREAR
-// =========================
 function abrirModalCrear() {
     document.getElementById("modalCrear").style.display = "flex";
 }
@@ -423,181 +392,83 @@ function cerrarModalCrear() {
     document.getElementById("modalCrear").style.display = "none";
 }
 
-// =========================
-// INIT GENERAL
-// =========================
-document.addEventListener("DOMContentLoaded", function () {
+// CUSTOM SELECT GENERICO
+function initCustomSelect(selectId, searchId, hiddenId, textId) {
+    const customSelect = document.getElementById(selectId);
+    if (!customSelect) return;
 
-    // =========================
-    // DROPDOWN NACIONALIDAD CREAR
-    // =========================
-    const customSelectCrear = document.getElementById("custom-select-nacionalidad-modal");
-    if (customSelectCrear) {
-        const triggerCrear = customSelectCrear.querySelector(".select-trigger");
-        const searchCrear = document.getElementById("nacionalidad-search-modal");
-        const optionsCrear = customSelectCrear.querySelectorAll(".option");
-        const hiddenInputCrear = document.getElementById("nacionalidad-value-modal");
-        const selectTextCrear = document.getElementById("nacionalidad-text-modal");
-        let isOpenCrear = false;
+    const trigger = customSelect.querySelector('.select-trigger');
+    const search = document.getElementById(searchId);
+    const options = customSelect.querySelectorAll('.option');
+    const hiddenInput = document.getElementById(hiddenId);
+    const selectText = document.getElementById(textId);
+    let isOpen = false;
 
-        function openDropdownCrear() {
-            isOpenCrear = true;
-            customSelectCrear.classList.add("active");
-            searchCrear.value = "";
-            optionsCrear.forEach(opt => opt.classList.remove("hidden"));
-            setTimeout(() => searchCrear.focus(), 50);
+    function applyManualValue() {
+        const customValue = search.value.trim();
+        if (!customValue) return;
+        hiddenInput.value = customValue;
+        selectText.textContent = customValue;
+    }
+
+    trigger.addEventListener('click', function (e) {
+        e.stopPropagation();
+        isOpen = !isOpen;
+        customSelect.classList.toggle('active', isOpen);
+
+        if (isOpen) {
+            search.focus();
+            search.value = '';
+            options.forEach(opt => opt.classList.remove('hidden'));
         }
+    });
 
-        function closeDropdownCrear() {
-            isOpenCrear = false;
-            customSelectCrear.classList.remove("active");
-        }
-
-        function applyManualValueCrear() {
-            const value = searchCrear.value.trim();
-            if (!value) return;
-            hiddenInputCrear.value = value;
-            selectTextCrear.textContent = value;
-        }
-
-        triggerCrear.addEventListener("click", function (e) {
-            e.stopPropagation();
-            if (isOpenCrear) closeDropdownCrear();
-            else openDropdownCrear();
-        });
-
-        searchCrear.addEventListener("click", function (e) {
-            e.stopPropagation();
-        });
-
-        searchCrear.addEventListener("input", function () {
-            const term = this.value.toLowerCase();
-            optionsCrear.forEach(option => {
-                option.classList.toggle("hidden", !option.textContent.toLowerCase().includes(term));
-            });
-        });
-
-        optionsCrear.forEach(option => {
-            option.addEventListener("click", function (e) {
-                e.stopPropagation();
-                hiddenInputCrear.value = this.dataset.value;
-                selectTextCrear.textContent = this.textContent.trim();
-                closeDropdownCrear();
-            });
-        });
-
-        document.addEventListener("click", function (e) {
-            if (!customSelectCrear.contains(e.target) && isOpenCrear) {
-                applyManualValueCrear();
-                closeDropdownCrear();
+    document.addEventListener('click', function (e) {
+        if (!customSelect.contains(e.target)) {
+            if (isOpen) {
+                applyManualValue();
             }
+            isOpen = false;
+            customSelect.classList.remove('active');
+        }
+    });
+
+    search.addEventListener('input', function () {
+        const term = this.value.toLowerCase();
+        options.forEach(option => {
+            const text = option.textContent.toLowerCase();
+            option.classList.toggle('hidden', !text.includes(term));
         });
-    }
+    });
 
-    // =========================
-    // DROPDOWN NACIONALIDAD EDITAR
-    // =========================
-    const customSelectEdit = document.getElementById("custom-select-nacionalidad-edit");
-    if (customSelectEdit) {
-        const triggerEdit = customSelectEdit.querySelector(".select-trigger");
-        const searchEdit = document.getElementById("editNacionalidadSearch");
-        const optionsEdit = customSelectEdit.querySelectorAll(".option");
-        const hiddenInputEdit = document.getElementById("editNacionalidad");
-        const selectTextEdit = document.getElementById("editNacionalidadText");
-        let isOpenEdit = false;
-
-        function openDropdownEdit() {
-            isOpenEdit = true;
-            customSelectEdit.classList.add("active");
-            searchEdit.value = "";
-            optionsEdit.forEach(opt => opt.classList.remove("hidden"));
-            setTimeout(() => searchEdit.focus(), 50);
-        }
-
-        function closeDropdownEdit() {
-            isOpenEdit = false;
-            customSelectEdit.classList.remove("active");
-        }
-
-        function applyManualValueEdit() {
-            const value = searchEdit.value.trim();
-            if (!value) return;
-            hiddenInputEdit.value = value;
-            selectTextEdit.textContent = value;
-        }
-
-        triggerEdit.addEventListener("click", function (e) {
+    options.forEach(option => {
+        option.addEventListener('click', function (e) {
             e.stopPropagation();
-            if (isOpenEdit) closeDropdownEdit();
-            else openDropdownEdit();
+            hiddenInput.value = this.dataset.value;
+            selectText.textContent = this.textContent.trim();
+            isOpen = false;
+            customSelect.classList.remove('active');
         });
+    });
+}
 
-        searchEdit.addEventListener("click", function (e) {
-            e.stopPropagation();
-        });
+document.addEventListener('DOMContentLoaded', function () {
+    initCustomSelect(
+        'custom-select-nacionalidad-modal',
+        'nacionalidad-search-modal',
+        'nacionalidad-value-modal',
+        'nacionalidad-text-modal'
+    );
 
-        searchEdit.addEventListener("input", function () {
-            const term = this.value.toLowerCase();
-            optionsEdit.forEach(option => {
-                option.classList.toggle("hidden", !option.textContent.toLowerCase().includes(term));
-            });
-        });
-
-        optionsEdit.forEach(option => {
-            option.addEventListener("click", function (e) {
-                e.stopPropagation();
-                hiddenInputEdit.value = this.dataset.value;
-                selectTextEdit.textContent = this.textContent.trim();
-                closeDropdownEdit();
-            });
-        });
-
-        document.addEventListener("click", function (e) {
-            if (!customSelectEdit.contains(e.target) && isOpenEdit) {
-                applyManualValueEdit();
-                closeDropdownEdit();
-            }
-        });
-    }
-
-    // =========================
-    // FECHA EDITAR BORRABLE
-    // =========================
-    const fechaInputEdit = document.getElementById("editFechaNacimiento");
-    const fechaDisplayEdit = document.getElementById("editFechaNacimientoDisplay");
-
-    if (fechaInputEdit && fechaDisplayEdit) {
-        fechaDisplayEdit.addEventListener("input", function () {
-            this.value = formatearFechaDisplay(this.value);
-            fechaInputEdit.value = convertirAIso(this.value);
-        });
-
-        fechaDisplayEdit.addEventListener("blur", function () {
-            fechaInputEdit.value = convertirAIso(this.value);
-        });
-    }
-
-    // =========================
-    // FECHA CREAR BORRABLE
-    // =========================
-    const fechaInputCrear = document.getElementById("crearFechaNacimiento");
-    const fechaDisplayCrear = document.getElementById("crearFechaNacimientoDisplay");
-
-    if (fechaInputCrear && fechaDisplayCrear) {
-        fechaDisplayCrear.addEventListener("input", function () {
-            this.value = formatearFechaDisplay(this.value);
-            fechaInputCrear.value = convertirAIso(this.value);
-        });
-
-        fechaDisplayCrear.addEventListener("blur", function () {
-            fechaInputCrear.value = convertirAIso(this.value);
-        });
-    }
+    initCustomSelect(
+        'custom-select-nacionalidad-edit',
+        'editNacionalidadSearch',
+        'editNacionalidadValue',
+        'editNacionalidadText'
+    );
 });
 
-// =========================
 // CLICK FUERA
-// =========================
 window.onclick = function (e) {
     let m1 = document.getElementById("modalEliminar");
     let m2 = document.getElementById("modalEditar");
@@ -608,4 +479,30 @@ window.onclick = function (e) {
     if (e.target === m3) cerrarModalCrear();
 }
 </script>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var tieneErroresCrear =
+                @Html.Raw(ViewData.ModelState.Keys.Any(k => k.StartsWith("Autor.")).ToString().ToLower());
+
+            var tieneErroresEditar =
+                @Html.Raw(
+                    (ViewData.ModelState.ContainsKey("Nombres")
+                    || ViewData.ModelState.ContainsKey("Apellidos")
+                    || ViewData.ModelState.ContainsKey("Nacionalidad")
+                    || ViewData.ModelState.ContainsKey("FechaNacimiento")).ToString().ToLower()
+                );
+
+            if (tieneErroresCrear) {
+                abrirModalCrear();
+            }
+
+            if (tieneErroresEditar) {
+                document.getElementById("modalEditar").style.display = "flex";
+            }
+        });
+    </script>
+}
 }
