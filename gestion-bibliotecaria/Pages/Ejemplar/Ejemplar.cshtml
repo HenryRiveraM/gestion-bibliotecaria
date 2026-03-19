@@ -1,4 +1,5 @@
 @page "/Ejemplar"
+@using System.Linq
 @model gestion_bibliotecaria.Pages.EjemplarModel
 @{
     ViewData["Title"] = "Gestión de Ejemplares";
@@ -16,10 +17,10 @@
             <h1>Gestión de Ejemplares</h1>
         </div>
 
-<button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
-    <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
-    Nuevo Ejemplar
-</button>
+        <button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
+            Nuevo Ejemplar
+        </button>
 
     </div>
 
@@ -68,7 +69,6 @@ else
             @foreach (var ejemplar in Model.Ejemplares)
             {
                 <tr class="@(ejemplar.DadoDeBaja ? "fila-baja" : "")">
-
 
                     <td>
                         @if (Model.LibrosTitulos.TryGetValue(ejemplar.LibroId, out var tituloLibro))
@@ -126,27 +126,26 @@ else
 
                     <td class="acciones">
 
-<button type="button"
-        class="btn-editar"
-        onclick="abrirModalEditar(
-            '@ejemplar.RouteToken',
-            '@ejemplar.LibroId',
-            '@Html.Raw((ejemplar.CodigoInventario ?? "").Replace("'", "\\'"))',
-            '@Html.Raw((ejemplar.EstadoConservacion ?? "").Replace("'", "\\'"))',
-            '@ejemplar.Disponible',
-            '@ejemplar.DadoDeBaja',
-            '@Html.Raw((ejemplar.MotivoBaja ?? "").Replace("'", "\\'"))',
-            '@Html.Raw((ejemplar.Ubicacion ?? "").Replace("'", "\\'"))',
-            '@ejemplar.Estado'
-        )">
+                        <button type="button"
+                                class="btn-editar"
+                                onclick="abrirModalEditar(
+                                    '@ejemplar.RouteToken',
+                                    '@ejemplar.LibroId',
+                                    '@Html.Raw((ejemplar.CodigoInventario ?? "").Replace("'", "\\'"))',
+                                    '@Html.Raw((ejemplar.EstadoConservacion ?? "").Replace("'", "\\'"))',
+                                    '@ejemplar.Disponible',
+                                    '@ejemplar.DadoDeBaja',
+                                    '@Html.Raw((ejemplar.MotivoBaja ?? "").Replace("'", "\\'"))',
+                                    '@Html.Raw((ejemplar.Ubicacion ?? "").Replace("'", "\\'"))',
+                                    '@ejemplar.Estado'
+                                )">
 
-    <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-         class="icono-btn">
+                            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                 class="icono-btn">
 
-    Editar
-</button>
+                            Editar
+                        </button>
 
-                        <!-- BOTON MODAL -->
                         <button class="btn-eliminar"
                                 onclick="abrirModalEliminar('@ejemplar.RouteToken')">
 
@@ -174,17 +173,14 @@ else
     </div>
 
     <div class="estadisticas">
-
         <div class="stat stat-info">Total ejemplares: @total</div>
         <div class="stat stat-success">Disponibles: @disponibles</div>
         <div class="stat stat-warning">No disponibles: @noDisponibles</div>
         <div class="stat stat-danger">Dados de baja: @dadosDeBaja</div>
-
     </div>
 }
 
 </div>
-
 
 <!-- MODAL ELIMINAR -->
 <div id="modalEliminar" class="modal">
@@ -205,7 +201,6 @@ else
             <input type="hidden" id="ejemplarTokenInput" name="token" />
 
             <div class="modal-buttons">
-
                 <button type="submit" class="btn-danger">
                     Sí, eliminar
                 </button>
@@ -213,7 +208,6 @@ else
                 <button type="button" class="btn-secondary" onclick="cerrarModalEliminar()">
                     Cancelar
                 </button>
-
             </div>
         </form>
 
@@ -239,7 +233,16 @@ else
 
             <input type="hidden" id="editToken" name="token" />
 
-            <!-- LIBRO -->
+            @if (ViewData.ModelState.ContainsKey(string.Empty))
+            {
+                <div class="text-error-summary">
+                    @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+                    {
+                        <div>• @error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
             <select id="editLibroId" name="LibroId" class="input-form" required>
                 <option value="">Seleccione un libro...</option>
                 @foreach (var libro in Model.LibrosTitulos)
@@ -248,15 +251,19 @@ else
                 }
             </select>
 
-            <!-- CODIGO -->
             <input type="text"
                    id="editCodigoInventario"
                    name="CodigoInventario"
                    class="input-form"
                    placeholder="Código de Ejemplar"
                    required />
+            @if (ViewData.ModelState.ContainsKey("CodigoInventario"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["CodigoInventario"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
-            <!-- ESTADO CONSERVACION -->
             <select id="editEstadoConservacion" name="EstadoConservacion" class="input-form">
                 <option value="">Seleccione...</option>
                 <option value="Excelente">Excelente</option>
@@ -266,14 +273,12 @@ else
                 <option value="Malo">Malo</option>
             </select>
 
-            <!-- UBICACION -->
             <input type="text"
                    id="editUbicacion"
                    name="Ubicacion"
                    class="input-form"
                    placeholder="Ubicación" />
 
-            <!-- DISPONIBLE -->
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="editDisponible"
@@ -282,7 +287,6 @@ else
                 <label for="editDisponible">Disponible para préstamo</label>
             </div>
 
-            <!-- DADO DE BAJA -->
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="editDadoDeBaja"
@@ -292,7 +296,6 @@ else
                 <label for="editDadoDeBaja">Dado de baja</label>
             </div>
 
-            <!-- MOTIVO BAJA -->
             <div id="editMotivoBajaDiv">
                 <textarea id="editMotivoBaja"
                           name="MotivoBaja"
@@ -301,7 +304,6 @@ else
                           placeholder="Motivo de baja"></textarea>
             </div>
 
-            <!-- ESTADO -->
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="editEstado"
@@ -336,7 +338,13 @@ else
         <form method="post" asp-page-handler="Crear">
             @Html.AntiForgeryToken()
 
-            <!-- LIBRO -->
+            @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+            {
+                <div class="text-error-summary">
+                    @Model.ErrorMessage
+                </div>
+            }
+
             <input type="hidden" id="createLibroIdHidden" name="Ejemplar.LibroId" />
 
             <div class="libro-search-wrapper">
@@ -361,15 +369,19 @@ else
 
             <small class="text-muted" id="createLibroSeleccionadoTexto"></small>
 
-            <!-- CODIGO -->
             <input type="text"
                    name="Ejemplar.CodigoInventario"
                    id="createCodigoInventario"
                    class="input-form"
                    placeholder="Ej: INV-001-2026"
                    required />
+            @if (ViewData.ModelState.ContainsKey("Ejemplar.CodigoInventario"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["Ejemplar.CodigoInventario"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
 
-            <!-- ESTADO CONSERVACION -->
             <select name="Ejemplar.EstadoConservacion"
                     id="createEstadoConservacion"
                     class="input-form">
@@ -381,7 +393,6 @@ else
                 <option value="Malo">Malo</option>
             </select>
 
-            <!-- UBICACION -->
             <div class="custom-select-wrapper">
                 <input type="hidden" name="Ejemplar.Ubicacion" id="createUbicacionValue" />
 
@@ -414,7 +425,6 @@ else
                 </div>
             </div>
 
-            <!-- DISPONIBLE -->
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="createDisponible"
@@ -424,7 +434,6 @@ else
                 <label for="createDisponible">Disponible para préstamo</label>
             </div>
 
-            <!-- DADO DE BAJA -->
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="createDadoBajaCheck"
@@ -434,7 +443,6 @@ else
                 <label for="createDadoBajaCheck">Dado de baja</label>
             </div>
 
-            <!-- MOTIVO BAJA -->
             <div id="createMotivoBajaDiv" style="display:none;">
                 <textarea name="Ejemplar.MotivoBaja"
                           id="createMotivoBaja"
@@ -443,7 +451,6 @@ else
                           placeholder="Motivo de baja"></textarea>
             </div>
 
-            <!-- ESTADO -->
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="createEstado"
@@ -487,7 +494,6 @@ function abrirModalEditar(token, libroId, codigo, estadoConservacion, disponible
     document.getElementById("editEstado").checked = (estado === "True");
 
     toggleMotivoBajaModal();
-
     document.getElementById("modalEditar").style.display = "flex";
 }
 
@@ -522,7 +528,6 @@ function abrirModalCrear() {
     document.getElementById("createEstado").checked = true;
 
     toggleMotivoBajaCrear();
-
     document.getElementById("modalCrear").style.display = "flex";
 }
 
@@ -545,7 +550,6 @@ function toggleMotivoBajaCrear() {
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    // buscador tabla
     const inputBuscador = document.getElementById("buscador-ejemplar");
     const tabla = document.getElementById("tabla-ejemplar");
     const filaSinResultados = document.getElementById("fila-sin-resultados");
@@ -559,7 +563,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             for (let i = 1; i < filas.length; i++) {
                 const fila = filas[i];
-
                 if (fila.id === "fila-sin-resultados") continue;
 
                 const contenido = fila.textContent.toLowerCase();
@@ -578,7 +581,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // custom select ubicación crear
     const customCreate = document.getElementById("custom-select-ubicacion-create");
     if (customCreate) {
         const trigger = customCreate.querySelector(".select-trigger");
@@ -621,7 +623,6 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // buscador de libros crear
     (function () {
         var input = document.getElementById('createBuscarLibro');
         var lista = document.getElementById('createListaLibros');
@@ -686,4 +687,25 @@ window.onclick = function(e) {
     if (e.target === modalCrear) cerrarModalCrear();
 }
 </script>
+
+@if (!ViewData.ModelState.IsValid || !string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var errorCrear =
+                @Html.Raw((ViewData.ModelState.Keys.Any(k => k.StartsWith("Ejemplar.")) || !string.IsNullOrWhiteSpace(Model.ErrorMessage)).ToString().ToLower());
+
+            var errorEditar =
+                @Html.Raw((ViewData.ModelState.ContainsKey("CodigoInventario") || ViewData.ModelState.ContainsKey(string.Empty)).ToString().ToLower());
+
+            if (errorCrear) {
+                abrirModalCrear();
+            }
+
+            if (errorEditar) {
+                document.getElementById("modalEditar").style.display = "flex";
+            }
+        });
+    </script>
+}
 }

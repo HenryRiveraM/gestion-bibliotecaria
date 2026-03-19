@@ -500,6 +500,23 @@
     display:none;
 }
 
+.text-error{
+    color:#f87171;
+    font-size:13px;
+    margin-top:4px;
+    display:block;
+}
+
+.text-error-summary{
+    background:#3a1616;
+    border:1px solid #7f1d1d;
+    color:#fecaca;
+    padding:10px 12px;
+    border-radius:10px;
+    margin-bottom:10px;
+    font-size:14px;
+}
+
 /* ANIMACION */
 
 @keyframes fadeIn{
