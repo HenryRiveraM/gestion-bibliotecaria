@@ -124,7 +124,9 @@
 .libro-search-wrapper{
     position:relative;
 }
-
+.libro-search-wrapper input{
+    width: 100%;
+}
 .libro-dropdown{
     position:absolute;
     top:100%;
@@ -161,6 +163,99 @@
 .libro-editorial{
     color:#9ca3af;
     font-size:13px;
+}
+/*UBICAION*/
+
+.custom-select-wrapper {
+    position: relative;
+}
+
+
+.custom-select {
+    position: relative;
+    cursor: pointer;
+}
+
+
+.select-trigger {
+    background: #1b1c1d;
+    border: 1px solid #282828;
+    padding: 10px;
+    border-radius: 6px;
+    color: #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+
+.custom-select.active .select-trigger {
+    border-color: #10a37f;
+}
+
+
+.select-arrow {
+    width: 16px;
+    height: 16px;
+    stroke: #9ca3af;
+}
+
+
+.select-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #1b1c1d;
+    border: 1px solid #282828;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    max-height: 240px;
+    overflow: hidden;
+    display: none;
+    z-index: 100;
+}
+
+.select-dropdown {
+    display: none;
+}
+.custom-select.active .select-dropdown {
+    display: block;
+}
+
+
+.select-search {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    outline: none;
+    background: #111;
+    color: #e5e7eb;
+}
+
+
+.select-options {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.option {
+    padding: 10px;
+    cursor: pointer;
+    color: #e5e7eb;
+}
+
+    .option:hover {
+        background: #10a37f22;
+        color: #10a37f;
+    }
+
+
+.option-group-label {
+    padding: 6px 10px;
+    font-size: 12px;
+    color: #9ca3af;
+    background: #111;
 }
 
 /* ERROR */

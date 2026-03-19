@@ -1,36 +1,36 @@
+using gestion_bibliotecaria.FactoryCreators;
+using gestion_bibliotecaria.FactoryProducts;
+using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Validaciones;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using gestion_bibliotecaria.Models;
 using MySql.Data.MySqlClient;
-using gestion_bibliotecaria.Validaciones;
-using gestion_bibliotecaria.FactoryProducts;
+using System.Data;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class EjemplarCreateModel : PageModel
 {
-    private const string QueryLibros = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro, UltimaActualizacion
-                                        FROM libro
-                                        ORDER BY Titulo";
-
-    private const string QueryInsertEjemplar = @"INSERT INTO ejemplar (LibroId, CodigoInventario, EstadoConservacion, Disponible, DadoDeBaja, MotivoBaja, Ubicacion, Estado, FechaRegistro)
-                                                 VALUES (@LibroId, @CodigoInventario, @EstadoConservacion, @Disponible, @DadoDeBaja, @MotivoBaja, @Ubicacion, @Estado, @FechaRegistro);
-                                                 SELECT LAST_INSERT_ID();";
-
+    private readonly IRepository<Ejemplar, int> _repository;
     private readonly IConfiguration _configuration;
-    private readonly IEjemplarFactory _ejemplarFactory;
 
     [BindProperty]
-    public Ejemplar Ejemplar { get; set; } = new Ejemplar { Estado = true, Disponible = true };
+    public Ejemplar Ejemplar { get; set; } = new Ejemplar
+    {
+        Estado = true,
+        Disponible = true
+    };
 
     public List<Libro> Libros { get; set; } = new();
 
     public string ErrorMessage { get; set; } = string.Empty;
 
-    public EjemplarCreateModel(IConfiguration configuration, IEjemplarFactory ejemplarFactory)
+    public EjemplarCreateModel(
+        RepositoryFactory<Ejemplar, int> factory,
+        IConfiguration configuration)
     {
+        _repository = factory.CreateRepository();
         _configuration = configuration;
-        _ejemplarFactory = ejemplarFactory;
     }
 
     public async Task OnGetAsync()
@@ -40,7 +40,7 @@ public class EjemplarCreateModel : PageModel
 
     public async Task<IActionResult> OnPostAsync()
     {
-        Ejemplar.CodigoInventario = ValidadorEntrada.NormalizarEspacios(Ejemplar.CodigoInventario);
+        Ejemplar.CodigoInventario = NormalizarCodigoInventario( ValidadorEntrada.NormalizarEspacios(Ejemplar.CodigoInventario));
         Ejemplar.EstadoConservacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.EstadoConservacion);
         Ejemplar.Ubicacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.Ubicacion);
         Ejemplar.MotivoBaja = ValidadorEntrada.NormalizarEspacios(Ejemplar.MotivoBaja);
@@ -67,28 +67,17 @@ public class EjemplarCreateModel : PageModel
 
         try
         {
-            var ejemplar = _ejemplarFactory.CreateForInsert(
-                Ejemplar.LibroId,
-                Ejemplar.CodigoInventario,
-                Ejemplar.EstadoConservacion,
-                Ejemplar.Disponible,
-                Ejemplar.DadoDeBaja,
-                Ejemplar.MotivoBaja,
-                Ejemplar.Ubicacion,
-                Ejemplar.Estado
-            );
-
-            await InsertarEjemplarAsync(ejemplar);
+            _repository.Insert(Ejemplar);
 
             return Redirect("/Ejemplar");
         }
-        catch (MySql.Data.MySqlClient.MySqlException ex) when (ex.Number == 1062)
+        catch (MySqlException ex) when (ex.Number == 1062)
         {
             ModelState.AddModelError("Ejemplar.CodigoInventario", "Ya existe un ejemplar con ese código de inventario.");
             await CargarPaginaAsync();
             return Page();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             ErrorMessage = "Ocurrió un error al agregar el ejemplar. Por favor, intentá nuevamente.";
             await CargarPaginaAsync();
@@ -96,28 +85,32 @@ public class EjemplarCreateModel : PageModel
         }
     }
 
-    private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-
-    private async Task InsertarEjemplarAsync(Ejemplar ejemplar)
+    //NormalizarCodInventario
+    public static string NormalizarCodigoInventario(string input)
     {
-        using var connection = new MySqlConnection(ConnectionString);
-        await connection.OpenAsync();
+        if (string.IsNullOrWhiteSpace(input))
+            return input;
 
-        using var command = new MySqlCommand(QueryInsertEjemplar, connection);
+        input = input.Trim().ToUpper();
 
-        command.Parameters.AddWithValue("@LibroId", ejemplar.LibroId);
-        command.Parameters.AddWithValue("@CodigoInventario", ejemplar.CodigoInventario);
-        command.Parameters.AddWithValue("@EstadoConservacion", ejemplar.EstadoConservacion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Disponible", ejemplar.Disponible);
-        command.Parameters.AddWithValue("@DadoDeBaja", ejemplar.DadoDeBaja);
-        command.Parameters.AddWithValue("@MotivoBaja", ejemplar.MotivoBaja ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Ubicacion", ejemplar.Ubicacion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Estado", ejemplar.Estado);
-        command.Parameters.AddWithValue("@FechaRegistro", ejemplar.FechaRegistro);
+        
+        var numero = new string(input.Where(char.IsDigit).ToArray());
 
-        await command.ExecuteScalarAsync();
+        if (string.IsNullOrEmpty(numero))
+            return input;
+
+        int num = int.Parse(numero);
+
+        string numeroFormateado = num.ToString("D3");
+
+        int año = DateTime.Now.Year;
+
+        return $"INV-{numeroFormateado}-{año}";
     }
+
+
+    private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException("Connection string not found.");
 
     private async Task CargarPaginaAsync()
     {
@@ -131,31 +124,23 @@ public class EjemplarCreateModel : PageModel
         using var connection = new MySqlConnection(ConnectionString);
         await connection.OpenAsync();
 
-        using var command = new MySqlCommand(QueryLibros, connection);
-        using var reader = (MySqlDataReader)await command.ExecuteReaderAsync();
+        string query = "SELECT LibroId, Titulo, Editorial  FROM libro ORDER BY Titulo";
+
+        using var command = new MySqlCommand(query, connection);
+        using var reader = await command.ExecuteReaderAsync();
 
         while (await reader.ReadAsync())
         {
-            libros.Add(MapLibro(reader));
+            libros.Add(new Libro
+            {
+                LibroId = reader.GetInt32("LibroId"),
+                Titulo = reader.GetString("Titulo"),
+                Editorial = reader["Editorial"] == DBNull.Value
+                ? null
+                : reader["Editorial"].ToString()
+            });
         }
 
         return libros;
-    }
-
-    private static Libro MapLibro(MySqlDataReader reader)
-    {
-        return new Libro
-        {
-            LibroId = reader.GetInt32("LibroId"),
-            AutorId = reader.GetInt32("AutorId"),
-            Titulo = reader.GetString("Titulo"),
-            Editorial = reader.IsDBNull(reader.GetOrdinal("Editorial")) ? null : reader.GetString("Editorial"),
-            Edicion = reader.IsDBNull(reader.GetOrdinal("Edicion")) ? null : reader.GetString("Edicion"),
-            AñoPublicacion = reader.IsDBNull(reader.GetOrdinal("AñoPublicacion")) ? null : reader.GetInt32("AñoPublicacion"),
-            Descripcion = reader.IsDBNull(reader.GetOrdinal("Descripcion")) ? null : reader.GetString("Descripcion"),
-            Estado = reader.GetBoolean("Estado"),
-            FechaRegistro = reader.GetDateTime("FechaRegistro"),
-            UltimaActualizacion = reader.IsDBNull(reader.GetOrdinal("UltimaActualizacion")) ? null : reader.GetDateTime("UltimaActualizacion")
-        };
     }
 }

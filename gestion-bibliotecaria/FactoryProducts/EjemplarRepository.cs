@@ -21,7 +21,20 @@ public class EjemplarRepository : IRepository<Ejemplar,int>
         {
             connection.Open();
 
-            string query = @"SELECT * FROM ejemplar ORDER BY CodigoInventario ASC;";
+            string query = @"SELECT 
+                            e.EjemplarId,
+                            e.LibroId,
+                            l.Titulo AS LibroTitulo,
+                            e.CodigoInventario,
+                            e.EstadoConservacion,
+                            e.Disponible,
+                            e.DadoDeBaja,
+                            e.MotivoBaja,
+                            e.Ubicacion,
+                            e.Estado
+                        FROM ejemplar e
+                        INNER JOIN libro l ON e.LibroId = l.LibroId
+                        ORDER BY l.Titulo ASC;";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             using (MySqlDataAdapter adapter = new MySqlDataAdapter(command))
@@ -118,7 +131,19 @@ public class EjemplarRepository : IRepository<Ejemplar,int>
         {
             connection.Open();
 
-            string query = "SELECT * FROM ejemplar WHERE EjemplarId = @Id";
+            string query = @"SELECT 
+                            EjemplarId,
+                            LibroId,
+                            CodigoInventario,
+                            EstadoConservacion,
+                            Disponible,
+                            DadoDeBaja,
+                            MotivoBaja,
+                            Ubicacion,
+                            Estado,
+                            FechaRegistro
+                        FROM ejemplar
+                        WHERE EjemplarId = @Id;";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
@@ -138,7 +163,8 @@ public class EjemplarRepository : IRepository<Ejemplar,int>
                             DadoDeBaja = reader.GetBoolean("DadoDeBaja"),
                             MotivoBaja = reader.IsDBNull("MotivoBaja") ? null : reader.GetString("MotivoBaja"),
                             Ubicacion = reader.IsDBNull("Ubicacion") ? null : reader.GetString("Ubicacion"),
-                            Estado = reader.GetBoolean("Estado")
+                            Estado = reader.GetBoolean("Estado"),
+                            FechaRegistro = reader.GetDateTime("FechaRegistro")
                         };
                     }
                 }

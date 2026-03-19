@@ -6,14 +6,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
 
-// Se mantiene Ejemplar para no generar conflictos con trabajo de otro dev
-builder.Services.AddScoped<IEjemplarFactory, EjemplarFactory>();
 
 // Factory Method ya usado por Autor
 builder.Services.AddScoped<RepositoryFactory<Autor, int>, AutorRepositoryCreator>();
 
 // Factory Method agregado para Libro
 builder.Services.AddScoped<RepositoryFactory<Libro, int>, LibroRepositoryCreator>();
+
+// Factory Method ya usado por Ejemplar
+builder.Services.AddScoped<RepositoryFactory<Ejemplar, int>, EjemplarRepositoryCreator>();
 
 builder.Services.AddRazorPages(options =>
 {

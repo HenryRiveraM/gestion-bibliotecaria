@@ -1,38 +1,20 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
+using gestion_bibliotecaria.FactoryCreators;
+using gestion_bibliotecaria.FactoryProducts;
 using gestion_bibliotecaria.Models;
 using gestion_bibliotecaria.Security;
-using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Validaciones;
-using gestion_bibliotecaria.FactoryProducts;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using MySql.Data.MySqlClient;
+using System.Data;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class EjemplarEditModel : PageModel
 {
-    private const string QueryEjemplarPorId = @"SELECT EjemplarId, LibroId, CodigoInventario, EstadoConservacion, Disponible, DadoDeBaja, MotivoBaja, Ubicacion, Estado, FechaRegistro, UltimaActualizacion
-                                                FROM ejemplar
-                                                WHERE EjemplarId = @EjemplarId";
-
-    private const string QueryLibros = @"SELECT LibroId, AutorId, Titulo, Editorial, Edicion, AñoPublicacion, Descripcion, Estado, FechaRegistro, UltimaActualizacion
-                                        FROM libro
-                                        ORDER BY Titulo";
-
-    private const string QueryUpdateEjemplar = @"UPDATE ejemplar
-                                                 SET LibroId = @LibroId,
-                                                     CodigoInventario = @CodigoInventario,
-                                                     EstadoConservacion = @EstadoConservacion,
-                                                     Disponible = @Disponible,
-                                                     DadoDeBaja = @DadoDeBaja,
-                                                     MotivoBaja = @MotivoBaja,
-                                                     Ubicacion = @Ubicacion,
-                                                     Estado = @Estado,
-                                                     UltimaActualizacion = @UltimaActualizacion
-                                                 WHERE EjemplarId = @EjemplarId";
-
-    private readonly IConfiguration _configuration;
+    private readonly IRepository<Ejemplar, int> _repository;
     private readonly RouteTokenService _routeTokenService;
-    private readonly IEjemplarFactory _ejemplarFactory;
+    private readonly IConfiguration _configuration;
 
     [BindProperty]
     public Ejemplar Ejemplar { get; set; } = new Ejemplar();
@@ -40,31 +22,57 @@ public class EjemplarEditModel : PageModel
     [BindProperty]
     public string EjemplarToken { get; set; } = string.Empty;
 
-    public List<Libro> Libros { get; set; } = new();
+    public Dictionary<int, string> LibrosTitulos { get; set; } = new();
 
     public string ErrorMessage { get; set; } = string.Empty;
 
     public EjemplarEditModel(
-        IConfiguration configuration,
+        RepositoryFactory<Ejemplar, int> factory,
         RouteTokenService routeTokenService,
-        IEjemplarFactory ejemplarFactory)
+        IConfiguration configuration)
     {
-        _configuration = configuration;
+        _repository = factory.CreateRepository();
         _routeTokenService = routeTokenService;
-        _ejemplarFactory = ejemplarFactory;
+        _configuration = configuration;
     }
 
-    public async Task<IActionResult> OnPostAsync()
+
+    public async Task<IActionResult> OnGetAsync(string token)
+    {
+        if (!_routeTokenService.TryObtenerId(token, out var id))
+        {
+            return NotFound();
+        }
+
+        var ejemplar = _repository.GetById(id);
+
+        if (ejemplar == null)
+        {
+            return NotFound();
+        }
+
+        Ejemplar = ejemplar;
+        EjemplarToken = token;
+
+        LibrosTitulos = await ObtenerTitulosLibrosAsync();
+
+        return Page();
+    }
+
+
+    public IActionResult OnPost()
     {
         if (!_routeTokenService.TryObtenerId(EjemplarToken, out var ejemplarId))
         {
             return NotFound();
         }
 
+
         Ejemplar.CodigoInventario = ValidadorEntrada.NormalizarEspacios(Ejemplar.CodigoInventario);
         Ejemplar.EstadoConservacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.EstadoConservacion);
         Ejemplar.Ubicacion = ValidadorEntrada.NormalizarEspacios(Ejemplar.Ubicacion);
         Ejemplar.MotivoBaja = ValidadorEntrada.NormalizarEspacios(Ejemplar.MotivoBaja);
+
 
         if (ValidadorEntrada.EstaVacio(Ejemplar.CodigoInventario))
         {
@@ -84,23 +92,25 @@ public class EjemplarEditModel : PageModel
             return Page();
         }
 
-        var ejemplar = _ejemplarFactory.CreateForUpdate(
-            ejemplarId,
-            Ejemplar.LibroId,
-            Ejemplar.CodigoInventario,
-            Ejemplar.EstadoConservacion,
-            Ejemplar.Disponible,
-            Ejemplar.DadoDeBaja,
-            Ejemplar.MotivoBaja,
-            Ejemplar.Ubicacion,
-            Ejemplar.Estado
-        );
+
+        var ejemplar = new Ejemplar
+        {
+            EjemplarId = ejemplarId,
+            LibroId = Ejemplar.LibroId,
+            CodigoInventario = Ejemplar.CodigoInventario,
+            EstadoConservacion = Ejemplar.EstadoConservacion,
+            Disponible = Ejemplar.Disponible,
+            DadoDeBaja = Ejemplar.DadoDeBaja,
+            MotivoBaja = Ejemplar.MotivoBaja,
+            Ubicacion = Ejemplar.Ubicacion,
+            Estado = Ejemplar.Estado
+        };
 
         try
         {
-            await ActualizarEjemplarAsync(ejemplar);
+            _repository.Update(ejemplar);
         }
-        catch (MySql.Data.MySqlClient.MySqlException ex) when (ex.Number == 1062)
+        catch (MySqlException ex) when (ex.Number == 1062)
         {
             ModelState.AddModelError("Ejemplar.CodigoInventario", "Ya existe un ejemplar con ese código de inventario.");
             return Page();
@@ -115,27 +125,25 @@ public class EjemplarEditModel : PageModel
     }
 
     private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        ?? throw new InvalidOperationException("Connection string not found.");
 
-    private async Task<bool> ActualizarEjemplarAsync(Ejemplar ejemplar)
+    private async Task<Dictionary<int, string>> ObtenerTitulosLibrosAsync()
     {
+        var titulos = new Dictionary<int, string>();
+
         using var connection = new MySqlConnection(ConnectionString);
         await connection.OpenAsync();
 
-        using var command = new MySqlCommand(QueryUpdateEjemplar, connection);
+        string query = "SELECT LibroId, Titulo FROM libro";
 
-        command.Parameters.AddWithValue("@EjemplarId", ejemplar.EjemplarId);
-        command.Parameters.AddWithValue("@LibroId", ejemplar.LibroId);
-        command.Parameters.AddWithValue("@CodigoInventario", ejemplar.CodigoInventario);
-        command.Parameters.AddWithValue("@EstadoConservacion", ejemplar.EstadoConservacion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Disponible", ejemplar.Disponible);
-        command.Parameters.AddWithValue("@DadoDeBaja", ejemplar.DadoDeBaja);
-        command.Parameters.AddWithValue("@MotivoBaja", ejemplar.MotivoBaja ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Ubicacion", ejemplar.Ubicacion ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Estado", ejemplar.Estado);
-        command.Parameters.AddWithValue("@UltimaActualizacion", ejemplar.UltimaActualizacion ?? DateTime.Now);
+        using var command = new MySqlCommand(query, connection);
+        using var reader = await command.ExecuteReaderAsync();
 
-        var rows = await command.ExecuteNonQueryAsync();
-        return rows > 0;
+        while (await reader.ReadAsync())
+        {
+            titulos[reader.GetInt32("LibroId")] = reader.GetString("Titulo");
+        }
+
+        return titulos;
     }
 }

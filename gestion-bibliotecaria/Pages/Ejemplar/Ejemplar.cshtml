@@ -31,12 +31,6 @@
                    placeholder="Buscar por código, libro, ubicación o estado..."
                    autocomplete="off" />
         </div>
-        <div class="filtro-item">
-            <select id="orden-ejemplar" class="input-filtro">
-                <option value="codigo_asc">Código A-Z</option>
-                <option value="titulo_asc">Libro A-Z</option>
-            </select>
-        </div>
     </div>
 
 @if (!Model.Ejemplares.Any())
@@ -58,8 +52,8 @@ else
 
             <thead>
                 <tr>
-                    <th>Código Ejemplar</th>
                     <th>Libro</th>
+                    <th>Código Ejemplar</th>
                     <th>Estado de Conservación</th>
                     <th>Disponible</th>
                     <th>Dado de Baja</th>
@@ -75,7 +69,6 @@ else
             {
                 <tr class="@(ejemplar.DadoDeBaja ? "fila-baja" : "")">
 
-                    <td><strong>@ejemplar.CodigoInventario</strong></td>
 
                     <td>
                         @if (Model.LibrosTitulos.TryGetValue(ejemplar.LibroId, out var tituloLibro))
@@ -88,6 +81,7 @@ else
                         }
                     </td>
 
+                    <td><strong>@ejemplar.CodigoInventario</strong></td>
                     <td>@(ejemplar.EstadoConservacion ?? "N/A")</td>
 
                     <td>
@@ -229,4 +223,34 @@ window.onclick = function(e) {
     }
 }
 </script>
+
+@* busqueda *@
+    <script>
+        const inputBuscador = document.getElementById("buscador-ejemplar");
+        const tabla = document.getElementById("tabla-ejemplar");
+        const filas = tabla.getElementsByTagName("tr");
+        const filaSinResultados = document.getElementById("fila-sin-resultados");
+
+        inputBuscador.addEventListener("keyup", function () {
+            const texto = inputBuscador.value.toLowerCase();
+            let hayResultados = false;
+
+            for (let i = 1; i < filas.length; i++) { 
+                const fila = filas[i];
+
+                if (fila.id === "fila-sin-resultados") continue;
+
+                const contenido = fila.textContent.toLowerCase();
+
+                if (contenido.includes(texto)) {
+                    fila.style.display = "";
+                    hayResultados = true;
+                } else {
+                    fila.style.display = "none";
+                }
+            }
+
+            filaSinResultados.style.display = hayResultados ? "none" : "";
+        });
+    </script>
 }

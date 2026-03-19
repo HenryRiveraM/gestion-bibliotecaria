@@ -101,19 +101,50 @@
     </div>
 
 
-    <div class="form-group">
+<div class="form-group">
 
-        <label asp-for="Ejemplar.Ubicacion">
-            Ubicación
-        </label>
+    <label asp-for="Ejemplar.Ubicacion">Ubicación</label>
 
-        <input asp-for="Ejemplar.Ubicacion"
-               class="input-form"
-               placeholder="Ej: Estantería A1, Pasillo 3" />
+    <div class="custom-select-wrapper">
+        <input type="hidden" asp-for="Ejemplar.Ubicacion" id="ubicacion-value" />
 
-        <span asp-validation-for="Ejemplar.Ubicacion" class="text-danger"></span>
+        <div class="custom-select" id="custom-select-ubicacion">
 
+            <div class="select-trigger">
+                <span id="ubicacion-text">-- Seleccione una ubicación --</span>
+                <svg class="select-arrow" viewBox="0 0 24 24">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+
+            <div class="select-dropdown">
+
+                <input type="text"
+                       class="select-search"
+                       id="ubicacion-search"
+                       placeholder="Buscar ubicación..." />
+
+               <div class="select-options">
+
+                    <div class="option" data-value="Estantería A1">A1</div>
+                    <div class="option" data-value="Estantería A2">A2</div>
+                    <div class="option" data-value="Estantería A3">A3</div>
+
+                    <div class="option" data-value="Estantería B1">B1</div>
+                    <div class="option" data-value="Estantería B2">B2</div>
+                    <div class="option" data-value="Estantería B3">B3</div>
+
+                    <div class="option" data-value="Estantería C1">C1</div>
+                    <div class="option" data-value="Estantería C2">C2</div>
+                    <div class="option" data-value="Estantería C3">C3</div>
+
+                </div>
+
+            </div>
+        </div>
     </div>
+
+</div>
 
 
     <div class="form-check">
@@ -198,6 +229,64 @@
 
 
 @section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const custom = document.getElementById("custom-select-ubicacion");
+            const trigger = custom.querySelector(".select-trigger");
+            const dropdown = custom.querySelector(".select-dropdown");
+            const options = custom.querySelectorAll(".option");
+            const search = document.getElementById("ubicacion-search");
+            const hidden = document.getElementById("ubicacion-value");
+            const text = document.getElementById("ubicacion-text");
+
+            if (!custom || !trigger) return;
+
+            // 🔹 ABRIR / CERRAR
+            trigger.addEventListener("click", () => {
+                custom.classList.toggle("active");
+
+                if (custom.classList.contains("active")) {
+                    search.focus();
+                }
+            });
+
+            // 🔹 SELECCIONAR OPCIÓN
+            options.forEach(option => {
+                option.addEventListener("click", () => {
+                    const value = option.getAttribute("data-value");
+
+                    hidden.value = value;
+                    text.textContent = value;
+
+                    custom.classList.remove("active");
+                    search.value = "";
+
+                    // mostrar todas otra vez
+                    options.forEach(o => o.style.display = "");
+                });
+            });
+
+            // 🔹 BUSCAR / FILTRAR
+            search.addEventListener("input", () => {
+                const filtro = search.value.toLowerCase().trim();
+
+                options.forEach(option => {
+                    const texto = option.textContent.toLowerCase();
+                    option.style.display = texto.includes(filtro) ? "" : "none";
+                });
+            });
+
+            // 🔹 CERRAR SI HACES CLICK FUERA
+            document.addEventListener("click", (e) => {
+                if (!custom.contains(e.target)) {
+                    custom.classList.remove("active");
+                }
+            });
+
+        });
+    </script>
+
 <script>
 
 // --- Buscador de libros ---
