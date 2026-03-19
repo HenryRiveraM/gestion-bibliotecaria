@@ -14,12 +14,6 @@ public class AutorModel : PageModel
     private readonly RepositoryFactory<Autor,int> _autorRepositoryFactory;
     private readonly RouteTokenService _routeTokenService;
 
-    [BindProperty(SupportsGet = true)]
-    public string? Buscar { get; set; }
-
-    [BindProperty(SupportsGet = true)]
-    public string? Orden { get; set; }
-
     public AutorModel(RepositoryFactory<Autor,int> autorRepositoryFactory, RouteTokenService routeTokenService)
     {
         _autorRepositoryFactory = autorRepositoryFactory;

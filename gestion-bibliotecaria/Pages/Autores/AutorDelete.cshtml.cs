@@ -58,6 +58,6 @@ public class AutorDeleteModel : PageModel
         var repository = _autorRepositoryFactory.CreateRepository();
         repository.Delete(Autor);
 
-        return RedirectToPage("Autor");
+        return Redirect("/Autor");
     }
 }

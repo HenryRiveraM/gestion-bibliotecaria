@@ -28,21 +28,14 @@
             <input id="buscador-autor"
                    type="text"
                    class="input-filtro"
-                   placeholder="Buscar..."
+                   placeholder="Buscar por nombres, apellidos, nacionalidad o estado..."
                    autocomplete="off" />
-        </div>
-
-        <div class="filtro-item">
-            <select id="orden-autor" class="input-filtro">
-                <option value="apellido_asc">Apellidos A-Z</option>
-                <option value="nombre_asc">Nombres A-Z</option>
-            </select>
         </div>
     </div>
 
     <div id="tabla-autor" class="tabla-container">
 
-        <table class="tabla-autores">
+        <table id="tabla-autores" class="tabla-autores">
 
             <thead>
                 <tr>
@@ -99,10 +92,16 @@
                                 Eliminar
                             </button>
 
-</td>
+                        </td>
 
                     </tr>
                 }
+
+                <tr id="fila-sin-resultados" style="display:none;">
+                    <td colspan="6" style="text-align:center; padding:20px; color:#9ca3af;">
+                        No hay autores que coincidan con la búsqueda.
+                    </td>
+                </tr>
 
             </tbody>
 
@@ -144,8 +143,43 @@
 
 @section Scripts {
     <script>
+        (function () {
+            var input = document.getElementById('buscador-autor');
+            var tabla = document.getElementById('tabla-autores');
+
+            if (!input || !tabla) return;
+
+            function normalizar(s) {
+                return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+            }
+
+            function aplicarBusqueda() {
+                var termino = normalizar(input.value);
+                var tbody = tabla.querySelector('tbody');
+                var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
+
+                var visibles = 0;
+
+                filas.forEach(function (fila) {
+                    var texto = normalizar(fila.textContent);
+                    var coincide = termino === '' || texto.includes(termino);
+                    fila.style.display = coincide ? '' : 'none';
+                    if (coincide) visibles++;
+                });
+
+                var sinResultados = document.getElementById('fila-sin-resultados');
+                if (sinResultados) {
+                    sinResultados.style.display = visibles === 0 ? '' : 'none';
+                    tbody.appendChild(sinResultados);
+                }
+            }
+
+            input.addEventListener('input', aplicarBusqueda);
+            aplicarBusqueda();
+        })();
+
         function abrirModal(token) {
-            var url = "/Autores/AutorDelete?token=" + token;
+            var url = "/Autor/Delete/" + token;
             document.getElementById("btnConfirmarEliminar").href = url;
             document.getElementById("modalEliminar").style.display = "flex";
         }
