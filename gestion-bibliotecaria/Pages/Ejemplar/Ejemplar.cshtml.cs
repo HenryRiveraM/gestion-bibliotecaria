@@ -69,11 +69,11 @@ public class EjemplarModel : PageModel
         int LibroId,
         string CodigoInventario,
         string? EstadoConservacion,
-        bool Disponible,
-        bool DadoDeBaja,
+        bool? Disponible,
+        bool? DadoDeBaja,
         string? MotivoBaja,
         string? Ubicacion,
-        bool Estado)
+        bool? Estado)
     {
         if (!_routeTokenService.TryObtenerId(token, out var ejemplarId))
         {
@@ -110,11 +110,11 @@ public class EjemplarModel : PageModel
             LibroId = LibroId,
             CodigoInventario = CodigoInventario,
             EstadoConservacion = EstadoConservacion,
-            Disponible = Disponible,
-            DadoDeBaja = DadoDeBaja,
+            Disponible = Disponible ?? false,
+            DadoDeBaja = DadoDeBaja ?? false,
             MotivoBaja = MotivoBaja,
             Ubicacion = Ubicacion,
-            Estado = Estado
+            Estado = Estado ?? false
         };
 
         try

@@ -3,6 +3,91 @@
 @model gestion_bibliotecaria.Pages.EjemplarModel
 @{
     ViewData["Title"] = "Gestión de Ejemplares";
+
+    string editCodigo = ViewData.ModelState.ContainsKey("CodigoInventario")
+        ? ViewData.ModelState["CodigoInventario"]?.AttemptedValue ?? ""
+        : "";
+
+    string editEstadoConservacion = ViewData.ModelState.ContainsKey("EstadoConservacion")
+        ? ViewData.ModelState["EstadoConservacion"]?.AttemptedValue ?? ""
+        : "";
+
+    string editUbicacion = ViewData.ModelState.ContainsKey("Ubicacion")
+        ? ViewData.ModelState["Ubicacion"]?.AttemptedValue ?? ""
+        : "";
+
+    string editMotivoBaja = ViewData.ModelState.ContainsKey("MotivoBaja")
+        ? ViewData.ModelState["MotivoBaja"]?.AttemptedValue ?? ""
+        : "";
+
+    string editLibroId = ViewData.ModelState.ContainsKey("LibroId")
+        ? ViewData.ModelState["LibroId"]?.AttemptedValue ?? ""
+        : "";
+
+    bool editDisponibleChecked =
+        ViewData.ModelState.ContainsKey("Disponible") &&
+        (ViewData.ModelState["Disponible"]?.AttemptedValue == "true" ||
+         ViewData.ModelState["Disponible"]?.AttemptedValue == "True" ||
+         ViewData.ModelState["Disponible"]?.AttemptedValue == "on");
+
+    bool editDadoDeBajaChecked =
+        ViewData.ModelState.ContainsKey("DadoDeBaja") &&
+        (ViewData.ModelState["DadoDeBaja"]?.AttemptedValue == "true" ||
+         ViewData.ModelState["DadoDeBaja"]?.AttemptedValue == "True" ||
+         ViewData.ModelState["DadoDeBaja"]?.AttemptedValue == "on");
+
+    bool editEstadoChecked =
+        ViewData.ModelState.ContainsKey("Estado") &&
+        (ViewData.ModelState["Estado"]?.AttemptedValue == "true" ||
+         ViewData.ModelState["Estado"]?.AttemptedValue == "True" ||
+         ViewData.ModelState["Estado"]?.AttemptedValue == "on");
+
+    string createCodigo = ViewData.ModelState.ContainsKey("Ejemplar.CodigoInventario")
+        ? ViewData.ModelState["Ejemplar.CodigoInventario"]?.AttemptedValue ?? ""
+        : "";
+
+    string createEstadoConservacion = ViewData.ModelState.ContainsKey("Ejemplar.EstadoConservacion")
+        ? ViewData.ModelState["Ejemplar.EstadoConservacion"]?.AttemptedValue ?? ""
+        : "";
+
+    string createUbicacion = ViewData.ModelState.ContainsKey("Ejemplar.Ubicacion")
+        ? ViewData.ModelState["Ejemplar.Ubicacion"]?.AttemptedValue ?? ""
+        : "";
+
+    string createMotivoBaja = ViewData.ModelState.ContainsKey("Ejemplar.MotivoBaja")
+        ? ViewData.ModelState["Ejemplar.MotivoBaja"]?.AttemptedValue ?? ""
+        : "";
+
+    string createLibroId = ViewData.ModelState.ContainsKey("Ejemplar.LibroId")
+        ? ViewData.ModelState["Ejemplar.LibroId"]?.AttemptedValue ?? ""
+        : "";
+
+    bool createDisponibleChecked = !ViewData.ModelState.ContainsKey("Ejemplar.Disponible")
+        || ViewData.ModelState["Ejemplar.Disponible"]?.AttemptedValue == "true"
+        || ViewData.ModelState["Ejemplar.Disponible"]?.AttemptedValue == "True"
+        || ViewData.ModelState["Ejemplar.Disponible"]?.AttemptedValue == "on";
+
+    bool createDadoDeBajaChecked =
+        ViewData.ModelState.ContainsKey("Ejemplar.DadoDeBaja") &&
+        (ViewData.ModelState["Ejemplar.DadoDeBaja"]?.AttemptedValue == "true" ||
+         ViewData.ModelState["Ejemplar.DadoDeBaja"]?.AttemptedValue == "True" ||
+         ViewData.ModelState["Ejemplar.DadoDeBaja"]?.AttemptedValue == "on");
+
+    bool createEstadoChecked = !ViewData.ModelState.ContainsKey("Ejemplar.Estado")
+        || ViewData.ModelState["Ejemplar.Estado"]?.AttemptedValue == "true"
+        || ViewData.ModelState["Ejemplar.Estado"]?.AttemptedValue == "True"
+        || ViewData.ModelState["Ejemplar.Estado"]?.AttemptedValue == "on";
+
+    string createLibroTexto = "";
+    if (!string.IsNullOrWhiteSpace(createLibroId))
+    {
+        var libroMatch = Model.Libros.FirstOrDefault(l => l.LibroId.ToString() == createLibroId);
+        if (libroMatch != null)
+        {
+            var editorialTxt = string.IsNullOrWhiteSpace(libroMatch.Editorial) ? "Sin editorial" : libroMatch.Editorial;
+            createLibroTexto = $"{libroMatch.Titulo} ({editorialTxt})";
+        }
+    }
 }
 
 @section Styles {
@@ -12,7 +97,6 @@
 <div class="ejemplar-container">
 
     <div class="page-header">
-
         <div class="titulo-logo">
             <h1>Gestión de Ejemplares</h1>
         </div>
@@ -21,7 +105,6 @@
             <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
             Nuevo Ejemplar
         </button>
-
     </div>
 
     <div class="filtros-barra">
@@ -48,7 +131,6 @@ else
     var dadosDeBaja = Model.Ejemplares.Count(e => e.DadoDeBaja);
 
     <div class="tabla-container">
-
         <table id="tabla-ejemplar" class="tabla-ejemplar">
 
             <thead>
@@ -65,7 +147,6 @@ else
             </thead>
 
             <tbody>
-
             @foreach (var ejemplar in Model.Ejemplares)
             {
                 <tr class="@(ejemplar.DadoDeBaja ? "fila-baja" : "")">
@@ -125,7 +206,6 @@ else
                     </td>
 
                     <td class="acciones">
-
                         <button type="button"
                                 class="btn-editar"
                                 onclick="abrirModalEditar(
@@ -142,19 +222,17 @@ else
 
                             <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                  class="icono-btn">
-
                             Editar
                         </button>
 
-                        <button class="btn-eliminar"
+                        <button type="button"
+                                class="btn-eliminar"
                                 onclick="abrirModalEliminar('@ejemplar.RouteToken')">
 
                             <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                  class="icono-btn">
-
                             Eliminar
                         </button>
-
                     </td>
 
                 </tr>
@@ -165,11 +243,9 @@ else
                         No hay ejemplares que coincidan con la búsqueda.
                     </td>
                 </tr>
-
             </tbody>
 
         </table>
-
     </div>
 
     <div class="estadisticas">
@@ -184,7 +260,6 @@ else
 
 <!-- MODAL ELIMINAR -->
 <div id="modalEliminar" class="modal">
-
     <div class="modal-box">
 
         <div class="modal-icon">
@@ -197,27 +272,19 @@ else
 
         <form method="post" asp-page-handler="Eliminar">
             @Html.AntiForgeryToken()
-
             <input type="hidden" id="ejemplarTokenInput" name="token" />
 
             <div class="modal-buttons">
-                <button type="submit" class="btn-danger">
-                    Sí, eliminar
-                </button>
-
-                <button type="button" class="btn-secondary" onclick="cerrarModalEliminar()">
-                    Cancelar
-                </button>
+                <button type="submit" class="btn-danger">Sí, eliminar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEliminar()">Cancelar</button>
             </div>
         </form>
 
     </div>
-
 </div>
 
 <!-- MODAL EDITAR -->
 <div id="modalEditar" class="modal">
-
     <div class="modal-box">
 
         <div class="modal-icon editar">
@@ -231,7 +298,7 @@ else
         <form method="post" asp-page-handler="Editar">
             @Html.AntiForgeryToken()
 
-            <input type="hidden" id="editToken" name="token" />
+            <input type="hidden" id="editToken" name="token" value="@(ViewData.ModelState.ContainsKey("token") ? ViewData.ModelState["token"]?.AttemptedValue : "")" />
 
             @if (ViewData.ModelState.ContainsKey(string.Empty))
             {
@@ -247,7 +314,9 @@ else
                 <option value="">Seleccione un libro...</option>
                 @foreach (var libro in Model.LibrosTitulos)
                 {
-                    <option value="@libro.Key">@libro.Value</option>
+                    <option value="@libro.Key" selected="@(editLibroId == libro.Key.ToString() ? "selected" : null)">
+                        @libro.Value
+                    </option>
                 }
             </select>
 
@@ -256,7 +325,8 @@ else
                    name="CodigoInventario"
                    class="input-form"
                    placeholder="Código de Ejemplar"
-                   required />
+                   required
+                   value="@editCodigo" />
             @if (ViewData.ModelState.ContainsKey("CodigoInventario"))
             {
                 <span class="text-error">
@@ -266,51 +336,61 @@ else
 
             <select id="editEstadoConservacion" name="EstadoConservacion" class="input-form">
                 <option value="">Seleccione...</option>
-                <option value="Excelente">Excelente</option>
-                <option value="Muy Bueno">Muy Bueno</option>
-                <option value="Bueno">Bueno</option>
-                <option value="Regular">Regular</option>
-                <option value="Malo">Malo</option>
+                <option value="Excelente" selected="@(editEstadoConservacion == "Excelente" ? "selected" : null)">Excelente</option>
+                <option value="Muy Bueno" selected="@(editEstadoConservacion == "Muy Bueno" ? "selected" : null)">Muy Bueno</option>
+                <option value="Bueno" selected="@(editEstadoConservacion == "Bueno" ? "selected" : null)">Bueno</option>
+                <option value="Regular" selected="@(editEstadoConservacion == "Regular" ? "selected" : null)">Regular</option>
+                <option value="Malo" selected="@(editEstadoConservacion == "Malo" ? "selected" : null)">Malo</option>
             </select>
 
             <input type="text"
                    id="editUbicacion"
                    name="Ubicacion"
                    class="input-form"
-                   placeholder="Ubicación" />
+                   placeholder="Ubicación"
+                   value="@editUbicacion" />
 
+            <input type="hidden" name="Disponible" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="editDisponible"
                        name="Disponible"
-                       class="check-input" />
+                       value="true"
+                       class="check-input"
+                       checked="@(editDisponibleChecked ? "checked" : null)" />
                 <label for="editDisponible">Disponible para préstamo</label>
             </div>
 
+            <input type="hidden" name="DadoDeBaja" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="editDadoDeBaja"
                        name="DadoDeBaja"
+                       value="true"
                        class="check-input"
-                       onchange="toggleMotivoBajaModal()" />
+                       onchange="toggleMotivoBajaModal()"
+                       checked="@(editDadoDeBajaChecked ? "checked" : null)" />
                 <label for="editDadoDeBaja">Dado de baja</label>
             </div>
 
-            <div id="editMotivoBajaDiv">
+            <div id="editMotivoBajaDiv" style="display:@(editDadoDeBajaChecked ? "block" : "none")">
                 <textarea id="editMotivoBaja"
                           name="MotivoBaja"
                           class="input-form"
                           rows="3"
-                          placeholder="Motivo de baja"></textarea>
+                          placeholder="Motivo de baja">@editMotivoBaja</textarea>
             </div>
 
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="editEstado"
                        name="Estado"
-                       class="check-input" />
+                       value="true"
+                       class="check-input"
+                       checked="@(editEstadoChecked ? "checked" : null)" />
                 <label for="editEstado">Activo en el sistema</label>
             </div>
+            <input type="hidden" name="Estado" value="false" />
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-warning">Guardar cambios</button>
@@ -319,12 +399,10 @@ else
         </form>
 
     </div>
-
 </div>
 
 <!-- MODAL CREAR -->
 <div id="modalCrear" class="modal">
-
     <div class="modal-box">
 
         <div class="modal-icon crear">
@@ -340,19 +418,28 @@ else
 
             @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
             {
-                <div class="text-error-summary">
-                    @Model.ErrorMessage
-                </div>
+                <div class="text-error-summary">@Model.ErrorMessage</div>
             }
 
-            <input type="hidden" id="createLibroIdHidden" name="Ejemplar.LibroId" />
+            @if (ViewData.ModelState.ContainsKey(string.Empty))
+{
+    <div class="text-error-summary">
+        @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
+        {
+            <div>• @error.ErrorMessage</div>
+        }
+    </div>
+}
+
+            <input type="hidden" id="createLibroIdHidden" name="Ejemplar.LibroId" value="@createLibroId" />
 
             <div class="libro-search-wrapper">
                 <input type="text"
                        id="createBuscarLibro"
                        class="input-form"
                        placeholder="Escribe para buscar un libro..."
-                       autocomplete="off" />
+                       autocomplete="off"
+                       value="@createLibroTexto" />
 
                 <ul id="createListaLibros" class="libro-dropdown" style="display:none;">
                     @foreach (var libro in Model.Libros)
@@ -374,7 +461,8 @@ else
                    id="createCodigoInventario"
                    class="input-form"
                    placeholder="Ej: INV-001-2026"
-                   required />
+                   required
+                   value="@createCodigo" />
             @if (ViewData.ModelState.ContainsKey("Ejemplar.CodigoInventario"))
             {
                 <span class="text-error">
@@ -386,19 +474,19 @@ else
                     id="createEstadoConservacion"
                     class="input-form">
                 <option value="">Seleccione...</option>
-                <option value="Excelente">Excelente</option>
-                <option value="Muy Bueno">Muy Bueno</option>
-                <option value="Bueno">Bueno</option>
-                <option value="Regular">Regular</option>
-                <option value="Malo">Malo</option>
+                <option value="Excelente" selected="@(createEstadoConservacion == "Excelente" ? "selected" : null)">Excelente</option>
+                <option value="Muy Bueno" selected="@(createEstadoConservacion == "Muy Bueno" ? "selected" : null)">Muy Bueno</option>
+                <option value="Bueno" selected="@(createEstadoConservacion == "Bueno" ? "selected" : null)">Bueno</option>
+                <option value="Regular" selected="@(createEstadoConservacion == "Regular" ? "selected" : null)">Regular</option>
+                <option value="Malo" selected="@(createEstadoConservacion == "Malo" ? "selected" : null)">Malo</option>
             </select>
 
             <div class="custom-select-wrapper">
-                <input type="hidden" name="Ejemplar.Ubicacion" id="createUbicacionValue" />
+                <input type="hidden" name="Ejemplar.Ubicacion" id="createUbicacionValue" value="@createUbicacion" />
 
                 <div class="custom-select" id="custom-select-ubicacion-create">
                     <div class="select-trigger">
-                        <span id="createUbicacionText">-- Seleccione una ubicación --</span>
+                        <span id="createUbicacionText">@(string.IsNullOrWhiteSpace(createUbicacion) ? "-- Seleccione una ubicación --" : createUbicacion)</span>
                         <svg class="select-arrow" viewBox="0 0 24 24">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
@@ -425,38 +513,45 @@ else
                 </div>
             </div>
 
+            <input type="hidden" name="Ejemplar.Disponible" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="createDisponible"
                        name="Ejemplar.Disponible"
+                       value="true"
                        class="check-input"
-                       checked />
+                       checked="@(createDisponibleChecked ? "checked" : null)" />
                 <label for="createDisponible">Disponible para préstamo</label>
             </div>
 
+            <input type="hidden" name="Ejemplar.DadoDeBaja" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="createDadoBajaCheck"
                        name="Ejemplar.DadoDeBaja"
+                       value="true"
                        class="check-input"
-                       onchange="toggleMotivoBajaCrear()" />
+                       onchange="toggleMotivoBajaCrear()"
+                       checked="@(createDadoDeBajaChecked ? "checked" : null)" />
                 <label for="createDadoBajaCheck">Dado de baja</label>
             </div>
 
-            <div id="createMotivoBajaDiv" style="display:none;">
+            <div id="createMotivoBajaDiv" style="display:@(createDadoDeBajaChecked ? "block" : "none")">
                 <textarea name="Ejemplar.MotivoBaja"
                           id="createMotivoBaja"
                           class="input-form"
                           rows="3"
-                          placeholder="Motivo de baja"></textarea>
+                          placeholder="Motivo de baja">@createMotivoBaja</textarea>
             </div>
 
+            <input type="hidden" name="Ejemplar.Estado" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="createEstado"
                        name="Ejemplar.Estado"
+                       value="true"
                        class="check-input"
-                       checked />
+                       checked="@(createEstadoChecked ? "checked" : null)" />
                 <label for="createEstado">Activo en el sistema</label>
             </div>
 
@@ -467,7 +562,6 @@ else
         </form>
 
     </div>
-
 </div>
 
 @section Scripts {
@@ -482,19 +576,35 @@ function cerrarModalEliminar() {
 }
 
 function abrirModalEditar(token, libroId, codigo, estadoConservacion, disponible, dadoDeBaja, motivoBaja, ubicacion, estado) {
-    document.getElementById("editToken").value = token;
-    document.getElementById("editLibroId").value = libroId || "";
-    document.getElementById("editCodigoInventario").value = codigo || "";
-    document.getElementById("editEstadoConservacion").value = estadoConservacion || "";
-    document.getElementById("editUbicacion").value = ubicacion || "";
-    document.getElementById("editMotivoBaja").value = motivoBaja || "";
+    const editToken = document.getElementById("editToken");
+    const editLibroId = document.getElementById("editLibroId");
+    const editCodigoInventario = document.getElementById("editCodigoInventario");
+    const editEstadoConservacion = document.getElementById("editEstadoConservacion");
+    const editUbicacion = document.getElementById("editUbicacion");
+    const editMotivoBaja = document.getElementById("editMotivoBaja");
+    const editDisponible = document.getElementById("editDisponible");
+    const editDadoDeBaja = document.getElementById("editDadoDeBaja");
+    const editEstado = document.getElementById("editEstado");
+    const modalEditar = document.getElementById("modalEditar");
 
-    document.getElementById("editDisponible").checked = (disponible === "True");
-    document.getElementById("editDadoDeBaja").checked = (dadoDeBaja === "True");
-    document.getElementById("editEstado").checked = (estado === "True");
+    if (!editToken || !editLibroId || !editCodigoInventario || !editEstadoConservacion ||
+        !editUbicacion || !editMotivoBaja || !editDisponible || !editDadoDeBaja || !editEstado || !modalEditar) {
+        return;
+    }
+
+    editToken.value = token || "";
+    editLibroId.value = libroId || "";
+    editCodigoInventario.value = codigo || "";
+    editEstadoConservacion.value = estadoConservacion || "";
+    editUbicacion.value = ubicacion || "";
+    editMotivoBaja.value = motivoBaja || "";
+
+    editDisponible.checked = (disponible === true || disponible === "True" || disponible === "true");
+    editDadoDeBaja.checked = (dadoDeBaja === true || dadoDeBaja === "True" || dadoDeBaja === "true");
+    editEstado.checked = (estado === true || estado === "True" || estado === "true");
 
     toggleMotivoBajaModal();
-    document.getElementById("modalEditar").style.display = "flex";
+    modalEditar.style.display = "flex";
 }
 
 function cerrarModalEditar() {
@@ -502,32 +612,20 @@ function cerrarModalEditar() {
 }
 
 function toggleMotivoBajaModal() {
-    const checkbox = document.getElementById('editDadoDeBaja');
-    const div = document.getElementById('editMotivoBajaDiv');
+    const checkbox = document.getElementById("editDadoDeBaja");
+    const div = document.getElementById("editMotivoBajaDiv");
+    const motivo = document.getElementById("editMotivoBaja");
 
     if (!checkbox || !div) return;
 
-    div.style.display = checkbox.checked ? 'block' : 'none';
+    div.style.display = checkbox.checked ? "block" : "none";
 
-    if (!checkbox.checked) {
-        document.getElementById('editMotivoBaja').value = '';
+    if (!checkbox.checked && motivo) {
+        motivo.value = "";
     }
 }
 
 function abrirModalCrear() {
-    document.getElementById("createLibroIdHidden").value = "";
-    document.getElementById("createBuscarLibro").value = "";
-    document.getElementById("createLibroSeleccionadoTexto").textContent = "";
-    document.getElementById("createCodigoInventario").value = "";
-    document.getElementById("createEstadoConservacion").value = "";
-    document.getElementById("createUbicacionValue").value = "";
-    document.getElementById("createUbicacionText").textContent = "-- Seleccione una ubicación --";
-    document.getElementById("createDisponible").checked = true;
-    document.getElementById("createDadoBajaCheck").checked = false;
-    document.getElementById("createMotivoBaja").value = "";
-    document.getElementById("createEstado").checked = true;
-
-    toggleMotivoBajaCrear();
     document.getElementById("modalCrear").style.display = "flex";
 }
 
@@ -536,15 +634,16 @@ function cerrarModalCrear() {
 }
 
 function toggleMotivoBajaCrear() {
-    const checkbox = document.getElementById('createDadoBajaCheck');
-    const div = document.getElementById('createMotivoBajaDiv');
+    const checkbox = document.getElementById("createDadoBajaCheck");
+    const div = document.getElementById("createMotivoBajaDiv");
+    const motivo = document.getElementById("createMotivoBaja");
 
     if (!checkbox || !div) return;
 
-    div.style.display = checkbox.checked ? 'block' : 'none';
+    div.style.display = checkbox.checked ? "block" : "none";
 
-    if (!checkbox.checked) {
-        document.getElementById('createMotivoBaja').value = '';
+    if (!checkbox.checked && motivo) {
+        motivo.value = "";
     }
 }
 
@@ -589,34 +688,34 @@ document.addEventListener("DOMContentLoaded", function () {
         const hidden = document.getElementById("createUbicacionValue");
         const text = document.getElementById("createUbicacionText");
 
-        trigger.addEventListener("click", () => {
+        trigger.addEventListener("click", function () {
             customCreate.classList.toggle("active");
             if (customCreate.classList.contains("active")) {
                 search.focus();
             }
         });
 
-        options.forEach(option => {
-            option.addEventListener("click", () => {
+        options.forEach(function (option) {
+            option.addEventListener("click", function () {
                 const value = option.getAttribute("data-value");
                 hidden.value = value;
                 text.textContent = value;
                 customCreate.classList.remove("active");
                 search.value = "";
-                options.forEach(o => o.style.display = "");
+                options.forEach(function (o) { o.style.display = ""; });
             });
         });
 
-        search.addEventListener("input", () => {
+        search.addEventListener("input", function () {
             const filtro = search.value.toLowerCase().trim();
 
-            options.forEach(option => {
+            options.forEach(function (option) {
                 const texto = option.textContent.toLowerCase();
                 option.style.display = texto.includes(filtro) ? "" : "none";
             });
         });
 
-        document.addEventListener("click", (e) => {
+        document.addEventListener("click", function (e) {
             if (!customCreate.contains(e.target)) {
                 customCreate.classList.remove("active");
             }
@@ -624,16 +723,16 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     (function () {
-        var input = document.getElementById('createBuscarLibro');
-        var lista = document.getElementById('createListaLibros');
-        var hidden = document.getElementById('createLibroIdHidden');
-        var textoSel = document.getElementById('createLibroSeleccionadoTexto');
-        var opciones = lista ? Array.from(lista.querySelectorAll('.libro-opcion')) : [];
+        var input = document.getElementById("createBuscarLibro");
+        var lista = document.getElementById("createListaLibros");
+        var hidden = document.getElementById("createLibroIdHidden");
+        var textoSel = document.getElementById("createLibroSeleccionadoTexto");
+        var opciones = lista ? Array.from(lista.querySelectorAll(".libro-opcion")) : [];
 
         if (!input || !lista) return;
 
         function normalizar(s) {
-            return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+            return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
         }
 
         function mostrar() {
@@ -641,43 +740,43 @@ document.addEventListener("DOMContentLoaded", function () {
             var visibles = 0;
 
             opciones.forEach(function (li) {
-                var coincide = termino === '' || normalizar(li.dataset.texto).includes(termino);
-                li.style.display = coincide ? '' : 'none';
+                var coincide = termino === "" || normalizar(li.dataset.texto).includes(termino);
+                li.style.display = coincide ? "" : "none";
                 if (coincide) visibles++;
             });
 
-            lista.style.display = visibles > 0 ? '' : 'none';
+            lista.style.display = visibles > 0 ? "" : "none";
         }
 
         function seleccionar(li) {
             hidden.value = li.dataset.id;
             input.value = li.dataset.texto;
-            textoSel.textContent = '';
-            lista.style.display = 'none';
+            textoSel.textContent = "";
+            lista.style.display = "none";
         }
 
-        input.addEventListener('input', mostrar);
+        input.addEventListener("input", mostrar);
 
-        input.addEventListener('focus', function () {
-            if (input.value.trim() === '') mostrar();
+        input.addEventListener("focus", function () {
+            if (input.value.trim() === "") mostrar();
         });
 
         opciones.forEach(function (li) {
-            li.addEventListener('mousedown', function (e) {
+            li.addEventListener("mousedown", function (e) {
                 e.preventDefault();
                 seleccionar(li);
             });
         });
 
-        document.addEventListener('click', function (e) {
+        document.addEventListener("click", function (e) {
             if (!input.contains(e.target) && !lista.contains(e.target)) {
-                lista.style.display = 'none';
+                lista.style.display = "none";
             }
         });
     })();
 });
 
-window.onclick = function(e) {
+window.onclick = function (e) {
     var modalEliminar = document.getElementById("modalEliminar");
     var modalEditar = document.getElementById("modalEditar");
     var modalCrear = document.getElementById("modalCrear");
@@ -685,7 +784,7 @@ window.onclick = function(e) {
     if (e.target === modalEliminar) cerrarModalEliminar();
     if (e.target === modalEditar) cerrarModalEditar();
     if (e.target === modalCrear) cerrarModalCrear();
-}
+};
 </script>
 
 @if (!ViewData.ModelState.IsValid || !string.IsNullOrWhiteSpace(Model.ErrorMessage))
@@ -704,6 +803,7 @@ window.onclick = function(e) {
 
             if (errorEditar) {
                 document.getElementById("modalEditar").style.display = "flex";
+                toggleMotivoBajaModal();
             }
         });
     </script>
