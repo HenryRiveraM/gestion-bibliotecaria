@@ -118,6 +118,11 @@ public class LibroModel : PageModel
             ModelState.AddModelError("AñoPublicacion", "El año de publicación no es válido.");
         }
 
+        if (!EsAutorActivo(AutorId))
+        {
+            ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
+        }
+
         if (!ModelState.IsValid)
         {
             OnGet();
@@ -191,6 +196,11 @@ public class LibroModel : PageModel
             ModelState.AddModelError("AñoPublicacion", "El año de publicación no es válido.");
         }
 
+        if (!EsAutorActivo(AutorId))
+        {
+            ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
+        }
+
         if (!ModelState.IsValid)
         {
             OnGet();
@@ -213,5 +223,11 @@ public class LibroModel : PageModel
         repository.Insert(libro);
 
         return RedirectToPage();
+    }
+
+    private bool EsAutorActivo(int autorId)
+    {
+        var repository = _libroRepositoryFactory.CreateRepository();
+        return repository is LibroRepository libroRepository && libroRepository.ExisteAutorActivo(autorId);
     }
 }

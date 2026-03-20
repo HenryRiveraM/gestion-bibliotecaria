@@ -52,6 +52,10 @@ public class LibroRepository : IRepository<Libro, int>
                                                   UltimaActualizacion = @UltimaActualizacion
                                               WHERE LibroId = @LibroId";
 
+    private const string QueryExisteAutorActivo = @"SELECT COUNT(1)
+                                                    FROM autor
+                                                    WHERE AutorId = @AutorId AND Estado = 1";
+
     public DataTable GetAll()
     {
         var dataTable = new DataTable();
@@ -190,5 +194,17 @@ public class LibroRepository : IRepository<Libro, int>
 
         var result = command.ExecuteScalar();
         return result?.ToString() ?? "Autor no encontrado";
+    }
+
+    public bool ExisteAutorActivo(int autorId)
+    {
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+
+        using var command = new MySqlCommand(QueryExisteAutorActivo, connection);
+        command.Parameters.AddWithValue("@AutorId", autorId);
+
+        var result = command.ExecuteScalar();
+        return Convert.ToInt32(result) > 0;
     }
 }

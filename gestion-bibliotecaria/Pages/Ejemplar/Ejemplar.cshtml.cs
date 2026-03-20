@@ -104,6 +104,13 @@ public class EjemplarModel : PageModel
             return Page();
         }
 
+        if (!await ExisteLibroActivoAsync(LibroId))
+        {
+            ModelState.AddModelError("LibroId", "El libro seleccionado está inactivo o no existe.");
+            await CargarPaginaAsync();
+            return Page();
+        }
+
         var ejemplar = new Ejemplar
         {
             EjemplarId = ejemplarId,
@@ -162,6 +169,13 @@ public class EjemplarModel : PageModel
         if (!ModelState.IsValid)
         {
             ErrorMessage = "Por favor completa todos los campos requeridos.";
+            await CargarPaginaAsync();
+            return Page();
+        }
+
+        if (!await ExisteLibroActivoAsync(Ejemplar.LibroId))
+        {
+            ModelState.AddModelError("Ejemplar.LibroId", "El libro seleccionado está inactivo o no existe.");
             await CargarPaginaAsync();
             return Page();
         }
@@ -269,7 +283,7 @@ public class EjemplarModel : PageModel
         using var connection = new MySqlConnection(ConnectionString);
         await connection.OpenAsync();
 
-        string query = "SELECT LibroId, Titulo, Editorial FROM libro ORDER BY Titulo";
+        string query = "SELECT LibroId, Titulo, Editorial FROM libro WHERE Estado = 1 ORDER BY Titulo";
 
         using var command = new MySqlCommand(query, connection);
         using var reader = await command.ExecuteReaderAsync();
@@ -285,5 +299,19 @@ public class EjemplarModel : PageModel
         }
 
         return libros;
+    }
+
+    private async Task<bool> ExisteLibroActivoAsync(int libroId)
+    {
+        using var connection = new MySqlConnection(ConnectionString);
+        await connection.OpenAsync();
+
+        const string query = "SELECT COUNT(1) FROM libro WHERE LibroId = @LibroId AND Estado = 1";
+
+        using var command = new MySqlCommand(query, connection);
+        command.Parameters.AddWithValue("@LibroId", libroId);
+
+        var result = await command.ExecuteScalarAsync();
+        return Convert.ToInt32(result) > 0;
     }
 }
