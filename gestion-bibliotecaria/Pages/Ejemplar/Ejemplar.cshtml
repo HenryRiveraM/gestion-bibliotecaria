@@ -24,23 +24,9 @@
         ? ViewData.ModelState["LibroId"]?.AttemptedValue ?? ""
         : "";
 
-    bool editDisponibleChecked =
-        ViewData.ModelState.ContainsKey("Disponible") &&
-        (ViewData.ModelState["Disponible"]?.AttemptedValue == "true" ||
-         ViewData.ModelState["Disponible"]?.AttemptedValue == "True" ||
-         ViewData.ModelState["Disponible"]?.AttemptedValue == "on");
-
-    bool editDadoDeBajaChecked =
-        ViewData.ModelState.ContainsKey("DadoDeBaja") &&
-        (ViewData.ModelState["DadoDeBaja"]?.AttemptedValue == "true" ||
-         ViewData.ModelState["DadoDeBaja"]?.AttemptedValue == "True" ||
-         ViewData.ModelState["DadoDeBaja"]?.AttemptedValue == "on");
-
-    bool editEstadoChecked =
-        ViewData.ModelState.ContainsKey("Estado") &&
-        (ViewData.ModelState["Estado"]?.AttemptedValue == "true" ||
-         ViewData.ModelState["Estado"]?.AttemptedValue == "True" ||
-         ViewData.ModelState["Estado"]?.AttemptedValue == "on");
+    bool editDisponibleChecked = false;
+    bool editDadoDeBajaChecked = false;
+    bool editEstadoChecked = false;
 
     string createCodigo = ViewData.ModelState.ContainsKey("Ejemplar.CodigoInventario")
         ? ViewData.ModelState["Ejemplar.CodigoInventario"]?.AttemptedValue ?? ""
@@ -319,7 +305,12 @@ else
                     </option>
                 }
             </select>
-
+            @if (ViewData.ModelState.ContainsKey("LibroId"))
+            {
+                <span class="text-error">
+                    @ViewData.ModelState["LibroId"]?.Errors.FirstOrDefault()?.ErrorMessage
+                </span>
+            }
             <input type="text"
                    id="editCodigoInventario"
                    name="CodigoInventario"

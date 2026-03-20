@@ -111,18 +111,22 @@ public class EjemplarModel : PageModel
             return Page();
         }
 
-        var ejemplar = new Ejemplar
+        var ejemplar = _repository.GetById(ejemplarId);
+
+        if (ejemplar == null)
         {
-            EjemplarId = ejemplarId,
-            LibroId = LibroId,
-            CodigoInventario = CodigoInventario,
-            EstadoConservacion = EstadoConservacion,
-            Disponible = Disponible ?? false,
-            DadoDeBaja = DadoDeBaja ?? false,
-            MotivoBaja = MotivoBaja,
-            Ubicacion = Ubicacion,
-            Estado = Estado ?? false
-        };
+            return NotFound();
+        }
+
+        // actualizar campos
+        ejemplar.LibroId = LibroId;
+        ejemplar.CodigoInventario = CodigoInventario;
+        ejemplar.EstadoConservacion = EstadoConservacion;
+        ejemplar.Disponible = Disponible ?? false;
+        ejemplar.DadoDeBaja = DadoDeBaja ?? false;
+        ejemplar.MotivoBaja = MotivoBaja;
+        ejemplar.Ubicacion = Ubicacion;
+        ejemplar.Estado = Estado ?? false; ;
 
         try
         {
