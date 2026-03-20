@@ -350,7 +350,6 @@ else
                    placeholder="Ubicación"
                    value="@editUbicacion" />
 
-            <input type="hidden" name="Disponible" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="editDisponible"
@@ -358,10 +357,12 @@ else
                        value="true"
                        class="check-input"
                        checked="@(editDisponibleChecked ? "checked" : null)" />
+
+                <input type="hidden" name="Disponible" value="false" />
+
                 <label for="editDisponible">Disponible para préstamo</label>
             </div>
 
-            <input type="hidden" name="DadoDeBaja" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="editDadoDeBaja"
@@ -370,6 +371,9 @@ else
                        class="check-input"
                        onchange="toggleMotivoBajaModal()"
                        checked="@(editDadoDeBajaChecked ? "checked" : null)" />
+
+                <input type="hidden" name="DadoDeBaja" value="false" />
+
                 <label for="editDadoDeBaja">Dado de baja</label>
             </div>
 
@@ -398,7 +402,7 @@ else
             </div>
         </form>
 
-    </div>
+    </div>  
 </div>
 
 <!-- MODAL CREAR -->
@@ -800,7 +804,7 @@ window.onclick = function (e) {
             if (errorCrear) {
                 abrirModalCrear();
             }
-
+                
             if (errorEditar) {
                 document.getElementById("modalEditar").style.display = "flex";
                 toggleMotivoBajaModal();
