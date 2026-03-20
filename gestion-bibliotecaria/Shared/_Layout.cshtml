@@ -16,17 +16,15 @@
 <body>
 
 <header>
-
     <nav class="navbar navbar-expand-sm">
-
         <div class="container">
 
             <!-- LOGO -->
             <a class="navbar-brand d-flex align-items-center" href="/">
                 <img src="~/assets/images/whiiteLogoR.png"
-                        height="60"
-                        width="100"
-                        class="me-2">
+                     height="60"
+                     width="100"
+                     class="me-2">
             </a>
 
             <!-- BOTON MOBILE -->
@@ -34,10 +32,8 @@
                     type="button"
                     data-bs-toggle="collapse"
                     data-bs-target=".navbar-collapse">
-
                 <img src="~/assets/icons/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                        width="24">
-
+                     width="24">
             </button>
 
             <!-- MENU -->
@@ -45,6 +41,7 @@
 
                 <ul class="navbar-nav flex-grow-1">
 
+                    <!-- HOME -->
                     <li class="nav-item">
                         <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/">
                             <img src="~/assets/icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
@@ -52,35 +49,87 @@
                         </a>
                     </li>
 
-            <li class="nav-item dropdown">
-                <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
-                    href="#"
-                    role="button"
-                    data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                        Biblioteca
-                </a>
-
-                <ul class="dropdown-menu custom-dropdown-menu">
-                    <li><a class="dropdown-item custom-dropdown-item" href="/Ejemplar">Ejemplares</a></li>
-                    <li><a class="dropdown-item custom-dropdown-item" href="/Libro">Libros</a></li>
-                    <li><a class="dropdown-item custom-dropdown-item" href="/Autor">Autores</a></li>
-                </ul>
-            </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="#">
-                            <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Prestamos
+                    <!-- BIBLIOTECA -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                            Biblioteca
                         </a>
+
+                        <ul class="dropdown-menu custom-dropdown-menu">
+                            <li><a class="dropdown-item custom-dropdown-item" href="/Libro">Libros</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="/Autor">Autores</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="/Ejemplar">Ejemplares</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Categorías</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Editoriales</a></li>
+                        </ul>
                     </li>
 
+                    <!-- CIRCULACION -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <img src="~/assets/icons/sync_alt_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                            Circulación
+                        </a>
+
+                        <ul class="dropdown-menu custom-dropdown-menu">
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Préstamos</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Devoluciones</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Reservas</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Historial</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Multas</a></li>
+                        </ul>
+                    </li>
+
+                    <!-- USUARIOS -->
+                    @* <li class="nav-item dropdown">
+                        <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <img src="~/assets/icons/group_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                            Usuarios
+                        </a>
+
+                        <ul class="dropdown-menu custom-dropdown-menu">
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Lectores</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Bibliotecarios</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Roles</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Registro</a></li>
+                        </ul>
+                    </li> *@
+
+                    <!-- REPORTES -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                           href="#"
+                           role="button"
+                           data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <img src="~/assets/icons/bar_chart_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                            Reportes
+                        </a>
+
+                        <ul class="dropdown-menu custom-dropdown-menu">
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Préstamos realizados</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Libros más prestados</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Ejemplares disponibles</a></li>
+                            <li><a class="dropdown-item custom-dropdown-item" href="#">Usuarios con retraso</a></li>
+                        </ul>
+                    </li>
                 </ul>
 
-
+                <!-- DERECHA -->
                 <ul class="navbar-nav">
-
                     <li class="nav-item">
                         <a class="nav-link nav-btn d-flex align-items-center gap-2" href="#">
                             <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
@@ -88,21 +137,17 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
+                    @* <li class="nav-item">
                         <a class="nav-link nav-btn d-flex align-items-center gap-2" href="#">
                             <img src="~/assets/icons/account_box_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                             Registrarse
                         </a>
-                    </li>
-
+                    </li> *@
                 </ul>
 
             </div>
-
         </div>
-
     </nav>
-
 </header>
 
 

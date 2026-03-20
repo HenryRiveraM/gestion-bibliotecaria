@@ -17,6 +17,35 @@ body{
     color:#e5e7eb;
 }
 
+.navbar-nav {
+    gap: 6px;
+}
+
+.navbar .dropdown-menu {
+    animation: fadeInDropdown 0.2s ease;
+}
+
+@keyframes fadeInDropdown {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.nav-btn.active,
+.nav-btn:focus {
+    background: #00A67E;
+    color: #fff !important;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.15rem rgba(0, 166, 126, 0.35);
+}
+
 .navbar{
     background:#282828;
     border-bottom:1px solid #1e293b;
