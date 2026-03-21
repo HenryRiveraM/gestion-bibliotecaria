@@ -81,16 +81,6 @@
             return fecha.Value.Date <= DateTime.Today;
         }
 
-      //  public static bool TieneEspaciosInicioFin(string? valor)
-       // {
-         //   if (string.IsNullOrEmpty(valor))
-         //   {
-         //       return false;
-        //    }
-
-        //    return !valor.Equals(valor.Trim(), StringComparison.Ordinal);
-        //}
-
         public static string NormalizarEspacios(string? valor)
         {
             if (string.IsNullOrWhiteSpace(valor))
@@ -106,7 +96,7 @@
         {
             if (!year.HasValue)
             {
-                return true; 
+                return true;
             }
 
             int current = DateTime.Now.Year;
