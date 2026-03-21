@@ -4,6 +4,23 @@
 @model gestion_bibliotecaria.Pages.LibroModel
 @{
     ViewData["Title"] = "Gestión de Libros";
+
+    var titulosSugeridos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    var generosSugeridos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+    foreach (DataRow row in Model.Libros.Rows)
+    {
+        var tituloTemp = row["Titulo"]?.ToString();
+        var generoTemp = row.Table.Columns.Contains("Genero") ? row["Genero"]?.ToString() : null;
+
+        if (!string.IsNullOrWhiteSpace(tituloTemp))
+            titulosSugeridos.Add(tituloTemp);
+
+        if (!string.IsNullOrWhiteSpace(generoTemp))
+            generosSugeridos.Add(generoTemp);
+    }
+
+    string Js(string? value) => (value ?? string.Empty).Replace("\\", "\\\\").Replace("'", "\\'").Replace("\r", "").Replace("\n", "\\n");
 }
 
 @section Styles {
@@ -13,17 +30,13 @@
 <div class="libros-container">
 
     <div class="page-header">
-
         <div class="titulo-logo">
             <h1>Gestión de Libros</h1>
         </div>
-
         <button type="button" class="btn-nuevo" onclick="abrirModalCrear()">
-            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                 class="icono-btn icon-white">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn icon-white">
             Nuevo Libro
         </button>
-
     </div>
 
 @if (Model.Libros.Rows.Count == 0)
@@ -39,64 +52,57 @@ else
 
     foreach (DataRow row in Model.Libros.Rows)
     {
-        if (row.Field<bool>("Estado"))
-        {
-            activos++;
-        }
+        if (row.Field<bool>("Estado")) activos++;
     }
 
     var inactivos = total - activos;
 
     <div class="filtros-barra">
         <div class="filtro-item filtro-buscar">
-            <input id="buscador-libro"
-                   type="text"
-                   class="input-filtro"
+            <input id="buscador-libro" type="text" class="input-filtro"
                    placeholder="Buscar por título, autor, editorial o estado..."
                    autocomplete="off" />
         </div>
-
-        @* <div class="filtro-item">
-            <select id="orden-libro" class="input-filtro">
-                <option value="titulo_asc">Título A-Z</option>
-                <option value="titulo_desc">Título Z-A</option>
-            </select>
-        </div> *@
     </div>
 
     <div class="tabla-container">
-
         <table id="tabla-libro" class="tabla-libros">
-
             <thead>
                 <tr>
                     <th>Título</th>
                     <th>Autor</th>
+                    <th>ISBN</th>
                     <th>Editorial</th>
+                    <th>Género</th>
                     <th>Edición</th>
                     <th>Año</th>
+                    <th>Páginas</th>
+                    <th>Idioma</th>
+                    <th>País publicación</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
-
             <tbody>
-
             @foreach (DataRow row in Model.Libros.Rows)
             {
                 var libroToken = row.Field<string>("LibroToken") ?? string.Empty;
                 var autorId = row.Field<int>("AutorId");
                 var titulo = row.Field<string>("Titulo");
+                var isbn = row.Table.Columns.Contains("ISBN") ? row["ISBN"]?.ToString() : "";
                 var editorial = row.Field<string>("Editorial");
+                var genero = row.Table.Columns.Contains("Genero") ? row["Genero"]?.ToString() : "";
                 var edicion = row.Field<string>("Edicion");
                 var añoPublicacion = row.Field<int?>("AñoPublicacion");
+                var numeroPaginas = row.Table.Columns.Contains("NumeroPaginas") && row["NumeroPaginas"] != DBNull.Value
+                    ? Convert.ToInt32(row["NumeroPaginas"]) : (int?)null;
+                var idioma = row.Table.Columns.Contains("Idioma") ? row["Idioma"]?.ToString() : "";
+                var paisPublicacion = row.Table.Columns.Contains("PaisPublicacion") ? row["PaisPublicacion"]?.ToString() : "";
                 var estado = row.Field<bool>("Estado");
                 var descripcion = row.Table.Columns.Contains("Descripcion") ? row["Descripcion"]?.ToString() : "";
 
                 <tr class="@(!estado ? "fila-inactiva" : "")">
-
                     <td><strong>@titulo</strong></td>
-
                     <td>
                         @if (Model.AutoresNombres.TryGetValue(autorId, out var nombreAutor))
                         {
@@ -107,11 +113,14 @@ else
                             <span class="text-muted">Autor #@autorId</span>
                         }
                     </td>
-
+                    <td>@(string.IsNullOrWhiteSpace(isbn) ? "N/A" : isbn)</td>
                     <td>@(editorial ?? "N/A")</td>
+                    <td>@(string.IsNullOrWhiteSpace(genero) ? "N/A" : genero)</td>
                     <td>@(edicion ?? "N/A")</td>
                     <td>@(añoPublicacion?.ToString() ?? "N/A")</td>
-
+                    <td>@(numeroPaginas?.ToString() ?? "N/A")</td>
+                    <td>@(string.IsNullOrWhiteSpace(idioma) ? "N/A" : idioma)</td>
+                    <td>@(string.IsNullOrWhiteSpace(paisPublicacion) ? "N/A" : paisPublicacion)</td>
                     <td>
                         @if (estado)
                         {
@@ -122,52 +131,33 @@ else
                             <span class="estado inactivo">Inactivo</span>
                         }
                     </td>
-
                     <td class="acciones">
-
-                        <button type="button"
-                                class="btn-editar"
+                        <button type="button" class="btn-editar"
                                 onclick="abrirModalEditar(
-                                    '@libroToken',
-                                    '@autorId',
-                                    '@Html.Raw((titulo ?? "").Replace("'", "\\'"))',
-                                    '@Html.Raw((editorial ?? "").Replace("'", "\\'"))',
-                                    '@Html.Raw((edicion ?? "").Replace("'", "\\'"))',
-                                    '@(añoPublicacion?.ToString() ?? "")',
-                                    '@Html.Raw((descripcion ?? "").Replace("'", "\\'"))',
-                                    '@estado'
-                                )">
-
-                            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                 class="icono-btn icon-white">
+                                    '@libroToken','@autorId',
+                                    '@Html.Raw(Js(titulo))','@Html.Raw(Js(isbn))',
+                                    '@Html.Raw(Js(editorial))','@Html.Raw(Js(genero))',
+                                    '@Html.Raw(Js(edicion))','@(añoPublicacion?.ToString() ?? "")',
+                                    '@(numeroPaginas?.ToString() ?? "")','@Html.Raw(Js(idioma))',
+                                    '@Html.Raw(Js(paisPublicacion))','@Html.Raw(Js(descripcion))',
+                                    '@estado')">
+                            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn icon-white">
                             Editar
                         </button>
-
-                        <button type="button"
-                                class="btn-eliminar"
-                                onclick="abrirModalEliminar('@libroToken')">
-
-                            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                 class="icono-btn icon-white">
-
+                        <button type="button" class="btn-eliminar" onclick="abrirModalEliminar('@libroToken')">
+                            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn icon-white">
                             Eliminar
                         </button>
-
                     </td>
-
                 </tr>
             }
-
             </tbody>
-
             <tr id="fila-sin-resultados" style="display:none;">
-                <td colspan="7" style="text-align:center; padding:20px; color:#9ca3af;">
+                <td colspan="12" style="text-align:center; padding:20px; color:#9ca3af;">
                     No hay libros que coincidan con la búsqueda.
                 </td>
             </tr>
-
         </table>
-
     </div>
 
     <div class="estadisticas">
@@ -182,49 +172,33 @@ else
 <!-- MODAL ELIMINAR -->
 <div id="modalEliminar" class="modal">
     <div class="modal-box">
-
         <div class="modal-icon">
-            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                 class="icono-modal">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal">
         </div>
-
         <h2>¿Estás seguro de que quieres eliminar este libro?</h2>
         <p>Esta acción no se puede deshacer.</p>
-
         <form method="post" asp-page-handler="Eliminar">
             @Html.AntiForgeryToken()
-
             <input type="hidden" id="libroTokenInput" name="token" />
-
             <div class="modal-buttons">
-                <button type="submit" class="btn-danger">
-                    Sí, eliminar
-                </button>
-
-                <button type="button" class="btn-secondary" onclick="cerrarModalEliminar()">
-                    Cancelar
-                </button>
+                <button type="submit" class="btn-danger">Sí, eliminar</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalEliminar()">Cancelar</button>
             </div>
         </form>
-
     </div>
 </div>
 
 <!-- MODAL EDITAR -->
 <div id="modalEditar" class="modal">
     <div class="modal-box">
-
         <div class="modal-icon editar">
-            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                 class="icono-modal">
+            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal">
         </div>
-
         <h2>Editar libro</h2>
         <p>Modifica la información del libro.</p>
 
-        <form method="post" asp-page-handler="Editar">
+        <form method="post" asp-page-handler="Editar" id="formEditarLibro">
             @Html.AntiForgeryToken()
-
             <input type="hidden" id="editToken" name="token" />
             <input type="hidden" id="editFechaRegistro" name="FechaRegistro" />
 
@@ -238,10 +212,8 @@ else
                 </div>
             }
 
-            <!-- AUTOR -->
             <div class="custom-select-wrapper">
                 <input type="hidden" id="editAutorId" name="AutorId" />
-
                 <div class="custom-select" id="custom-select-autor-edit">
                     <div class="select-trigger">
                         <span id="editAutorText">-- Seleccione un autor --</span>
@@ -249,13 +221,8 @@ else
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
-
                     <div class="select-dropdown">
-                        <input type="text"
-                               class="select-search"
-                               id="autor-search-edit"
-                               placeholder="Buscar autor..." />
-
+                        <input type="text" class="select-search" id="autor-search-edit" placeholder="Buscar autor..." />
                         <div class="select-options">
                             @foreach (DataRow autorRow in Model.Autores.Rows)
                             {
@@ -264,7 +231,6 @@ else
                                 var apellidos = autorRow["Apellidos"]?.ToString() ?? "";
                                 var nacionalidad = autorRow["Nacionalidad"] as string;
                                 var textoAutor = $"{apellidos} {nombres}" + (!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "");
-
                                 <div class="option" data-value="@aId">@textoAutor</div>
                             }
                         </div>
@@ -272,28 +238,70 @@ else
                 </div>
             </div>
 
-            <!-- TITULO -->
-            <input type="text" id="editTitulo" name="Titulo" placeholder="Título" required />
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="editTituloHidden" name="Titulo" />
+                <div class="custom-select custom-select-free" id="custom-select-titulo-edit">
+                    <div class="select-trigger">
+                        <span id="editTituloText">Título del libro</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="select-dropdown">
+                        <input type="text" class="select-search" id="titulo-search-edit" placeholder="Escribe o busca título..." />
+                        <div class="select-options">
+                            @foreach (var titulo in titulosSugeridos.OrderBy(x => x))
+                            {
+                                <div class="option" data-value="@titulo">@titulo</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
             @if (ViewData.ModelState.ContainsKey("Titulo"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- EDITORIAL -->
+            <input type="text" id="editISBN" name="ISBN" placeholder="ISBN" />
+            @if (ViewData.ModelState.ContainsKey("ISBN"))
+            {
+                <span class="text-error">@ViewData.ModelState["ISBN"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
             <input type="text" id="editEditorial" name="Editorial" placeholder="Editorial" />
             @if (ViewData.ModelState.ContainsKey("Editorial"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["Editorial"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["Editorial"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- EDICION -->
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="editGeneroHidden" name="Genero" />
+                <div class="custom-select custom-select-free" id="custom-select-genero-edit">
+                    <div class="select-trigger">
+                        <span id="editGeneroText">Género</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="select-dropdown">
+                        <input type="text" class="select-search" id="genero-search-edit" placeholder="Escribe o busca género..." />
+                        <div class="select-options">
+                            @foreach (var genero in generosSugeridos.OrderBy(x => x))
+                            {
+                                <div class="option" data-value="@genero">@genero</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @if (ViewData.ModelState.ContainsKey("Genero"))
+            {
+                <span class="text-error">@ViewData.ModelState["Genero"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
             <div class="custom-select-wrapper">
                 <input type="hidden" id="editEdicion" name="Edicion" />
-
                 <div class="custom-select" id="custom-select-edicion-edit">
                     <div class="select-trigger">
                         <span id="editEdicionText">-- Seleccione una edición --</span>
@@ -301,13 +309,8 @@ else
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
-
                     <div class="select-dropdown">
-                        <input type="text"
-                               class="select-search"
-                               id="edicion-search-edit"
-                               placeholder="Buscar edición..." />
-
+                        <input type="text" class="select-search" id="edicion-search-edit" placeholder="Buscar edición..." />
                         <div class="select-options">
                             <div class="option" data-value="1ra Edición">1ra Edición</div>
                             <div class="option" data-value="2da Edición">2da Edición</div>
@@ -334,38 +337,39 @@ else
             </div>
             @if (ViewData.ModelState.ContainsKey("Edicion"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["Edicion"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["Edicion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- AÑO -->
-            <input type="number"
-                   id="editAnioPublicacion"
-                   name="AñoPublicacion"
-                   placeholder="Año de publicación"
-                   min="1000"
-                   max="2100" />
+            <input type="number" id="editAnioPublicacion" name="AñoPublicacion" placeholder="Año de publicación" min="1000" max="2100" />
             @if (ViewData.ModelState.ContainsKey("AñoPublicacion"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["AñoPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["AñoPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- DESCRIPCION -->
-            <textarea id="editDescripcion"
-                      name="Descripcion"
-                      placeholder="Descripción"
-                      rows="4"></textarea>
+            <input type="number" id="editNumeroPaginas" name="NumeroPaginas" placeholder="Número de páginas" min="1" />
+            @if (ViewData.ModelState.ContainsKey("NumeroPaginas"))
+            {
+                <span class="text-error">@ViewData.ModelState["NumeroPaginas"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="text" id="editIdioma" name="Idioma" placeholder="Idioma" />
+            @if (ViewData.ModelState.ContainsKey("Idioma"))
+            {
+                <span class="text-error">@ViewData.ModelState["Idioma"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="text" id="editPaisPublicacion" name="PaisPublicacion" placeholder="País de publicación" />
+            @if (ViewData.ModelState.ContainsKey("PaisPublicacion"))
+            {
+                <span class="text-error">@ViewData.ModelState["PaisPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <textarea id="editDescripcion" name="Descripcion" placeholder="Descripción" rows="4"></textarea>
             @if (ViewData.ModelState.ContainsKey("Descripcion"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["Descripcion"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["Descripcion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- ESTADO -->
             <select id="editEstado" name="Estado">
                 <option value="true">Activo</option>
                 <option value="false">Inactivo</option>
@@ -376,23 +380,19 @@ else
                 <button type="button" class="btn-secondary" onclick="cerrarModalEditar()">Cancelar</button>
             </div>
         </form>
-
     </div>
 </div>
 
 <!-- MODAL CREAR -->
 <div id="modalCrear" class="modal">
     <div class="modal-box">
-
         <div class="modal-icon crear">
-            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                 class="icono-modal">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal">
         </div>
-
         <h2>Nuevo libro</h2>
         <p>Ingresa la información del libro.</p>
 
-        <form method="post" asp-page-handler="Crear">
+        <form method="post" asp-page-handler="Crear" id="formCrearLibro">
             @Html.AntiForgeryToken()
 
             @if (ViewData.ModelState.ContainsKey(string.Empty))
@@ -405,24 +405,18 @@ else
                 </div>
             }
 
-            <!-- AUTOR -->
             <div class="custom-select-wrapper">
                 <input type="hidden" id="createAutorId" name="AutorId" />
-
-                <div class="custom-select" id="custom-select-autor-create">
+                <input type="hidden" id="createAutorNuevo" name="NombreAutorNuevo" />
+                <div class="custom-select custom-select-free" id="custom-select-autor-create">
                     <div class="select-trigger">
                         <span id="createAutorText">Seleccione un autor...</span>
                         <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
-
                     <div class="select-dropdown">
-                        <input type="text"
-                               class="select-search"
-                               id="autor-search-create"
-                               placeholder="Buscar autor..." />
-
+                        <input type="text" class="select-search" id="autor-search-create" placeholder="Buscar o escribir autor..." />
                         <div class="select-options">
                             @foreach (DataRow autorRow in Model.Autores.Rows)
                             {
@@ -431,47 +425,81 @@ else
                                 var apellidos = autorRow["Apellidos"]?.ToString() ?? "";
                                 var nacionalidad = autorRow["Nacionalidad"] as string;
                                 var displayText = $"{apellidos} {nombres}{(!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "")}";
-
-                                <div class="option"
-                                     data-value="@aId"
-                                     data-text="@displayText">
-                                    @displayText
-                                </div>
+                                <div class="option" data-value="@aId">@displayText</div>
                             }
                         </div>
                     </div>
                 </div>
             </div>
+            @if (ViewData.ModelState.ContainsKey("AutorId"))
+            {
+                <span class="text-error">@ViewData.ModelState["AutorId"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
 
-            <!-- TITULO -->
-            <input type="text"
-                   id="createTitulo"
-                   name="Titulo"
-                   placeholder="Título del libro"
-                   required />
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="createTituloHidden" name="Titulo" />
+                <div class="custom-select custom-select-free" id="custom-select-titulo-create">
+                    <div class="select-trigger">
+                        <span id="createTituloText">Título del libro</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="select-dropdown">
+                        <input type="text" class="select-search" id="titulo-search-create" placeholder="Escribe o busca título..." />
+                        <div class="select-options">
+                            @foreach (var titulo in titulosSugeridos.OrderBy(x => x))
+                            {
+                                <div class="option" data-value="@titulo">@titulo</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
             @if (ViewData.ModelState.ContainsKey("Titulo"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- EDITORIAL -->
-            <input type="text"
-                   id="createEditorial"
-                   name="Editorial"
-                   placeholder="Ej: Penguin Books, Planeta" />
+            <input type="text" id="createISBN" name="ISBN" placeholder="ISBN" />
+            @if (ViewData.ModelState.ContainsKey("ISBN"))
+            {
+                <span class="text-error">@ViewData.ModelState["ISBN"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="text" id="createEditorial" name="Editorial" placeholder="Editorial" />
             @if (ViewData.ModelState.ContainsKey("Editorial"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["Editorial"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["Editorial"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- EDICION -->
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="createGeneroHidden" name="Genero" />
+                <div class="custom-select custom-select-free" id="custom-select-genero-create">
+                    <div class="select-trigger">
+                        <span id="createGeneroText">Género</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="select-dropdown">
+                        <input type="text" class="select-search" id="genero-search-create" placeholder="Escribe o busca género..." />
+                        <div class="select-options">
+                            @foreach (var genero in generosSugeridos.OrderBy(x => x))
+                            {
+                                <div class="option" data-value="@genero">@genero</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @if (ViewData.ModelState.ContainsKey("Genero"))
+            {
+                <span class="text-error">@ViewData.ModelState["Genero"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
             <div class="custom-select-wrapper">
                 <input type="hidden" id="createEdicion" name="Edicion" />
-
                 <div class="custom-select" id="custom-select-edicion-create">
                     <div class="select-trigger">
                         <span id="createEdicionText">-- Seleccione una edición --</span>
@@ -479,13 +507,8 @@ else
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </div>
-
                     <div class="select-dropdown">
-                        <input type="text"
-                               class="select-search"
-                               id="edicion-search-create"
-                               placeholder="Buscar edición..." />
-
+                        <input type="text" class="select-search" id="edicion-search-create" placeholder="Buscar edición..." />
                         <div class="select-options">
                             <div class="option" data-value="1ra Edición">1ra Edición</div>
                             <div class="option" data-value="2da Edición">2da Edición</div>
@@ -512,38 +535,39 @@ else
             </div>
             @if (ViewData.ModelState.ContainsKey("Edicion"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["Edicion"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["Edicion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- AÑO -->
-            <input type="number"
-                   id="createAnioPublicacion"
-                   name="AñoPublicacion"
-                   placeholder="Año de publicación"
-                   min="1000"
-                   max="2100" />
+            <input type="number" id="createAnioPublicacion" name="AñoPublicacion" placeholder="Año de publicación" min="1000" max="2100" />
             @if (ViewData.ModelState.ContainsKey("AñoPublicacion"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["AñoPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["AñoPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- DESCRIPCION -->
-            <textarea id="createDescripcion"
-                      name="Descripcion"
-                      placeholder="Descripción breve del contenido del libro"
-                      rows="4"></textarea>
+            <input type="number" id="createNumeroPaginas" name="NumeroPaginas" placeholder="Número de páginas" min="1" />
+            @if (ViewData.ModelState.ContainsKey("NumeroPaginas"))
+            {
+                <span class="text-error">@ViewData.ModelState["NumeroPaginas"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="text" id="createIdioma" name="Idioma" placeholder="Idioma" />
+            @if (ViewData.ModelState.ContainsKey("Idioma"))
+            {
+                <span class="text-error">@ViewData.ModelState["Idioma"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <input type="text" id="createPaisPublicacion" name="PaisPublicacion" placeholder="País de publicación" />
+            @if (ViewData.ModelState.ContainsKey("PaisPublicacion"))
+            {
+                <span class="text-error">@ViewData.ModelState["PaisPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
+            }
+
+            <textarea id="createDescripcion" name="Descripcion" placeholder="Descripción breve del contenido del libro" rows="4"></textarea>
             @if (ViewData.ModelState.ContainsKey("Descripcion"))
             {
-                <span class="text-error">
-                    @ViewData.ModelState["Descripcion"]?.Errors.FirstOrDefault()?.ErrorMessage
-                </span>
+                <span class="text-error">@ViewData.ModelState["Descripcion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <!-- ESTADO -->
             <select id="createEstado" name="Estado">
                 <option value="true" selected>Activo</option>
                 <option value="false">Inactivo</option>
@@ -554,7 +578,6 @@ else
                 <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
             </div>
         </form>
-
     </div>
 </div>
 
@@ -574,10 +597,8 @@ else
     function aplicar() {
         var termino = normalizar(input.value);
         var orden = select ? select.value : 'titulo_asc';
-
         var tbody = tabla.querySelector('tbody');
         var filas = Array.from(tbody.querySelectorAll('tr:not(#fila-sin-resultados)'));
-
         var asc = orden.endsWith('_asc');
 
         filas.sort(function (a, b) {
@@ -587,7 +608,6 @@ else
         });
 
         filas.forEach(f => tbody.appendChild(f));
-
         var visibles = 0;
 
         filas.forEach(function (fila) {
@@ -606,7 +626,6 @@ else
 
     input.addEventListener('input', aplicar);
     if (select) select.addEventListener('change', aplicar);
-
     aplicar();
 })();
 
@@ -614,18 +633,94 @@ function abrirModalEliminar(token) {
     document.getElementById("libroTokenInput").value = token;
     document.getElementById("modalEliminar").style.display = "flex";
 }
-
 function cerrarModalEliminar() {
     document.getElementById("modalEliminar").style.display = "none";
 }
+function mostrarModalCrear() {
+    document.getElementById("modalCrear").style.display = "flex";
+}
+function mostrarModalEditar() {
+    document.getElementById("modalEditar").style.display = "flex";
+}
 
-function abrirModalEditar(token, autorId, titulo, editorial, edicion, anio, descripcion, estado) {
+function sincronizarCamposCrear() {
+    const tituloInput = document.getElementById("titulo-search-create");
+    const tituloHidden = document.getElementById("createTituloHidden");
+    const tituloText = document.getElementById("createTituloText");
+    const generoInput = document.getElementById("genero-search-create");
+    const generoHidden = document.getElementById("createGeneroHidden");
+    const generoText = document.getElementById("createGeneroText");
+
+    if (tituloInput && tituloHidden) {
+        const valorTitulo = (tituloInput.value || tituloHidden.value || "").trim();
+        tituloHidden.value = valorTitulo;
+        tituloText.textContent = valorTitulo || "Título del libro";
+    }
+
+    if (generoInput && generoHidden) {
+        const valorGenero = (generoInput.value || generoHidden.value || "").trim();
+        generoHidden.value = valorGenero;
+        generoText.textContent = valorGenero || "Género";
+    }
+
+    const autorIdInput = document.getElementById("createAutorId");
+    const autorNuevo = document.getElementById("createAutorNuevo");
+    const autorSearch = document.getElementById("autor-search-create");
+
+    if (autorIdInput && autorNuevo && autorSearch) {
+        const valorActual = autorIdInput.value.trim();
+        if (valorActual && isNaN(Number(valorActual))) {
+            autorNuevo.value = valorActual;
+            autorIdInput.value = "";
+        } else if (!valorActual) {
+            autorNuevo.value = autorSearch.value.trim();
+        } else {
+            autorNuevo.value = "";
+        }
+    }
+}
+
+function sincronizarCamposEditar() {
+    const tituloInput = document.getElementById("titulo-search-edit");
+    const tituloHidden = document.getElementById("editTituloHidden");
+    const tituloText = document.getElementById("editTituloText");
+    const generoInput = document.getElementById("genero-search-edit");
+    const generoHidden = document.getElementById("editGeneroHidden");
+    const generoText = document.getElementById("editGeneroText");
+
+    if (tituloInput && tituloHidden) {
+        const valorTitulo = (tituloInput.value || tituloHidden.value || "").trim();
+        tituloHidden.value = valorTitulo;
+        tituloText.textContent = valorTitulo || "Título del libro";
+    }
+
+    if (generoInput && generoHidden) {
+        const valorGenero = (generoInput.value || generoHidden.value || "").trim();
+        generoHidden.value = valorGenero;
+        generoText.textContent = valorGenero || "Género";
+    }
+}
+
+function abrirModalEditar(token, autorId, titulo, isbn, editorial, genero, edicion, anio, numeroPaginas, idioma, paisPublicacion, descripcion, estado) {
     document.getElementById("editToken").value = token;
     document.getElementById("editAutorId").value = autorId;
-    document.getElementById("editTitulo").value = titulo || "";
+
+    document.getElementById("editTituloHidden").value = titulo || "";
+    document.getElementById("editTituloText").textContent = titulo || "Título del libro";
+    document.getElementById("titulo-search-edit").value = titulo || "";
+
+    document.getElementById("editISBN").value = isbn || "";
     document.getElementById("editEditorial").value = editorial || "";
+
+    document.getElementById("editGeneroHidden").value = genero || "";
+    document.getElementById("editGeneroText").textContent = genero || "Género";
+    document.getElementById("genero-search-edit").value = genero || "";
+
     document.getElementById("editEdicion").value = edicion || "";
     document.getElementById("editAnioPublicacion").value = anio || "";
+    document.getElementById("editNumeroPaginas").value = numeroPaginas || "";
+    document.getElementById("editIdioma").value = idioma || "";
+    document.getElementById("editPaisPublicacion").value = paisPublicacion || "";
     document.getElementById("editDescripcion").value = descripcion || "";
     document.getElementById("editEstado").value = estado === "True" ? "true" : "false";
 
@@ -637,7 +732,8 @@ function abrirModalEditar(token, autorId, titulo, editorial, edicion, anio, desc
     document.getElementById("editEdicionText").textContent =
         edicionOption ? edicionOption.textContent.trim() : (edicion || "-- Seleccione una edición --");
 
-    document.getElementById("modalEditar").style.display = "flex";
+    sincronizarCamposEditar();
+    mostrarModalEditar();
 }
 
 function cerrarModalEditar() {
@@ -646,16 +742,32 @@ function cerrarModalEditar() {
 
 function abrirModalCrear() {
     document.getElementById("createAutorId").value = "";
+    document.getElementById("createAutorNuevo").value = "";
     document.getElementById("createAutorText").textContent = "Seleccione un autor...";
-    document.getElementById("createTitulo").value = "";
+    document.getElementById("autor-search-create").value = "";
+
+    document.getElementById("createTituloHidden").value = "";
+    document.getElementById("createTituloText").textContent = "Título del libro";
+    document.getElementById("titulo-search-create").value = "";
+
+    document.getElementById("createISBN").value = "";
     document.getElementById("createEditorial").value = "";
+
+    document.getElementById("createGeneroHidden").value = "";
+    document.getElementById("createGeneroText").textContent = "Género";
+    document.getElementById("genero-search-create").value = "";
+
     document.getElementById("createEdicion").value = "";
     document.getElementById("createEdicionText").textContent = "-- Seleccione una edición --";
     document.getElementById("createAnioPublicacion").value = "";
+    document.getElementById("createNumeroPaginas").value = "";
+    document.getElementById("createIdioma").value = "";
+    document.getElementById("createPaisPublicacion").value = "";
     document.getElementById("createDescripcion").value = "";
     document.getElementById("createEstado").value = "true";
 
-    document.getElementById("modalCrear").style.display = "flex";
+    sincronizarCamposCrear();
+    mostrarModalCrear();
 }
 
 function cerrarModalCrear() {
@@ -680,10 +792,12 @@ document.addEventListener('DOMContentLoaded', function () {
             isOpen = !isOpen;
             customSelect.classList.toggle('active', isOpen);
 
-            if (isOpen) {
-                search.focus();
-                search.value = '';
-                options.forEach(opt => opt.classList.remove('hidden'));
+            if (isOpen && search) {
+                setTimeout(function () { search.focus(); }, 50);
+                if (!customSelect.classList.contains('custom-select-free')) {
+                    search.value = '';
+                    options.forEach(opt => opt.classList.remove('hidden'));
+                }
             }
         });
 
@@ -691,56 +805,73 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!customSelect.contains(e.target)) {
                 isOpen = false;
                 customSelect.classList.remove('active');
+
+                if (customSelect.classList.contains('custom-select-free') && search) {
+                    const textoLibre = (search.value || '').trim();
+                    if (textoLibre !== '') {
+                        hiddenInput.value = textoLibre;
+                        selectText.textContent = textoLibre;
+                    }
+                }
             }
         });
 
-        search.addEventListener('input', function () {
-            const searchTerm = this.value.toLowerCase();
+        if (search) {
+            search.addEventListener('input', function () {
+                const searchTerm = this.value.toLowerCase();
 
-            options.forEach(option => {
-                const text = option.textContent.toLowerCase();
-                option.classList.toggle('hidden', !text.includes(searchTerm));
+                if (customSelect.classList.contains('custom-select-free')) {
+                    hiddenInput.value = this.value;
+                    selectText.textContent = this.value.trim() || config.defaultText;
+                }
+
+                options.forEach(option => {
+                    const text = option.textContent.toLowerCase();
+                    option.classList.toggle('hidden', !text.includes(searchTerm));
+                });
             });
-        });
+        }
 
         options.forEach(option => {
             option.addEventListener('click', function (e) {
                 e.stopPropagation();
-
+                
                 const value = this.dataset.value;
-                const text = this.dataset.text || this.textContent.trim();
+                const text = this.textContent.trim();
 
                 hiddenInput.value = value;
                 selectText.textContent = text;
+
+                if (search) search.value = text;
+
                 isOpen = false;
                 customSelect.classList.remove('active');
             });
         });
     }
 
-    initCustomSelect({
-        selectId: 'custom-select-autor-edit',
-        hiddenInputId: 'editAutorId',
-        textId: 'editAutorText'
-    });
+    initCustomSelect({ selectId: 'custom-select-autor-edit', hiddenInputId: 'editAutorId', textId: 'editAutorText', defaultText: '-- Seleccione un autor --' });
+    initCustomSelect({ selectId: 'custom-select-edicion-edit', hiddenInputId: 'editEdicion', textId: 'editEdicionText', defaultText: '-- Seleccione una edición --' });
+    initCustomSelect({ selectId: 'custom-select-autor-create', hiddenInputId: 'createAutorId', textId: 'createAutorText', defaultText: 'Seleccione un autor...' });
+    initCustomSelect({ selectId: 'custom-select-edicion-create', hiddenInputId: 'createEdicion', textId: 'createEdicionText', defaultText: '-- Seleccione una edición --' });
+    initCustomSelect({ selectId: 'custom-select-titulo-create', hiddenInputId: 'createTituloHidden', textId: 'createTituloText', defaultText: 'Título del libro' });
+    initCustomSelect({ selectId: 'custom-select-titulo-edit', hiddenInputId: 'editTituloHidden', textId: 'editTituloText', defaultText: 'Título del libro' });
+    initCustomSelect({ selectId: 'custom-select-genero-create', hiddenInputId: 'createGeneroHidden', textId: 'createGeneroText', defaultText: 'Género' });
+    initCustomSelect({ selectId: 'custom-select-genero-edit', hiddenInputId: 'editGeneroHidden', textId: 'editGeneroText', defaultText: 'Género' });
 
-    initCustomSelect({
-        selectId: 'custom-select-edicion-edit',
-        hiddenInputId: 'editEdicion',
-        textId: 'editEdicionText'
-    });
+    const formCrear = document.getElementById("formCrearLibro");
+    if (formCrear) {
+        formCrear.addEventListener("submit", function () {
+            sincronizarCamposCrear();
+        });
+    }
 
-    initCustomSelect({
-        selectId: 'custom-select-autor-create',
-        hiddenInputId: 'createAutorId',
-        textId: 'createAutorText'
-    });
-
-    initCustomSelect({
-        selectId: 'custom-select-edicion-create',
-        hiddenInputId: 'createEdicion',
-        textId: 'createEdicionText'
-    });
+    const formEditar = document.getElementById("formEditarLibro");
+    if (formEditar) {
+        formEditar.addEventListener("submit", function () {
+            sincronizarCamposEditar();
+        });
+    }
 });
 
 window.onclick = function(e) {
@@ -756,30 +887,125 @@ window.onclick = function(e) {
 
 @if (!ViewData.ModelState.IsValid)
 {
+    var form = Request.HasFormContentType ? Request.Form : null;
+    var tokenForm = form?["token"].ToString() ?? "";
+    var autorForm = Js(form?["AutorId"].ToString());
+    var autorNuevoForm = Js(form?["NombreAutorNuevo"].ToString());
+    var tituloForm = Js(form?["Titulo"].ToString());
+    var isbnForm = Js(form?["ISBN"].ToString());
+    var editorialForm = Js(form?["Editorial"].ToString());
+    var generoForm = Js(form?["Genero"].ToString());
+    var edicionForm = Js(form?["Edicion"].ToString());
+    var anioForm = Js(form?["AñoPublicacion"].ToString());
+    var paginasForm = Js(form?["NumeroPaginas"].ToString());
+    var idiomaForm = Js(form?["Idioma"].ToString());
+    var paisForm = Js(form?["PaisPublicacion"].ToString());
+    var descripcionForm = Js(form?["Descripcion"].ToString());
+    var estadoForm = Js(string.IsNullOrWhiteSpace(form?["Estado"].ToString()) ? "true" : form?["Estado"].ToString());
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            var errorEditar =
-                @Html.Raw((
-                    ViewData.ModelState.ContainsKey("Titulo") ||
-                    ViewData.ModelState.ContainsKey("Editorial") ||
-                    ViewData.ModelState.ContainsKey("Edicion") ||
-                    ViewData.ModelState.ContainsKey("AñoPublicacion") ||
-                    ViewData.ModelState.ContainsKey("Descripcion") ||
-                    ViewData.ModelState.ContainsKey(string.Empty)
-                ).ToString().ToLower());
+            var esEdicion = '@tokenForm' !== '';
 
-            var errorCrear =
-                @Html.Raw((
-                    ViewData.ModelState.ContainsKey("Titulo") ||
-                    ViewData.ModelState.ContainsKey("Editorial") ||
-                    ViewData.ModelState.ContainsKey("Edicion") ||
-                    ViewData.ModelState.ContainsKey("AñoPublicacion") ||
-                    ViewData.ModelState.ContainsKey("Descripcion") ||
-                    ViewData.ModelState.ContainsKey(string.Empty)
-                ).ToString().ToLower());
+            if (esEdicion) {
+                mostrarModalEditar();
 
-            if (errorCrear) {
-                abrirModalCrear();
+                var token = '@tokenForm';
+                var autorId = '@autorForm';
+                var titulo = '@tituloForm';
+                var isbn = '@isbnForm';
+                var editorial = '@editorialForm';
+                var genero = '@generoForm';
+                var edicion = '@edicionForm';
+                var anio = '@anioForm';
+                var paginas = '@paginasForm';
+                var idioma = '@idiomaForm';
+                var pais = '@paisForm';
+                var descripcion = '@descripcionForm';
+                var estado = '@estadoForm';
+
+                document.getElementById("editToken").value = token;
+                document.getElementById("editAutorId").value = autorId;
+
+                document.getElementById("editTituloHidden").value = titulo;
+                document.getElementById("editTituloText").textContent = titulo || "Título del libro";
+                document.getElementById("titulo-search-edit").value = titulo || "";
+
+                document.getElementById("editISBN").value = isbn || "";
+                document.getElementById("editEditorial").value = editorial || "";
+
+                document.getElementById("editGeneroHidden").value = genero;
+                document.getElementById("editGeneroText").textContent = genero || "Género";
+                document.getElementById("genero-search-edit").value = genero || "";
+
+                document.getElementById("editEdicion").value = edicion || "";
+                document.getElementById("editAnioPublicacion").value = anio || "";
+                document.getElementById("editNumeroPaginas").value = paginas || "";
+                document.getElementById("editIdioma").value = idioma || "";
+                document.getElementById("editPaisPublicacion").value = pais || "";
+                document.getElementById("editDescripcion").value = descripcion || "";
+                document.getElementById("editEstado").value = estado || "true";
+
+                const autorOption = document.querySelector('#custom-select-autor-edit .option[data-value="' + autorId + '"]');
+                document.getElementById("editAutorText").textContent =
+                    autorOption ? autorOption.textContent.trim() : "-- Seleccione un autor --";
+
+                const edicionOption = document.querySelector('#custom-select-edicion-edit .option[data-value="' + edicion + '"]');
+                document.getElementById("editEdicionText").textContent =
+                    edicionOption ? edicionOption.textContent.trim() : (edicion || "-- Seleccione una edición --");
+            } else {
+                mostrarModalCrear();
+
+                var autorId = '@autorForm';
+                var autorNuevo = '@autorNuevoForm';
+                var titulo = '@tituloForm';
+                var isbn = '@isbnForm';
+                var editorial = '@editorialForm';
+                var genero = '@generoForm';
+                var edicion = '@edicionForm';
+                var anio = '@anioForm';
+                var paginas = '@paginasForm';
+                var idioma = '@idiomaForm';
+                var pais = '@paisForm';
+                var descripcion = '@descripcionForm';
+                var estado = '@estadoForm';
+
+                document.getElementById("createAutorId").value = autorId || "";
+                document.getElementById("createAutorNuevo").value = autorNuevo || "";
+
+                if (autorId) {
+                    const autorOpt = document.querySelector('#custom-select-autor-create .option[data-value="' + autorId + '"]');
+                    if (autorOpt) {
+                        document.getElementById("createAutorText").textContent = autorOpt.textContent.trim();
+                        document.getElementById("autor-search-create").value = autorOpt.textContent.trim();
+                    }
+                } else if (autorNuevo) {
+                    document.getElementById("createAutorText").textContent = autorNuevo;
+                    document.getElementById("autor-search-create").value = autorNuevo;
+                }
+
+                document.getElementById("createTituloHidden").value = titulo;
+                document.getElementById("createTituloText").textContent = titulo || "Título del libro";
+                document.getElementById("titulo-search-create").value = titulo || "";
+
+                document.getElementById("createISBN").value = isbn || "";
+                document.getElementById("createEditorial").value = editorial || "";
+
+                document.getElementById("createGeneroHidden").value = genero;
+                document.getElementById("createGeneroText").textContent = genero || "Género";
+                document.getElementById("genero-search-create").value = genero || "";
+
+                document.getElementById("createEdicion").value = edicion || "";
+                const edicionOption = document.querySelector('#custom-select-edicion-create .option[data-value="' + edicion + '"]');
+                document.getElementById("createEdicionText").textContent =
+                    edicionOption ? edicionOption.textContent.trim() : (edicion || "-- Seleccione una edición --");
+
+                document.getElementById("createAnioPublicacion").value = anio || "";
+                document.getElementById("createNumeroPaginas").value = paginas || "";
+                document.getElementById("createIdioma").value = idioma || "";
+                document.getElementById("createPaisPublicacion").value = pais || "";
+                document.getElementById("createDescripcion").value = descripcion || "";
+                document.getElementById("createEstado").value = estado || "true";
             }
         });
     </script>
