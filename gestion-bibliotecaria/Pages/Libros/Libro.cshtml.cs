@@ -70,9 +70,14 @@ public class LibroModel : PageModel
         string token,
         int AutorId,
         string Titulo,
+        string? ISBN,
         string? Editorial,
+        string? Genero,
         string? Edicion,
         int? AñoPublicacion,
+        int? NumeroPaginas,
+        string? Idioma,
+        string? PaisPublicacion,
         string? Descripcion,
         bool Estado)
     {
@@ -82,46 +87,48 @@ public class LibroModel : PageModel
         }
 
         Titulo = ValidadorEntrada.NormalizarEspacios(Titulo);
+        ISBN = ValidadorEntrada.NormalizarEspacios(ISBN);
         Editorial = ValidadorEntrada.NormalizarEspacios(Editorial);
+        Genero = ValidadorEntrada.NormalizarEspacios(Genero);
         Edicion = ValidadorEntrada.NormalizarEspacios(Edicion);
+        Idioma = ValidadorEntrada.NormalizarEspacios(Idioma);
+        PaisPublicacion = ValidadorEntrada.NormalizarEspacios(PaisPublicacion);
         Descripcion = ValidadorEntrada.NormalizarEspacios(Descripcion);
 
         if (ValidadorEntrada.EstaVacio(Titulo))
-        {
             ModelState.AddModelError("Titulo", "El título es obligatorio.");
-        }
-        else if (ValidadorEntrada.ExcedeLongitud(Titulo, 100))
-        {
-            ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 100 caracteres.");
-        }
+        else if (ValidadorEntrada.ExcedeLongitud(Titulo, 200))
+            ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 200 caracteres.");
 
-        if (!string.IsNullOrWhiteSpace(Editorial) &&
-            ValidadorEntrada.ExcedeLongitud(Editorial, 100))
-        {
+        if (!string.IsNullOrWhiteSpace(ISBN) && ValidadorEntrada.ExcedeLongitud(ISBN, 20))
+            ModelState.AddModelError("ISBN", "El ISBN excede la longitud máxima de 20 caracteres.");
+
+        if (!string.IsNullOrWhiteSpace(Editorial) && ValidadorEntrada.ExcedeLongitud(Editorial, 100))
             ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
-        }
 
-        if (!string.IsNullOrWhiteSpace(Edicion) &&
-            ValidadorEntrada.ExcedeLongitud(Edicion, 50))
-        {
+        if (!string.IsNullOrWhiteSpace(Genero) && ValidadorEntrada.ExcedeLongitud(Genero, 100))
+            ModelState.AddModelError("Genero", "El género excede la longitud máxima de 100 caracteres.");
+
+        if (!string.IsNullOrWhiteSpace(Edicion) && ValidadorEntrada.ExcedeLongitud(Edicion, 50))
             ModelState.AddModelError("Edicion", "La edición excede la longitud máxima de 50 caracteres.");
-        }
 
-        if (!string.IsNullOrWhiteSpace(Descripcion) &&
-            ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
-        {
-            ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
-        }
+        if (NumeroPaginas.HasValue && NumeroPaginas <= 0)
+            ModelState.AddModelError("NumeroPaginas", "El número de páginas debe ser mayor a 0.");
 
         if (!ValidadorEntrada.ValidYear(AñoPublicacion))
-        {
             ModelState.AddModelError("AñoPublicacion", "El año de publicación no es válido.");
-        }
+
+        if (!string.IsNullOrWhiteSpace(Idioma) && ValidadorEntrada.ExcedeLongitud(Idioma, 50))
+            ModelState.AddModelError("Idioma", "El idioma excede la longitud máxima de 50 caracteres.");
+
+        if (!string.IsNullOrWhiteSpace(PaisPublicacion) && ValidadorEntrada.ExcedeLongitud(PaisPublicacion, 100))
+            ModelState.AddModelError("PaisPublicacion", "El país de publicación excede la longitud máxima de 100 caracteres.");
+
+        if (!string.IsNullOrWhiteSpace(Descripcion) && ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
+            ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
 
         if (!EsAutorActivo(AutorId))
-        {
             ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
-        }
 
         if (!ModelState.IsValid)
         {
@@ -136,9 +143,14 @@ public class LibroModel : PageModel
             LibroId = id,
             AutorId = AutorId,
             Titulo = Titulo,
+            ISBN = ISBN,
             Editorial = Editorial,
+            Genero = Genero,
             Edicion = Edicion,
             AñoPublicacion = AñoPublicacion,
+            NumeroPaginas = NumeroPaginas,
+            Idioma = Idioma,
+            PaisPublicacion = PaisPublicacion,
             Descripcion = Descripcion,
             Estado = Estado,
             FechaRegistro = DateTime.Now,
@@ -151,55 +163,73 @@ public class LibroModel : PageModel
     }
 
     public IActionResult OnPostCrear(
-        int AutorId,
+        string? NombreAutorNuevo,
         string Titulo,
+        string? ISBN,
         string? Editorial,
+        string? Genero,
         string? Edicion,
         int? AñoPublicacion,
+        int? NumeroPaginas,
+        string? Idioma,
+        string? PaisPublicacion,
         string? Descripcion,
         bool Estado)
     {
+        ModelState.Remove("AutorId");
+
+        int AutorId = 0;
+        if (int.TryParse(Request.Form["AutorId"], out var parsedId))
+        {
+            AutorId = parsedId;
+        }
+
         Titulo = ValidadorEntrada.NormalizarEspacios(Titulo);
+        ISBN = ValidadorEntrada.NormalizarEspacios(ISBN);
         Editorial = ValidadorEntrada.NormalizarEspacios(Editorial);
+        Genero = ValidadorEntrada.NormalizarEspacios(Genero);
         Edicion = ValidadorEntrada.NormalizarEspacios(Edicion);
+        Idioma = ValidadorEntrada.NormalizarEspacios(Idioma);
+        PaisPublicacion = ValidadorEntrada.NormalizarEspacios(PaisPublicacion);
         Descripcion = ValidadorEntrada.NormalizarEspacios(Descripcion);
+        NombreAutorNuevo = ValidadorEntrada.NormalizarEspacios(NombreAutorNuevo);
 
         if (ValidadorEntrada.EstaVacio(Titulo))
-        {
             ModelState.AddModelError("Titulo", "El título es obligatorio.");
-        }
-        else if (ValidadorEntrada.ExcedeLongitud(Titulo, 100))
-        {
-            ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 100 caracteres.");
-        }
+        else if (ValidadorEntrada.ExcedeLongitud(Titulo, 200))
+            ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 200 caracteres.");
 
-        if (!string.IsNullOrWhiteSpace(Editorial) &&
-            ValidadorEntrada.ExcedeLongitud(Editorial, 100))
-        {
+        if (!string.IsNullOrWhiteSpace(ISBN) && ValidadorEntrada.ExcedeLongitud(ISBN, 20))
+            ModelState.AddModelError("ISBN", "El ISBN excede la longitud máxima de 20 caracteres.");
+
+        if (!string.IsNullOrWhiteSpace(Editorial) && ValidadorEntrada.ExcedeLongitud(Editorial, 100))
             ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
-        }
 
-        if (!string.IsNullOrWhiteSpace(Edicion) &&
-            ValidadorEntrada.ExcedeLongitud(Edicion, 50))
-        {
+        if (!string.IsNullOrWhiteSpace(Genero) && ValidadorEntrada.ExcedeLongitud(Genero, 100))
+            ModelState.AddModelError("Genero", "El género excede la longitud máxima de 100 caracteres.");
+
+        if (!string.IsNullOrWhiteSpace(Edicion) && ValidadorEntrada.ExcedeLongitud(Edicion, 50))
             ModelState.AddModelError("Edicion", "La edición excede la longitud máxima de 50 caracteres.");
-        }
 
-        if (!string.IsNullOrWhiteSpace(Descripcion) &&
-            ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
-        {
-            ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
-        }
+        if (NumeroPaginas.HasValue && NumeroPaginas <= 0)
+            ModelState.AddModelError("NumeroPaginas", "El número de páginas debe ser mayor a 0.");
 
         if (!ValidadorEntrada.ValidYear(AñoPublicacion))
-        {
             ModelState.AddModelError("AñoPublicacion", "El año de publicación no es válido.");
-        }
 
-        if (!EsAutorActivo(AutorId))
-        {
+        if (!string.IsNullOrWhiteSpace(Idioma) && ValidadorEntrada.ExcedeLongitud(Idioma, 50))
+            ModelState.AddModelError("Idioma", "El idioma excede la longitud máxima de 50 caracteres.");
+
+        if (!string.IsNullOrWhiteSpace(PaisPublicacion) && ValidadorEntrada.ExcedeLongitud(PaisPublicacion, 100))
+            ModelState.AddModelError("PaisPublicacion", "El país de publicación excede la longitud máxima de 100 caracteres.");
+
+        if (!string.IsNullOrWhiteSpace(Descripcion) && ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
+            ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
+
+        if (AutorId == 0 && string.IsNullOrWhiteSpace(NombreAutorNuevo))
+            ModelState.AddModelError("AutorId", "Seleccione un autor o escriba el nombre de uno nuevo.");
+        else if (AutorId != 0 && !EsAutorActivo(AutorId))
             ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
-        }
 
         if (!ModelState.IsValid)
         {
@@ -207,13 +237,27 @@ public class LibroModel : PageModel
             return Page();
         }
 
+        if (AutorId == 0 && !string.IsNullOrWhiteSpace(NombreAutorNuevo))
+        {
+            var repo = _libroRepositoryFactory.CreateRepository();
+            if (repo is LibroRepository lr)
+            {
+                AutorId = lr.InsertarAutorYObtenerID(NombreAutorNuevo);
+            }
+        }
+
         var libro = new Libro
         {
             AutorId = AutorId,
             Titulo = Titulo,
+            ISBN = ISBN,
             Editorial = Editorial,
+            Genero = Genero,
             Edicion = Edicion,
             AñoPublicacion = AñoPublicacion,
+            NumeroPaginas = NumeroPaginas,
+            Idioma = Idioma,
+            PaisPublicacion = PaisPublicacion,
             Descripcion = Descripcion,
             Estado = Estado,
             FechaRegistro = DateTime.Now
