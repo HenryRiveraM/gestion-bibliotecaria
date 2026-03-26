@@ -6,9 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
 
-builder.Services.AddScoped<RepositoryFactory<Autor, int>, AutorRepositoryCreator>();
-builder.Services.AddScoped<RepositoryFactory<Libro, int>, LibroRepositoryCreator>();
-builder.Services.AddScoped<RepositoryFactory<Ejemplar, int>, EjemplarRepositoryCreator>();
+builder.Services.AddSingleton<RepositoryFactory<Autor, int>, AutorRepositoryCreator>();
+builder.Services.AddSingleton<RepositoryFactory<Libro, int>, LibroRepositoryCreator>();
+builder.Services.AddSingleton<RepositoryFactory<Ejemplar, int>, EjemplarRepositoryCreator>();
 
 builder.Services.AddRazorPages(options =>
 {
