@@ -1,5 +1,6 @@
 .libros-container{
-    padding:30px 20px;
+    padding:30px 10px;
+    width:100%;
 }
 
 /* HEADER */
@@ -111,10 +112,13 @@
 
 .tabla-container{
     background:#171717;
-    padding:25px;
-    border-radius:12px;
+    padding:30px 30px;
+    border-radius:14px;
     border:1px solid #282828;
-    box-shadow:0 6px 16px rgba(0,0,0,0.35);
+    box-shadow:0 8px 20px rgba(0,0,0,0.45);
+    width:100%;
+    margin-left: 0;
+    margin-right: 0;
 }
 
 /* TABLA */
