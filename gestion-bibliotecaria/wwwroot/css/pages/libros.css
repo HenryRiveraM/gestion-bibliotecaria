@@ -58,6 +58,7 @@
     appearance:none;
     -webkit-appearance:none;
     cursor:pointer;
+    white-space:nowrap;
 }
 
 .btn-nuevo:hover{
@@ -121,30 +122,45 @@
 .tabla-libros{
     width:100%;
     border-collapse:collapse;
+    table-layout:auto;
 }
 
 /* HEADER TABLA */
 
 .tabla-libros th{
-    background:#282828;
-    color:#e5e7eb;
-    padding:12px;
+    background:#242424;
+    color:#f3f4f6;
+    padding:14px 12px;
     text-align:left;
     font-weight:600;
+    font-size:0.92rem;
+    letter-spacing:0.3px;
 }
 
 /* CELDAS */
 
 .tabla-libros td{
-    padding:12px;
-    border-bottom:1px solid #282828;
+    padding:16px 12px;
+    border-bottom:1px solid #262626;
     color:#e5e7eb;
+    font-size:0.95rem;
+    line-height:1.4;
+    word-break:normal;
+    overflow-wrap:break-word;
+    vertical-align:middle;
+}
+
+/* ZEBRA */
+
+.tabla-libros tbody tr:nth-child(even){
+    background:rgba(255,255,255,0.02);
 }
 
 /* HOVER FILAS */
 
-.tabla-libros tr:hover{
-    background:#1b1c1d;
+.tabla-libros tbody tr:hover{
+    background:#202124;
+    transition:0.2s;
 }
 
 /* FILA INACTIVA */
@@ -153,13 +169,74 @@
     background:#1b1c1d;
 }
 
+/* ALINEACIONES IMPORTANTES */
+
+/* ISBN */
+.tabla-libros th:nth-child(3),
+.tabla-libros td:nth-child(3){
+    text-align:center;
+}
+
+/* Edición */
+.tabla-libros th:nth-child(6),
+.tabla-libros td:nth-child(6){
+    text-align:center;
+}
+
+/* Año */
+.tabla-libros th:nth-child(7),
+.tabla-libros td:nth-child(7){
+    text-align:center;
+}
+
+/* Páginas */
+.tabla-libros th:nth-child(8),
+.tabla-libros td:nth-child(8){
+    text-align:center;
+}
+
+/* Estado */
+.tabla-libros th:nth-child(11),
+.tabla-libros td:nth-child(11){
+    text-align:center;
+}
+
+/* Acciones */
+.tabla-libros th:nth-child(12),
+.tabla-libros td:nth-child(12){
+    text-align:center;
+    white-space:nowrap;
+}
+
+/* ANCHOS SUAVES */
+.tabla-libros th:nth-child(1),
+.tabla-libros td:nth-child(1){
+    min-width:160px;
+}
+
+.tabla-libros th:nth-child(2),
+.tabla-libros td:nth-child(2){
+    min-width:140px;
+}
+
+.tabla-libros th:nth-child(4),
+.tabla-libros td:nth-child(4){
+    min-width:120px;
+}
+
+.tabla-libros th:nth-child(10),
+.tabla-libros td:nth-child(10){
+    min-width:140px;
+}
+
 /* ESTADOS */
 
 .estado{
-    padding:4px 10px;
-    border-radius:6px;
+    padding:5px 10px;
+    border-radius:20px;
     font-size:12px;
-    font-weight:500;
+    font-weight:600;
+    display:inline-block;
 }
 
 .activo{
@@ -178,6 +255,8 @@
     display:flex;
     gap:8px;
     align-items:center;
+    justify-content:center;
+    flex-wrap:nowrap;
 }
 
 /* EDITAR */
@@ -196,6 +275,7 @@
     transition:.2s;
     border:none;
     cursor:pointer;
+    white-space:nowrap;
 }
 
 .btn-editar:hover{
@@ -218,6 +298,7 @@
     font-size:13px;
     cursor:pointer;
     transition:.2s;
+    white-space:nowrap;
 }
 
 .btn-eliminar:hover{
