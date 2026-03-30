@@ -20,7 +20,11 @@
             generosSugeridos.Add(generoTemp);
     }
 
-    string Js(string? value) => (value ?? string.Empty).Replace("\\", "\\\\").Replace("'", "\\'").Replace("\r", "").Replace("\n", "\\n");
+    string Js(string? value) => (value ?? string.Empty)
+        .Replace("\\", "\\\\")
+        .Replace("'", "\\'")
+        .Replace("\r", "")
+        .Replace("\n", "\\n");
 }
 
 @section Styles {
@@ -134,12 +138,18 @@ else
                     <td class="acciones">
                         <button type="button" class="btn-editar"
                                 onclick="abrirModalEditar(
-                                    '@libroToken','@autorId',
-                                    '@Html.Raw(Js(titulo))','@Html.Raw(Js(isbn))',
-                                    '@Html.Raw(Js(editorial))','@Html.Raw(Js(genero))',
-                                    '@Html.Raw(Js(edicion))','@(añoPublicacion?.ToString() ?? "")',
-                                    '@(numeroPaginas?.ToString() ?? "")','@Html.Raw(Js(idioma))',
-                                    '@Html.Raw(Js(paisPublicacion))','@Html.Raw(Js(descripcion))',
+                                    '@libroToken',
+                                    '@autorId',
+                                    '@Js(titulo)',
+                                    '@Js(isbn)',
+                                    '@Js(editorial)',
+                                    '@Js(genero)',
+                                    '@Js(edicion)',
+                                    '@(añoPublicacion?.ToString() ?? "")',
+                                    '@(numeroPaginas?.ToString() ?? "")',
+                                    '@Js(idioma)',
+                                    '@Js(paisPublicacion)',
+                                    '@Js(descripcion)',
                                     '@estado')">
                             <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn icon-white">
                             Editar
@@ -250,9 +260,9 @@ else
                     <div class="select-dropdown">
                         <input type="text" class="select-search" id="titulo-search-edit" placeholder="Escribe o busca título..." />
                         <div class="select-options">
-                            @foreach (var titulo in titulosSugeridos.OrderBy(x => x))
+                            @foreach (var tituloItem in titulosSugeridos.OrderBy(x => x))
                             {
-                                <div class="option" data-value="@titulo">@titulo</div>
+                                <div class="option" data-value="@tituloItem">@tituloItem</div>
                             }
                         </div>
                     </div>
@@ -263,7 +273,7 @@ else
                 <span class="text-error">@ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <input type="text" id="editISBN" name="ISBN" placeholder="ISBN" />
+            <input type="text" id="editISBN" name="ISBN" placeholder="ISBN (10 o 13 dígitos)" maxlength="17" />
             @if (ViewData.ModelState.ContainsKey("ISBN"))
             {
                 <span class="text-error">@ViewData.ModelState["ISBN"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
@@ -287,9 +297,9 @@ else
                     <div class="select-dropdown">
                         <input type="text" class="select-search" id="genero-search-edit" placeholder="Escribe o busca género..." />
                         <div class="select-options">
-                            @foreach (var genero in generosSugeridos.OrderBy(x => x))
+                            @foreach (var generoItem in generosSugeridos.OrderBy(x => x))
                             {
-                                <div class="option" data-value="@genero">@genero</div>
+                                <div class="option" data-value="@generoItem">@generoItem</div>
                             }
                         </div>
                     </div>
@@ -328,9 +338,9 @@ else
                             <div class="option" data-value="Edición Internacional">Edición Internacional</div>
                             <div class="option" data-value="Edición de Bolsillo">Edición de Bolsillo</div>
                             <div class="option" data-value="Edición Ilustrada">Edición Ilustrada</div>
-                            <div class="option" data-value="Edición Especial">Edición Especial / Conmemorativa</div>
+                            <div class="option" data-value="Edición Especial / Conmemorativa">Edición Especial / Conmemorativa</div>
                             <div class="option" data-value="Edición Crítica">Edición Crítica</div>
-                            <div class="option" data-value="Otra">Otra / No especificada</div>
+                            <div class="option" data-value="Otra / No especificada">Otra / No especificada</div>
                         </div>
                     </div>
                 </div>
@@ -352,7 +362,27 @@ else
                 <span class="text-error">@ViewData.ModelState["NumeroPaginas"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <input type="text" id="editIdioma" name="Idioma" placeholder="Idioma" />
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="editIdiomaHidden" name="Idioma" />
+                <div class="custom-select" id="custom-select-idioma-edit">
+                    <div class="select-trigger">
+                        <span id="editIdiomaText">Idioma</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="select-dropdown">
+                        <input type="text" class="select-search" id="idioma-search-edit" placeholder="Buscar idioma..." />
+                        <div class="select-options">
+                            <div class="option" data-value="Español">Español</div>
+                            <div class="option" data-value="Inglés">Inglés</div>
+                            <div class="option" data-value="Alemán">Alemán</div>
+                            <div class="option" data-value="Quechua">Quechua</div>
+                            <div class="option" data-value="Aymara">Aymara</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             @if (ViewData.ModelState.ContainsKey("Idioma"))
             {
                 <span class="text-error">@ViewData.ModelState["Idioma"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
@@ -448,9 +478,9 @@ else
                     <div class="select-dropdown">
                         <input type="text" class="select-search" id="titulo-search-create" placeholder="Escribe o busca título..." />
                         <div class="select-options">
-                            @foreach (var titulo in titulosSugeridos.OrderBy(x => x))
+                            @foreach (var tituloItem in titulosSugeridos.OrderBy(x => x))
                             {
-                                <div class="option" data-value="@titulo">@titulo</div>
+                                <div class="option" data-value="@tituloItem">@tituloItem</div>
                             }
                         </div>
                     </div>
@@ -461,7 +491,7 @@ else
                 <span class="text-error">@ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <input type="text" id="createISBN" name="ISBN" placeholder="ISBN" />
+            <input type="text" id="createISBN" name="ISBN" placeholder="ISBN (10 o 13 dígitos)" maxlength="17" />
             @if (ViewData.ModelState.ContainsKey("ISBN"))
             {
                 <span class="text-error">@ViewData.ModelState["ISBN"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
@@ -485,9 +515,9 @@ else
                     <div class="select-dropdown">
                         <input type="text" class="select-search" id="genero-search-create" placeholder="Escribe o busca género..." />
                         <div class="select-options">
-                            @foreach (var genero in generosSugeridos.OrderBy(x => x))
+                            @foreach (var generoItem in generosSugeridos.OrderBy(x => x))
                             {
-                                <div class="option" data-value="@genero">@genero</div>
+                                <div class="option" data-value="@generoItem">@generoItem</div>
                             }
                         </div>
                     </div>
@@ -526,9 +556,9 @@ else
                             <div class="option" data-value="Edición Internacional">Edición Internacional</div>
                             <div class="option" data-value="Edición de Bolsillo">Edición de Bolsillo</div>
                             <div class="option" data-value="Edición Ilustrada">Edición Ilustrada</div>
-                            <div class="option" data-value="Edición Especial">Edición Especial / Conmemorativa</div>
+                            <div class="option" data-value="Edición Especial / Conmemorativa">Edición Especial / Conmemorativa</div>
                             <div class="option" data-value="Edición Crítica">Edición Crítica</div>
-                            <div class="option" data-value="Otra">Otra / No especificada</div>
+                            <div class="option" data-value="Otra / No especificada">Otra / No especificada</div>
                         </div>
                     </div>
                 </div>
@@ -550,7 +580,27 @@ else
                 <span class="text-error">@ViewData.ModelState["NumeroPaginas"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <input type="text" id="createIdioma" name="Idioma" placeholder="Idioma" />
+            <div class="custom-select-wrapper">
+                <input type="hidden" id="createIdiomaHidden" name="Idioma" />
+                <div class="custom-select" id="custom-select-idioma-create">
+                    <div class="select-trigger">
+                        <span id="createIdiomaText">Idioma</span>
+                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <div class="select-dropdown">
+                        <input type="text" class="select-search" id="idioma-search-create" placeholder="Buscar idioma..." />
+                        <div class="select-options">
+                            <div class="option" data-value="Español">Español</div>
+                            <div class="option" data-value="Inglés">Inglés</div>
+                            <div class="option" data-value="Alemán">Alemán</div>
+                            <div class="option" data-value="Quechua">Quechua</div>
+                            <div class="option" data-value="Aymara">Aymara</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
             @if (ViewData.ModelState.ContainsKey("Idioma"))
             {
                 <span class="text-error">@ViewData.ModelState["Idioma"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
@@ -567,11 +617,6 @@ else
             {
                 <span class="text-error">@ViewData.ModelState["Descripcion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
-
-            <select id="createEstado" name="Estado">
-                <option value="true" selected>Activo</option>
-                <option value="false">Inactivo</option>
-            </select>
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-success">Crear libro</button>
@@ -607,7 +652,7 @@ else
             return asc ? va.localeCompare(vb) : vb.localeCompare(va);
         });
 
-        filas.forEach(f => tbody.appendChild(f));
+        filas.forEach(function (f) { tbody.appendChild(f); });
         var visibles = 0;
 
         filas.forEach(function (fila) {
@@ -629,16 +674,26 @@ else
     aplicar();
 })();
 
+function decodificarHtml(texto) {
+    if (!texto) return "";
+    const txt = document.createElement("textarea");
+    txt.innerHTML = texto;
+    return txt.value;
+}
+
 function abrirModalEliminar(token) {
     document.getElementById("libroTokenInput").value = token;
     document.getElementById("modalEliminar").style.display = "flex";
 }
+
 function cerrarModalEliminar() {
     document.getElementById("modalEliminar").style.display = "none";
 }
+
 function mostrarModalCrear() {
     document.getElementById("modalCrear").style.display = "flex";
 }
+
 function mostrarModalEditar() {
     document.getElementById("modalEditar").style.display = "flex";
 }
@@ -702,6 +757,15 @@ function sincronizarCamposEditar() {
 }
 
 function abrirModalEditar(token, autorId, titulo, isbn, editorial, genero, edicion, anio, numeroPaginas, idioma, paisPublicacion, descripcion, estado) {
+    titulo = decodificarHtml(titulo);
+    isbn = decodificarHtml(isbn);
+    editorial = decodificarHtml(editorial);
+    genero = decodificarHtml(genero);
+    edicion = decodificarHtml(edicion);
+    idioma = decodificarHtml(idioma);
+    paisPublicacion = decodificarHtml(paisPublicacion);
+    descripcion = decodificarHtml(descripcion);
+
     document.getElementById("editToken").value = token;
     document.getElementById("editAutorId").value = autorId;
 
@@ -719,7 +783,11 @@ function abrirModalEditar(token, autorId, titulo, isbn, editorial, genero, edici
     document.getElementById("editEdicion").value = edicion || "";
     document.getElementById("editAnioPublicacion").value = anio || "";
     document.getElementById("editNumeroPaginas").value = numeroPaginas || "";
-    document.getElementById("editIdioma").value = idioma || "";
+
+    document.getElementById("editIdiomaHidden").value = idioma || "";
+    document.getElementById("editIdiomaText").textContent = idioma || "Idioma";
+    document.getElementById("idioma-search-edit").value = idioma || "";
+
     document.getElementById("editPaisPublicacion").value = paisPublicacion || "";
     document.getElementById("editDescripcion").value = descripcion || "";
     document.getElementById("editEstado").value = estado === "True" ? "true" : "false";
@@ -761,10 +829,13 @@ function abrirModalCrear() {
     document.getElementById("createEdicionText").textContent = "-- Seleccione una edición --";
     document.getElementById("createAnioPublicacion").value = "";
     document.getElementById("createNumeroPaginas").value = "";
-    document.getElementById("createIdioma").value = "";
+
+    document.getElementById("createIdiomaHidden").value = "";
+    document.getElementById("createIdiomaText").textContent = "Idioma";
+    document.getElementById("idioma-search-create").value = "";
+
     document.getElementById("createPaisPublicacion").value = "";
     document.getElementById("createDescripcion").value = "";
-    document.getElementById("createEstado").value = "true";
 
     sincronizarCamposCrear();
     mostrarModalCrear();
@@ -796,7 +867,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 setTimeout(function () { search.focus(); }, 50);
                 if (!customSelect.classList.contains('custom-select-free')) {
                     search.value = '';
-                    options.forEach(opt => opt.classList.remove('hidden'));
+                    options.forEach(function (opt) { opt.classList.remove('hidden'); });
                 }
             }
         });
@@ -825,17 +896,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     selectText.textContent = this.value.trim() || config.defaultText;
                 }
 
-                options.forEach(option => {
+                options.forEach(function (option) {
                     const text = option.textContent.toLowerCase();
                     option.classList.toggle('hidden', !text.includes(searchTerm));
                 });
             });
         }
 
-        options.forEach(option => {
+        options.forEach(function (option) {
             option.addEventListener('click', function (e) {
                 e.stopPropagation();
-                
+
                 const value = this.dataset.value;
                 const text = this.textContent.trim();
 
@@ -858,6 +929,8 @@ document.addEventListener('DOMContentLoaded', function () {
     initCustomSelect({ selectId: 'custom-select-titulo-edit', hiddenInputId: 'editTituloHidden', textId: 'editTituloText', defaultText: 'Título del libro' });
     initCustomSelect({ selectId: 'custom-select-genero-create', hiddenInputId: 'createGeneroHidden', textId: 'createGeneroText', defaultText: 'Género' });
     initCustomSelect({ selectId: 'custom-select-genero-edit', hiddenInputId: 'editGeneroHidden', textId: 'editGeneroText', defaultText: 'Género' });
+    initCustomSelect({ selectId: 'custom-select-idioma-create', hiddenInputId: 'createIdiomaHidden', textId: 'createIdiomaText', defaultText: 'Idioma' });
+    initCustomSelect({ selectId: 'custom-select-idioma-edit', hiddenInputId: 'editIdiomaHidden', textId: 'editIdiomaText', defaultText: 'Idioma' });
 
     const formCrear = document.getElementById("formCrearLibro");
     if (formCrear) {
@@ -872,6 +945,18 @@ document.addEventListener('DOMContentLoaded', function () {
             sincronizarCamposEditar();
         });
     }
+
+    function permitirSoloIsbn(id) {
+        const input = document.getElementById(id);
+        if (!input) return;
+
+        input.addEventListener("input", function () {
+            this.value = this.value.replace(/[^0-9xX-]/g, '');
+        });
+    }
+
+    permitirSoloIsbn("createISBN");
+    permitirSoloIsbn("editISBN");
 });
 
 window.onclick = function(e) {
@@ -882,7 +967,7 @@ window.onclick = function(e) {
     if (e.target === modalEliminar) cerrarModalEliminar();
     if (e.target === modalEditar) cerrarModalEditar();
     if (e.target === modalCrear) cerrarModalCrear();
-}
+};
 </script>
 
 @if (!ViewData.ModelState.IsValid)
@@ -912,16 +997,16 @@ window.onclick = function(e) {
 
                 var token = '@tokenForm';
                 var autorId = '@autorForm';
-                var titulo = '@tituloForm';
-                var isbn = '@isbnForm';
-                var editorial = '@editorialForm';
-                var genero = '@generoForm';
-                var edicion = '@edicionForm';
+                var titulo = decodificarHtml('@tituloForm');
+                var isbn = decodificarHtml('@isbnForm');
+                var editorial = decodificarHtml('@editorialForm');
+                var genero = decodificarHtml('@generoForm');
+                var edicion = decodificarHtml('@edicionForm');
                 var anio = '@anioForm';
                 var paginas = '@paginasForm';
-                var idioma = '@idiomaForm';
-                var pais = '@paisForm';
-                var descripcion = '@descripcionForm';
+                var idioma = decodificarHtml('@idiomaForm');
+                var pais = decodificarHtml('@paisForm');
+                var descripcion = decodificarHtml('@descripcionForm');
                 var estado = '@estadoForm';
 
                 document.getElementById("editToken").value = token;
@@ -941,7 +1026,11 @@ window.onclick = function(e) {
                 document.getElementById("editEdicion").value = edicion || "";
                 document.getElementById("editAnioPublicacion").value = anio || "";
                 document.getElementById("editNumeroPaginas").value = paginas || "";
-                document.getElementById("editIdioma").value = idioma || "";
+
+                document.getElementById("editIdiomaHidden").value = idioma || "";
+                document.getElementById("editIdiomaText").textContent = idioma || "Idioma";
+                document.getElementById("idioma-search-edit").value = idioma || "";
+
                 document.getElementById("editPaisPublicacion").value = pais || "";
                 document.getElementById("editDescripcion").value = descripcion || "";
                 document.getElementById("editEstado").value = estado || "true";
@@ -957,18 +1046,17 @@ window.onclick = function(e) {
                 mostrarModalCrear();
 
                 var autorId = '@autorForm';
-                var autorNuevo = '@autorNuevoForm';
-                var titulo = '@tituloForm';
-                var isbn = '@isbnForm';
-                var editorial = '@editorialForm';
-                var genero = '@generoForm';
-                var edicion = '@edicionForm';
+                var autorNuevo = decodificarHtml('@autorNuevoForm');
+                var titulo = decodificarHtml('@tituloForm');
+                var isbn = decodificarHtml('@isbnForm');
+                var editorial = decodificarHtml('@editorialForm');
+                var genero = decodificarHtml('@generoForm');
+                var edicion = decodificarHtml('@edicionForm');
                 var anio = '@anioForm';
                 var paginas = '@paginasForm';
-                var idioma = '@idiomaForm';
-                var pais = '@paisForm';
-                var descripcion = '@descripcionForm';
-                var estado = '@estadoForm';
+                var idioma = decodificarHtml('@idiomaForm');
+                var pais = decodificarHtml('@paisForm');
+                var descripcion = decodificarHtml('@descripcionForm');
 
                 document.getElementById("createAutorId").value = autorId || "";
                 document.getElementById("createAutorNuevo").value = autorNuevo || "";
@@ -1002,10 +1090,13 @@ window.onclick = function(e) {
 
                 document.getElementById("createAnioPublicacion").value = anio || "";
                 document.getElementById("createNumeroPaginas").value = paginas || "";
-                document.getElementById("createIdioma").value = idioma || "";
+
+                document.getElementById("createIdiomaHidden").value = idioma || "";
+                document.getElementById("createIdiomaText").textContent = idioma || "Idioma";
+                document.getElementById("idioma-search-create").value = idioma || "";
+
                 document.getElementById("createPaisPublicacion").value = pais || "";
                 document.getElementById("createDescripcion").value = descripcion || "";
-                document.getElementById("createEstado").value = estado || "true";
             }
         });
     </script>

@@ -103,6 +103,9 @@ public class LibroModel : PageModel
         if (!string.IsNullOrWhiteSpace(ISBN) && ValidadorEntrada.ExcedeLongitud(ISBN, 20))
             ModelState.AddModelError("ISBN", "El ISBN excede la longitud máxima de 20 caracteres.");
 
+        if (!ValidadorEntrada.ISBNValido(ISBN))
+            ModelState.AddModelError("ISBN", "El ISBN debe contener 10 o 13 dígitos.");
+
         if (!string.IsNullOrWhiteSpace(Editorial) && ValidadorEntrada.ExcedeLongitud(Editorial, 100))
             ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
 
@@ -120,6 +123,9 @@ public class LibroModel : PageModel
 
         if (!string.IsNullOrWhiteSpace(Idioma) && ValidadorEntrada.ExcedeLongitud(Idioma, 50))
             ModelState.AddModelError("Idioma", "El idioma excede la longitud máxima de 50 caracteres.");
+
+        if (!ValidadorEntrada.IdiomaPermitido(Idioma))
+            ModelState.AddModelError("Idioma", "Seleccione un idioma válido.");
 
         if (!string.IsNullOrWhiteSpace(PaisPublicacion) && ValidadorEntrada.ExcedeLongitud(PaisPublicacion, 100))
             ModelState.AddModelError("PaisPublicacion", "El país de publicación excede la longitud máxima de 100 caracteres.");
@@ -173,8 +179,7 @@ public class LibroModel : PageModel
         int? NumeroPaginas,
         string? Idioma,
         string? PaisPublicacion,
-        string? Descripcion,
-        bool Estado)
+        string? Descripcion)
     {
         ModelState.Remove("AutorId");
 
@@ -202,6 +207,9 @@ public class LibroModel : PageModel
         if (!string.IsNullOrWhiteSpace(ISBN) && ValidadorEntrada.ExcedeLongitud(ISBN, 20))
             ModelState.AddModelError("ISBN", "El ISBN excede la longitud máxima de 20 caracteres.");
 
+        if (!ValidadorEntrada.ISBNValido(ISBN))
+            ModelState.AddModelError("ISBN", "El ISBN debe contener 10 o 13 dígitos.");
+
         if (!string.IsNullOrWhiteSpace(Editorial) && ValidadorEntrada.ExcedeLongitud(Editorial, 100))
             ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
 
@@ -219,6 +227,9 @@ public class LibroModel : PageModel
 
         if (!string.IsNullOrWhiteSpace(Idioma) && ValidadorEntrada.ExcedeLongitud(Idioma, 50))
             ModelState.AddModelError("Idioma", "El idioma excede la longitud máxima de 50 caracteres.");
+
+        if (!ValidadorEntrada.IdiomaPermitido(Idioma))
+            ModelState.AddModelError("Idioma", "Seleccione un idioma válido.");
 
         if (!string.IsNullOrWhiteSpace(PaisPublicacion) && ValidadorEntrada.ExcedeLongitud(PaisPublicacion, 100))
             ModelState.AddModelError("PaisPublicacion", "El país de publicación excede la longitud máxima de 100 caracteres.");
@@ -259,7 +270,7 @@ public class LibroModel : PageModel
             Idioma = Idioma,
             PaisPublicacion = PaisPublicacion,
             Descripcion = Descripcion,
-            Estado = Estado,
+            Estado = true,
             FechaRegistro = DateTime.Now
         };
 
