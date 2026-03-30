@@ -83,7 +83,7 @@
 
         public static string NormalizarEspacios(string? valor)
         {
-            if (string.IsNullOrWhiteSpace(valor))
+            if (string.IsNullOrWhiteSpace(valor))   
             {
                 return string.Empty;
             }
@@ -101,6 +101,69 @@
 
             int current = DateTime.Now.Year;
             return year.Value >= minyear && year.Value <= current;
+        }
+        
+        public static bool ISBNValido(string? isbn)
+        {
+            if (string.IsNullOrWhiteSpace(isbn))
+            {
+                return true;
+            }
+
+            var limpio = isbn.Replace("-", "").Trim().ToUpper();
+
+            if (limpio.Length == 13)
+            {
+                foreach (char c in limpio)
+                {
+                    if (!char.IsDigit(c))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            if (limpio.Length == 10)
+            {
+                for (int i = 0; i < 9; i++)
+                {
+                    if (!char.IsDigit(limpio[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return char.IsDigit(limpio[9]) || limpio[9] == 'X';
+            }
+
+            return false;
+        }
+
+        public static bool IdiomaPermitido(string? idioma)
+        {
+            if (string.IsNullOrWhiteSpace(idioma))
+            {
+                return false;
+            }
+
+            var idiomaNormalizado = NormalizarEspacios(idioma);
+
+            string[] idiomasValidos =
+            {
+                "Español",
+                "Inglés",
+                "Alemán",
+                "Quechua",
+                "Aymara",
+                "Frances",
+                "Chino Mandarin",
+                "Portugues",
+                "Italiano"
+            };
+
+            return idiomasValidos.Contains(idiomaNormalizado);
         }
     }
 }
