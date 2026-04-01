@@ -14,14 +14,14 @@
   <ItemGroup>
     <Folder Include="Application\Interfaces\" />
     <Folder Include="Application\Services\" />
-    <Folder Include="Domain\Validations\" />
+    <Folder Include="FactoryCreators\" />
     <Folder Include="FactoryProducts\" />
     <Folder Include="Filters\" />
-    <Folder Include="Infrastructure\Configuration\" />
-    <Folder Include="Infrastructure\Creators\" />
-    <Folder Include="Infrastructure\Security\" />
+    <Folder Include="Helpers\" />
     <Folder Include="Models\" />
     <Folder Include="NewFolder\" />
+    <Folder Include="Security\" />
+    <Folder Include="Validaciones\" />
   </ItemGroup>
 
 </Project>
