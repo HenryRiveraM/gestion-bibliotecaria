@@ -3,7 +3,7 @@ using System.Text;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace gestion_bibliotecaria.Security;
+namespace gestion_bibliotecaria.Infrastructure.Security;
 
 public class RouteTokenService
 {
