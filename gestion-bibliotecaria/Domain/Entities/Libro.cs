@@ -1,4 +1,4 @@
-namespace gestion_bibliotecaria.Models;
+namespace gestion_bibliotecaria.Domain.Entities;
 
 public class Libro
 {

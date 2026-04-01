@@ -1,8 +1,9 @@
 using System.Data;
 using MySql.Data.MySqlClient;
-using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Domain.Ports;
 
-namespace gestion_bibliotecaria.FactoryProducts;
+namespace gestion_bibliotecaria.Infrastructure.Persistence;
 
 public class LibroRepository : IRepository<Libro, int>
 {
