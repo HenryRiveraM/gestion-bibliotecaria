@@ -1,6 +1,6 @@
-using gestion_bibliotecaria.FactoryProducts;
+using gestion_bibliotecaria.Domain.Ports;
 
-namespace gestion_bibliotecaria.FactoryCreators;
+namespace gestion_bibliotecaria.Infrastructure.Creators;
 
 public abstract class RepositoryFactory<T,TId>
 {
