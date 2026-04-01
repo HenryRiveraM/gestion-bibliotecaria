@@ -1,8 +1,9 @@
 using System.Data;
-using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Domain.Ports;
 using MySql.Data.MySqlClient;
 
-namespace gestion_bibliotecaria.FactoryProducts;
+namespace gestion_bibliotecaria.Infrastructure.Persistence;
 
 public class AutorRepository : IRepository<Autor,int>
 {

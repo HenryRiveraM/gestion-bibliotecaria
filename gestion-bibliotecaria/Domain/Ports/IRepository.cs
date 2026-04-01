@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace gestion_bibliotecaria.FactoryProducts;
+namespace gestion_bibliotecaria.Domain.Ports;
 public interface IRepository<T,TId>
 {
     DataTable GetAll();

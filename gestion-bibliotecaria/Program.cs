@@ -1,10 +1,10 @@
-using gestion_bibliotecaria.FactoryCreators;
-using gestion_bibliotecaria.FactoryProducts;
-using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Infrastructure.Creators;
+using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<gestion_bibliotecaria.Security.RouteTokenService>();
+builder.Services.AddScoped<RouteTokenService>();
 
 builder.Services.AddScoped<RepositoryFactory<Autor, int>, AutorRepositoryCreator>();
 builder.Services.AddScoped<RepositoryFactory<Libro, int>, LibroRepositoryCreator>();

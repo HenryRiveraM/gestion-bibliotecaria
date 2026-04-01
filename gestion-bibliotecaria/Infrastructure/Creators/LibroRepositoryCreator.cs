@@ -1,7 +1,8 @@
-using gestion_bibliotecaria.FactoryProducts;
-using gestion_bibliotecaria.Models;
+using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Domain.Ports;
+using gestion_bibliotecaria.Infrastructure.Persistence;
 
-namespace gestion_bibliotecaria.FactoryCreators;
+namespace gestion_bibliotecaria.Infrastructure.Creators;
 
 public class LibroRepositoryCreator : RepositoryFactory<Libro, int>
 {

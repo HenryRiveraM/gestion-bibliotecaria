@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using gestion_bibliotecaria.Models;
-using gestion_bibliotecaria.Security;
-using gestion_bibliotecaria.FactoryProducts;
-using gestion_bibliotecaria.FactoryCreators;
-using gestion_bibliotecaria.Validaciones;
+using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Domain.Ports;
+using gestion_bibliotecaria.Infrastructure.Creators;
+using gestion_bibliotecaria.Infrastructure.Persistence;
+using gestion_bibliotecaria.Domain.Validations;
+using gestion_bibliotecaria.Infrastructure.Security;
 using MySql.Data.MySqlClient;
 using System.Data;
+using System.Linq;
 
 namespace gestion_bibliotecaria.Pages;
 
