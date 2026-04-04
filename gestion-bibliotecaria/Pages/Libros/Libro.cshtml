@@ -207,20 +207,12 @@ else
         <h2>Editar libro</h2>
         <p>Modifica la información del libro.</p>
 
-        <form method="post" asp-page-handler="Editar" id="formEditarLibro">
+        <form method="post" asp-page-handler="Editar" id="formEditarLibro" novalidate>
             @Html.AntiForgeryToken()
             <input type="hidden" id="editToken" name="token" />
             <input type="hidden" id="editFechaRegistro" name="FechaRegistro" />
 
-            @if (ViewData.ModelState.ContainsKey(string.Empty))
-            {
-                <div class="text-error-summary">
-                    @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
-                    {
-                        <div>• @error.ErrorMessage</div>
-                    }
-                </div>
-            }
+            <div id="error-summary-edit" class="text-error-summary" style="display:none;"></div>
 
             <div class="custom-select-wrapper">
                 <input type="hidden" id="editAutorId" name="AutorId" />
@@ -246,6 +238,7 @@ else
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-edit-AutorId"></span>
             </div>
 
             <div class="custom-select-wrapper">
@@ -267,23 +260,18 @@ else
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-edit-Titulo"></span>
             </div>
-            @if (ViewData.ModelState.ContainsKey("Titulo"))
-            {
-                <span class="text-error">@ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
 
-            <input type="text" id="editISBN" name="ISBN" placeholder="ISBN (10 o 13 dígitos)" maxlength="17" />
-            @if (ViewData.ModelState.ContainsKey("ISBN"))
-            {
-                <span class="text-error">@ViewData.ModelState["ISBN"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="text" id="editISBN" name="ISBN" placeholder="ISBN (10 o 13 dígitos)" maxlength="17" />
+                <span class="text-error" id="error-edit-ISBN"></span>
+            </div>
 
-            <input type="text" id="editEditorial" name="Editorial" placeholder="Editorial" />
-            @if (ViewData.ModelState.ContainsKey("Editorial"))
-            {
-                <span class="text-error">@ViewData.ModelState["Editorial"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="text" id="editEditorial" name="Editorial" placeholder="Editorial" />
+                <span class="text-error" id="error-edit-Editorial"></span>
+            </div>
 
             <div class="custom-select-wrapper">
                 <input type="hidden" id="editGeneroHidden" name="Genero" />
@@ -304,11 +292,8 @@ else
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-edit-Genero"></span>
             </div>
-            @if (ViewData.ModelState.ContainsKey("Genero"))
-            {
-                <span class="text-error">@ViewData.ModelState["Genero"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
 
             <div class="custom-select-wrapper">
                 <input type="hidden" id="editEdicion" name="Edicion" />
@@ -324,43 +309,21 @@ else
                         <div class="select-options">
                             <div class="option" data-value="1ra Edición">1ra Edición</div>
                             <div class="option" data-value="2da Edición">2da Edición</div>
-                            <div class="option" data-value="3ra Edición">3ra Edición</div>
-                            <div class="option" data-value="4ta Edición">4ta Edición</div>
-                            <div class="option" data-value="5ta Edición">5ta Edición</div>
-                            <div class="option" data-value="6ta Edición">6ta Edición</div>
-                            <div class="option" data-value="7ma Edición">7ma Edición</div>
-                            <div class="option" data-value="8va Edición">8va Edición</div>
-                            <div class="option" data-value="9na Edición">9na Edición</div>
-                            <div class="option" data-value="10ma Edición">10ma Edición</div>
-                            <div class="option" data-value="Edición Revisada">Edición Revisada</div>
-                            <div class="option" data-value="Edición Actualizada">Edición Actualizada</div>
-                            <div class="option" data-value="Edición Ampliada">Edición Ampliada</div>
-                            <div class="option" data-value="Edición Internacional">Edición Internacional</div>
-                            <div class="option" data-value="Edición de Bolsillo">Edición de Bolsillo</div>
-                            <div class="option" data-value="Edición Ilustrada">Edición Ilustrada</div>
-                            <div class="option" data-value="Edición Especial / Conmemorativa">Edición Especial / Conmemorativa</div>
-                            <div class="option" data-value="Edición Crítica">Edición Crítica</div>
-                            <div class="option" data-value="Otra / No especificada">Otra / No especificada</div>
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-edit-Edicion"></span>
             </div>
-            @if (ViewData.ModelState.ContainsKey("Edicion"))
-            {
-                <span class="text-error">@ViewData.ModelState["Edicion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
 
-            <input type="number" id="editAnioPublicacion" name="AñoPublicacion" placeholder="Año de publicación" min="1000" max="2100" />
-            @if (ViewData.ModelState.ContainsKey("AñoPublicacion"))
-            {
-                <span class="text-error">@ViewData.ModelState["AñoPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="number" id="editAnioPublicacion" name="AñoPublicacion" placeholder="Año de publicación" min="1000" max="2100" />
+                <span class="text-error" id="error-edit-AñoPublicacion"></span>
+            </div>
 
-            <input type="number" id="editNumeroPaginas" name="NumeroPaginas" placeholder="Número de páginas" min="1" />
-            @if (ViewData.ModelState.ContainsKey("NumeroPaginas"))
-            {
-                <span class="text-error">@ViewData.ModelState["NumeroPaginas"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="number" id="editNumeroPaginas" name="NumeroPaginas" placeholder="Número de páginas" min="1" />
+                <span class="text-error" id="error-edit-NumeroPaginas"></span>
+            </div>
 
             <div class="custom-select-wrapper">
                 <input type="hidden" id="editIdiomaHidden" name="Idioma" />
@@ -376,29 +339,21 @@ else
                         <div class="select-options">
                             <div class="option" data-value="Español">Español</div>
                             <div class="option" data-value="Inglés">Inglés</div>
-                            <div class="option" data-value="Alemán">Alemán</div>
-                            <div class="option" data-value="Quechua">Quechua</div>
-                            <div class="option" data-value="Aymara">Aymara</div>
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-edit-Idioma"></span>
             </div>
-            @if (ViewData.ModelState.ContainsKey("Idioma"))
-            {
-                <span class="text-error">@ViewData.ModelState["Idioma"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
 
-            <input type="text" id="editPaisPublicacion" name="PaisPublicacion" placeholder="País de publicación" />
-            @if (ViewData.ModelState.ContainsKey("PaisPublicacion"))
-            {
-                <span class="text-error">@ViewData.ModelState["PaisPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="text" id="editPaisPublicacion" name="PaisPublicacion" placeholder="País de publicación" />
+                <span class="text-error" id="error-edit-PaisPublicacion"></span>
+            </div>
 
-            <textarea id="editDescripcion" name="Descripcion" placeholder="Descripción" rows="4"></textarea>
-            @if (ViewData.ModelState.ContainsKey("Descripcion"))
-            {
-                <span class="text-error">@ViewData.ModelState["Descripcion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <textarea id="editDescripcion" name="Descripcion" placeholder="Descripción" rows="4"></textarea>
+                <span class="text-error" id="error-edit-Descripcion"></span>
+            </div>
 
             <select id="editEstado" name="Estado">
                 <option value="true">Activo</option>
@@ -413,7 +368,6 @@ else
     </div>
 </div>
 
-<!-- MODAL CREAR -->
 <div id="modalCrear" class="modal">
     <div class="modal-box">
         <div class="modal-icon crear">
@@ -422,18 +376,10 @@ else
         <h2>Nuevo libro</h2>
         <p>Ingresa la información del libro.</p>
 
-        <form method="post" asp-page-handler="Crear" id="formCrearLibro">
+        <form method="post" asp-page-handler="Crear" id="formCrearLibro" novalidate>
             @Html.AntiForgeryToken()
 
-            @if (ViewData.ModelState.ContainsKey(string.Empty))
-            {
-                <div class="text-error-summary">
-                    @foreach (var error in ViewData.ModelState[string.Empty]!.Errors)
-                    {
-                        <div>• @error.ErrorMessage</div>
-                    }
-                </div>
-            }
+            <div id="error-summary-create" class="text-error-summary" style="display:none;"></div>
 
             <div class="custom-select-wrapper">
                 <input type="hidden" id="createAutorId" name="AutorId" />
@@ -460,11 +406,8 @@ else
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-create-AutorId"></span>
             </div>
-            @if (ViewData.ModelState.ContainsKey("AutorId"))
-            {
-                <span class="text-error">@ViewData.ModelState["AutorId"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
 
             <div class="custom-select-wrapper">
                 <input type="hidden" id="createTituloHidden" name="Titulo" />
@@ -485,23 +428,18 @@ else
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-create-Titulo"></span>
             </div>
-            @if (ViewData.ModelState.ContainsKey("Titulo"))
-            {
-                <span class="text-error">@ViewData.ModelState["Titulo"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
 
-            <input type="text" id="createISBN" name="ISBN" placeholder="ISBN (10 o 13 dígitos)" maxlength="17" />
-            @if (ViewData.ModelState.ContainsKey("ISBN"))
-            {
-                <span class="text-error">@ViewData.ModelState["ISBN"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="text" id="createISBN" name="ISBN" placeholder="ISBN (10 o 13 dígitos)" maxlength="17" />
+                <span class="text-error" id="error-create-ISBN"></span>
+            </div>
 
-            <input type="text" id="createEditorial" name="Editorial" placeholder="Editorial" />
-            @if (ViewData.ModelState.ContainsKey("Editorial"))
-            {
-                <span class="text-error">@ViewData.ModelState["Editorial"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="text" id="createEditorial" name="Editorial" placeholder="Editorial" />
+                <span class="text-error" id="error-create-Editorial"></span>
+            </div>
 
             <div class="custom-select-wrapper">
                 <input type="hidden" id="createGeneroHidden" name="Genero" />
@@ -522,11 +460,8 @@ else
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-create-Genero"></span>
             </div>
-            @if (ViewData.ModelState.ContainsKey("Genero"))
-            {
-                <span class="text-error">@ViewData.ModelState["Genero"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
 
             <div class="custom-select-wrapper">
                 <input type="hidden" id="createEdicion" name="Edicion" />
@@ -543,42 +478,21 @@ else
                             <div class="option" data-value="1ra Edición">1ra Edición</div>
                             <div class="option" data-value="2da Edición">2da Edición</div>
                             <div class="option" data-value="3ra Edición">3ra Edición</div>
-                            <div class="option" data-value="4ta Edición">4ta Edición</div>
-                            <div class="option" data-value="5ta Edición">5ta Edición</div>
-                            <div class="option" data-value="6ta Edición">6ta Edición</div>
-                            <div class="option" data-value="7ma Edición">7ma Edición</div>
-                            <div class="option" data-value="8va Edición">8va Edición</div>
-                            <div class="option" data-value="9na Edición">9na Edición</div>
-                            <div class="option" data-value="10ma Edición">10ma Edición</div>
-                            <div class="option" data-value="Edición Revisada">Edición Revisada</div>
-                            <div class="option" data-value="Edición Actualizada">Edición Actualizada</div>
-                            <div class="option" data-value="Edición Ampliada">Edición Ampliada</div>
-                            <div class="option" data-value="Edición Internacional">Edición Internacional</div>
-                            <div class="option" data-value="Edición de Bolsillo">Edición de Bolsillo</div>
-                            <div class="option" data-value="Edición Ilustrada">Edición Ilustrada</div>
-                            <div class="option" data-value="Edición Especial / Conmemorativa">Edición Especial / Conmemorativa</div>
-                            <div class="option" data-value="Edición Crítica">Edición Crítica</div>
-                            <div class="option" data-value="Otra / No especificada">Otra / No especificada</div>
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-create-Edicion"></span>
             </div>
-            @if (ViewData.ModelState.ContainsKey("Edicion"))
-            {
-                <span class="text-error">@ViewData.ModelState["Edicion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
 
-            <input type="number" id="createAnioPublicacion" name="AñoPublicacion" placeholder="Año de publicación" min="1000" max="2100" />
-            @if (ViewData.ModelState.ContainsKey("AñoPublicacion"))
-            {
-                <span class="text-error">@ViewData.ModelState["AñoPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="number" id="createAnioPublicacion" name="AñoPublicacion" placeholder="Año de publicación" />
+                <span class="text-error" id="error-create-AñoPublicacion"></span>
+            </div>
 
-            <input type="number" id="createNumeroPaginas" name="NumeroPaginas" placeholder="Número de páginas" min="1" />
-            @if (ViewData.ModelState.ContainsKey("NumeroPaginas"))
-            {
-                <span class="text-error">@ViewData.ModelState["NumeroPaginas"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="number" id="createNumeroPaginas" name="NumeroPaginas" placeholder="Número de páginas" />
+                <span class="text-error" id="error-create-NumeroPaginas"></span>
+            </div>
 
             <div class="custom-select-wrapper">
                 <input type="hidden" id="createIdiomaHidden" name="Idioma" />
@@ -594,29 +508,21 @@ else
                         <div class="select-options">
                             <div class="option" data-value="Español">Español</div>
                             <div class="option" data-value="Inglés">Inglés</div>
-                            <div class="option" data-value="Alemán">Alemán</div>
-                            <div class="option" data-value="Quechua">Quechua</div>
-                            <div class="option" data-value="Aymara">Aymara</div>
                         </div>
                     </div>
                 </div>
+                <span class="text-error" id="error-create-Idioma"></span>
             </div>
-            @if (ViewData.ModelState.ContainsKey("Idioma"))
-            {
-                <span class="text-error">@ViewData.ModelState["Idioma"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
 
-            <input type="text" id="createPaisPublicacion" name="PaisPublicacion" placeholder="País de publicación" />
-            @if (ViewData.ModelState.ContainsKey("PaisPublicacion"))
-            {
-                <span class="text-error">@ViewData.ModelState["PaisPublicacion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <input type="text" id="createPaisPublicacion" name="PaisPublicacion" placeholder="País de publicación" />
+                <span class="text-error" id="error-create-PaisPublicacion"></span>
+            </div>
 
-            <textarea id="createDescripcion" name="Descripcion" placeholder="Descripción breve del contenido del libro" rows="4"></textarea>
-            @if (ViewData.ModelState.ContainsKey("Descripcion"))
-            {
-                <span class="text-error">@ViewData.ModelState["Descripcion"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
-            }
+            <div class="input-group">
+                <textarea id="createDescripcion" name="Descripcion" placeholder="Descripción breve" rows="4"></textarea>
+                <span class="text-error" id="error-create-Descripcion"></span>
+            </div>
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-success">Crear libro</button>
@@ -932,19 +838,122 @@ document.addEventListener('DOMContentLoaded', function () {
     initCustomSelect({ selectId: 'custom-select-idioma-create', hiddenInputId: 'createIdiomaHidden', textId: 'createIdiomaText', defaultText: 'Idioma' });
     initCustomSelect({ selectId: 'custom-select-idioma-edit', hiddenInputId: 'editIdiomaHidden', textId: 'editIdiomaText', defaultText: 'Idioma' });
 
-    const formCrear = document.getElementById("formCrearLibro");
-    if (formCrear) {
-        formCrear.addEventListener("submit", function () {
-            sincronizarCamposCrear();
-        });
-    }
+         const formCrear = document.getElementById("formCrearLibro");
+        if (formCrear) {
+            formCrear.addEventListener("submit", async function (e) {
+                e.preventDefault();
 
-    const formEditar = document.getElementById("formEditarLibro");
-    if (formEditar) {
-        formEditar.addEventListener("submit", function () {
-            sincronizarCamposEditar();
-        });
-    }
+                // 1. Limpiar todos los errores visuales antes de empezar
+                formCrear.querySelectorAll('.text-error').forEach(el => {
+                    el.textContent = '';
+                    el.style.display = 'none';
+                });
+                const summary = document.getElementById("error-summary-create");
+                if(summary) summary.style.display = 'none';
+
+                sincronizarCamposCrear();
+
+                const formData = new FormData(this);
+
+                try {
+                    const response = await fetch('?handler=Crear', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        window.location.reload();
+                    } else {
+                        // 2. Mostrar los nuevos errores
+                        for (const [campo, mensaje] of Object.entries(result.errors)) {
+                            // Buscamos por el ID que creamos: error-create-[NombreDelCampo]
+                            const spanError = document.getElementById(`error-create-${campo}`);
+
+                            if (spanError) {
+                                spanError.textContent = mensaje;
+                                spanError.style.display = 'block'; // Lo hacemos visible
+                            } else if (campo === "") {
+                                // Error general del modelo
+                                if(summary) {
+                                    summary.textContent = mensaje;
+                                    summary.style.display = 'block';
+                                }
+                            } else {
+                                console.warn("No se encontró span para el campo:", campo);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error en la comunicación:", error);
+                }
+            });
+        }
+
+        const formEditar = document.getElementById("formEditarLibro");
+        if (formEditar) {
+            formEditar.addEventListener("submit", async function (e) {
+                e.preventDefault(); // Evita la recarga de página brusca
+
+                // 1. Limpiar todos los errores visuales del modal EDITAR
+                formEditar.querySelectorAll('.text-error').forEach(el => {
+                    el.textContent = '';
+                    el.style.display = 'none';
+                });
+                const summaryEdit = document.getElementById("error-summary-edit");
+                if (summaryEdit) summaryEdit.style.display = 'none';
+
+                // Tu lógica de custom selects existente
+                sincronizarCamposEditar();
+
+                const formData = new FormData(this);
+
+                try {
+                    const response = await fetch('?handler=Editar', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            // Token de seguridad obligatorio
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Si funcionó, recargamos la página completa para ver el libro actualizado en la tabla
+                        window.location.reload();
+                    } else {
+                        // Si falló, mostramos los nuevos errores rojos en el modal EDITAR
+                        for (const [campo, mensaje] of Object.entries(result.errors)) {
+                            // Buscamos por el ID específico que creamos: error-edit-[NombreDelCampo]
+                            const spanError = document.getElementById(`error-edit-${campo}`);
+
+                            if (spanError) {
+                                spanError.textContent = mensaje;
+                                spanError.style.display = 'block'; // Lo hacemos visible
+                            } else if (campo === "") {
+                                // Error general del modelo
+                                if(summaryEdit) {
+                                    summaryEdit.textContent = mensaje;
+                                    summaryEdit.style.display = 'block';
+                                }
+                            } else {
+                                console.warn("No span found for edit field:", campo);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error communicating with Edit handler:", error);
+                }
+            });
+        }
 
     function permitirSoloIsbn(id) {
         const input = document.getElementById(id);

@@ -8,20 +8,46 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Application\**" />
+    <Compile Remove="FactoryCreators\**" />
+    <Compile Remove="FactoryProducts\**" />
+    <Compile Remove="Filters\**" />
+    <Compile Remove="Helpers\**" />
+    <Compile Remove="Models\**" />
+    <Compile Remove="Security\**" />
+    <Compile Remove="Validaciones\**" />
+    <Content Remove="Application\**" />
+    <Content Remove="FactoryCreators\**" />
+    <Content Remove="FactoryProducts\**" />
+    <Content Remove="Filters\**" />
+    <Content Remove="Helpers\**" />
+    <Content Remove="Models\**" />
+    <Content Remove="Security\**" />
+    <Content Remove="Validaciones\**" />
+    <EmbeddedResource Remove="Application\**" />
+    <EmbeddedResource Remove="FactoryCreators\**" />
+    <EmbeddedResource Remove="FactoryProducts\**" />
+    <EmbeddedResource Remove="Filters\**" />
+    <EmbeddedResource Remove="Helpers\**" />
+    <EmbeddedResource Remove="Models\**" />
+    <EmbeddedResource Remove="Security\**" />
+    <EmbeddedResource Remove="Validaciones\**" />
+    <None Remove="Application\**" />
+    <None Remove="FactoryCreators\**" />
+    <None Remove="FactoryProducts\**" />
+    <None Remove="Filters\**" />
+    <None Remove="Helpers\**" />
+    <None Remove="Models\**" />
+    <None Remove="Security\**" />
+    <None Remove="Validaciones\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="MySql.Data" Version="9.6.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Application\Interfaces\" />
-    <Folder Include="Application\Services\" />
-    <Folder Include="FactoryCreators\" />
-    <Folder Include="FactoryProducts\" />
-    <Folder Include="Filters\" />
-    <Folder Include="Helpers\" />
-    <Folder Include="Models\" />
-    <Folder Include="NewFolder\" />
-    <Folder Include="Security\" />
-    <Folder Include="Validaciones\" />
+    <Folder Include="Aplicacion\Interfaces\" />
   </ItemGroup>
 
 </Project>

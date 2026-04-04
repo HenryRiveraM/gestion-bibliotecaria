@@ -1,12 +1,14 @@
+using gestion_bibliotecaria.Aplicacion.Servicios;
+using gestion_bibliotecaria.Domain.Common;
+using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Domain.Ports;
+using gestion_bibliotecaria.Domain.Validations;
+using gestion_bibliotecaria.Infrastructure.Creators;
+using gestion_bibliotecaria.Infrastructure.Persistence;
+using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Data;
-using gestion_bibliotecaria.Domain.Entities;
-using gestion_bibliotecaria.Domain.Ports;
-using gestion_bibliotecaria.Infrastructure.Creators;
-using gestion_bibliotecaria.Infrastructure.Persistence;
-using gestion_bibliotecaria.Domain.Validations;
-using gestion_bibliotecaria.Infrastructure.Security;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -14,6 +16,7 @@ public class LibroModel : PageModel
 {
     private readonly RepositoryFactory<Libro, int> _libroRepositoryFactory;
     private readonly RouteTokenService _routeTokenService;
+    private readonly LibroService _libroService;
 
     public DataTable Libros { get; set; } = new DataTable();
     public Dictionary<int, string> AutoresNombres { get; set; } = new();
@@ -21,10 +24,12 @@ public class LibroModel : PageModel
 
     public LibroModel(
         RepositoryFactory<Libro, int> libroRepositoryFactory,
-        RouteTokenService routeTokenService)
+        RouteTokenService routeTokenService,
+        LibroService libroService)
     {
         _libroRepositoryFactory = libroRepositoryFactory;
         _routeTokenService = routeTokenService;
+        _libroService = libroService;
     }
 
     public void OnGet()
@@ -58,19 +63,15 @@ public class LibroModel : PageModel
         }
 
         var repository = _libroRepositoryFactory.CreateRepository();
-
-        repository.Delete(new Libro
-        {
-            LibroId = libroId
-        });
+        repository.Delete(new Libro { LibroId = libroId });
 
         return RedirectToPage();
     }
 
     public IActionResult OnPostEditar(
         string token,
-        int AutorId,
-        string Titulo,
+        int? AutorId, // Cambiado a int? para evitar el error Binder de ASP.NET
+        string? Titulo, // Agregado ? para soportar nulls antes de validar
         string? ISBN,
         string? Editorial,
         string? Genero,
@@ -84,71 +85,17 @@ public class LibroModel : PageModel
     {
         if (!_routeTokenService.TryObtenerId(token, out var id))
         {
+            // For fetch, NotFound is bad. Return JSON error general.
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return new JsonResult(new { success = false, errors = new Dictionary<string, string> { { "", "Petición inválida o token expirado." } } });
             return NotFound();
         }
 
-        Titulo = ValidadorEntrada.NormalizarEspacios(Titulo);
-        ISBN = ValidadorEntrada.NormalizarEspacios(ISBN);
-        Editorial = ValidadorEntrada.NormalizarEspacios(Editorial);
-        Genero = ValidadorEntrada.NormalizarEspacios(Genero);
-        Edicion = ValidadorEntrada.NormalizarEspacios(Edicion);
-        Idioma = ValidadorEntrada.NormalizarEspacios(Idioma);
-        PaisPublicacion = ValidadorEntrada.NormalizarEspacios(PaisPublicacion);
-        Descripcion = ValidadorEntrada.NormalizarEspacios(Descripcion);
-
-        if (ValidadorEntrada.EstaVacio(Titulo))
-            ModelState.AddModelError("Titulo", "El título es obligatorio.");
-        else if (ValidadorEntrada.ExcedeLongitud(Titulo, 200))
-            ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 200 caracteres.");
-
-        if (!string.IsNullOrWhiteSpace(ISBN) && ValidadorEntrada.ExcedeLongitud(ISBN, 20))
-            ModelState.AddModelError("ISBN", "El ISBN excede la longitud máxima de 20 caracteres.");
-
-        if (!ValidadorEntrada.ISBNValido(ISBN))
-            ModelState.AddModelError("ISBN", "El ISBN debe contener 10 o 13 dígitos.");
-
-        if (!string.IsNullOrWhiteSpace(Editorial) && ValidadorEntrada.ExcedeLongitud(Editorial, 100))
-            ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
-
-        if (!string.IsNullOrWhiteSpace(Genero) && ValidadorEntrada.ExcedeLongitud(Genero, 100))
-            ModelState.AddModelError("Genero", "El género excede la longitud máxima de 100 caracteres.");
-
-        if (!string.IsNullOrWhiteSpace(Edicion) && ValidadorEntrada.ExcedeLongitud(Edicion, 50))
-            ModelState.AddModelError("Edicion", "La edición excede la longitud máxima de 50 caracteres.");
-
-        if (NumeroPaginas.HasValue && NumeroPaginas <= 0)
-            ModelState.AddModelError("NumeroPaginas", "El número de páginas debe ser mayor a 0.");
-
-        if (!ValidadorEntrada.ValidYear(AñoPublicacion))
-            ModelState.AddModelError("AñoPublicacion", "El año de publicación no es válido.");
-
-        if (!string.IsNullOrWhiteSpace(Idioma) && ValidadorEntrada.ExcedeLongitud(Idioma, 50))
-            ModelState.AddModelError("Idioma", "El idioma excede la longitud máxima de 50 caracteres.");
-
-        if (!ValidadorEntrada.IdiomaPermitido(Idioma))
-            ModelState.AddModelError("Idioma", "Seleccione un idioma válido.");
-
-        if (!string.IsNullOrWhiteSpace(PaisPublicacion) && ValidadorEntrada.ExcedeLongitud(PaisPublicacion, 100))
-            ModelState.AddModelError("PaisPublicacion", "El país de publicación excede la longitud máxima de 100 caracteres.");
-
-        if (!string.IsNullOrWhiteSpace(Descripcion) && ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
-            ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
-
-        if (!EsAutorActivo(AutorId))
-            ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
-
-        if (!ModelState.IsValid)
-        {
-            OnGet();
-            return Page();
-        }
-
-        var repository = _libroRepositoryFactory.CreateRepository();
-
+        // Mapeamos a la entidad exacta. Manejamos el AutorId nulo convirtiéndolo en 0.
         var libro = new Libro
         {
             LibroId = id,
-            AutorId = AutorId,
+            AutorId = AutorId ?? 0, // Si es null ( Binder vacío), ponle 0
             Titulo = Titulo,
             ISBN = ISBN,
             Editorial = Editorial,
@@ -160,18 +107,44 @@ public class LibroModel : PageModel
             PaisPublicacion = PaisPublicacion,
             Descripcion = Descripcion,
             Estado = Estado,
-            FechaRegistro = DateTime.Now,
             UltimaActualizacion = DateTime.Now
         };
 
+        // Usamos EXACTAMENTE la misma lógica de validación de LibroService que para Crear
+        var resultado = _libroService.ValidarLibro(libro, null); // null porque en editar no hay autor nuevo
+
+        if (resultado.IsFailure)
+        {
+            // Split extrae el nombre del campo (ej: "Titulo")
+            ModelState.AddModelError(resultado.Error.Code.Split('.')[1], resultado.Error.Message);
+        }
+        // Lógica extra que tenías en tu código original
+        else if (libro.AutorId != 0 && !EsAutorActivo(libro.AutorId))
+        {
+            ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
+        }
+
+        // --- CAMBIO PARA FETCH: SI HAY ERRORES MANDA JSON ---
+        if (!ModelState.IsValid)
+        {
+            var listaErrores = ModelState.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).FirstOrDefault()
+            );
+            return new JsonResult(new { success = false, errors = listaErrores });
+        }
+
+        // Persistencia (se mantiene igual)
+        var repository = _libroRepositoryFactory.CreateRepository();
         repository.Update(libro);
 
-        return RedirectToPage();
+        // --- CAMBIO PARA FETCH: ÉXITO MANDA JSON ---
+        return new JsonResult(new { success = true });
     }
 
     public IActionResult OnPostCrear(
         string? NombreAutorNuevo,
-        string Titulo,
+        string? Titulo,
         string? ISBN,
         string? Editorial,
         string? Genero,
@@ -184,83 +157,12 @@ public class LibroModel : PageModel
     {
         ModelState.Remove("AutorId");
 
-        int AutorId = 0;
-        if (int.TryParse(Request.Form["AutorId"], out var parsedId))
-        {
-            AutorId = parsedId;
-        }
-
-        Titulo = ValidadorEntrada.NormalizarEspacios(Titulo);
-        ISBN = ValidadorEntrada.NormalizarEspacios(ISBN);
-        Editorial = ValidadorEntrada.NormalizarEspacios(Editorial);
-        Genero = ValidadorEntrada.NormalizarEspacios(Genero);
-        Edicion = ValidadorEntrada.NormalizarEspacios(Edicion);
-        Idioma = ValidadorEntrada.NormalizarEspacios(Idioma);
-        PaisPublicacion = ValidadorEntrada.NormalizarEspacios(PaisPublicacion);
-        Descripcion = ValidadorEntrada.NormalizarEspacios(Descripcion);
-        NombreAutorNuevo = ValidadorEntrada.NormalizarEspacios(NombreAutorNuevo);
-
-        if (ValidadorEntrada.EstaVacio(Titulo))
-            ModelState.AddModelError("Titulo", "El título es obligatorio.");
-        else if (ValidadorEntrada.ExcedeLongitud(Titulo, 200))
-            ModelState.AddModelError("Titulo", "El título excede la longitud máxima de 200 caracteres.");
-
-        if (!string.IsNullOrWhiteSpace(ISBN) && ValidadorEntrada.ExcedeLongitud(ISBN, 20))
-            ModelState.AddModelError("ISBN", "El ISBN excede la longitud máxima de 20 caracteres.");
-
-        if (!ValidadorEntrada.ISBNValido(ISBN))
-            ModelState.AddModelError("ISBN", "El ISBN debe contener 10 o 13 dígitos.");
-
-        if (!string.IsNullOrWhiteSpace(Editorial) && ValidadorEntrada.ExcedeLongitud(Editorial, 100))
-            ModelState.AddModelError("Editorial", "La editorial excede la longitud máxima de 100 caracteres.");
-
-        if (!string.IsNullOrWhiteSpace(Genero) && ValidadorEntrada.ExcedeLongitud(Genero, 100))
-            ModelState.AddModelError("Genero", "El género excede la longitud máxima de 100 caracteres.");
-
-        if (!string.IsNullOrWhiteSpace(Edicion) && ValidadorEntrada.ExcedeLongitud(Edicion, 50))
-            ModelState.AddModelError("Edicion", "La edición excede la longitud máxima de 50 caracteres.");
-
-        if (NumeroPaginas.HasValue && NumeroPaginas <= 0)
-            ModelState.AddModelError("NumeroPaginas", "El número de páginas debe ser mayor a 0.");
-
-        if (!ValidadorEntrada.ValidYear(AñoPublicacion))
-            ModelState.AddModelError("AñoPublicacion", "El año de publicación no es válido.");
-
-        if (!string.IsNullOrWhiteSpace(Idioma) && ValidadorEntrada.ExcedeLongitud(Idioma, 50))
-            ModelState.AddModelError("Idioma", "El idioma excede la longitud máxima de 50 caracteres.");
-
-        if (!ValidadorEntrada.IdiomaPermitido(Idioma))
-            ModelState.AddModelError("Idioma", "Seleccione un idioma válido.");
-
-        if (!string.IsNullOrWhiteSpace(PaisPublicacion) && ValidadorEntrada.ExcedeLongitud(PaisPublicacion, 100))
-            ModelState.AddModelError("PaisPublicacion", "El país de publicación excede la longitud máxima de 100 caracteres.");
-
-        if (!string.IsNullOrWhiteSpace(Descripcion) && ValidadorEntrada.ExcedeLongitud(Descripcion, 500))
-            ModelState.AddModelError("Descripcion", "La descripción excede la longitud máxima de 500 caracteres.");
-
-        if (AutorId == 0 && string.IsNullOrWhiteSpace(NombreAutorNuevo))
-            ModelState.AddModelError("AutorId", "Seleccione un autor o escriba el nombre de uno nuevo.");
-        else if (AutorId != 0 && !EsAutorActivo(AutorId))
-            ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
-
-        if (!ModelState.IsValid)
-        {
-            OnGet();
-            return Page();
-        }
-
-        if (AutorId == 0 && !string.IsNullOrWhiteSpace(NombreAutorNuevo))
-        {
-            var repo = _libroRepositoryFactory.CreateRepository();
-            if (repo is LibroRepository lr)
-            {
-                AutorId = lr.InsertarAutorYObtenerID(NombreAutorNuevo);
-            }
-        }
+        int? AutorId = null;
+        if (int.TryParse(Request.Form["AutorId"], out var parsedId)) AutorId = parsedId;
 
         var libro = new Libro
         {
-            AutorId = AutorId,
+            AutorId = AutorId ?? 0,
             Titulo = Titulo,
             ISBN = ISBN,
             Editorial = Editorial,
@@ -275,10 +177,40 @@ public class LibroModel : PageModel
             FechaRegistro = DateTime.Now
         };
 
+        var nombreAutorNormalizado = ValidadorEntrada.NormalizarEspacios(NombreAutorNuevo);
+        var resultado = _libroService.ValidarLibro(libro, nombreAutorNormalizado);
+
+        if (resultado.IsFailure)
+        {
+            ModelState.AddModelError(resultado.Error.Code.Split('.')[1], resultado.Error.Message);
+        }
+        else if (libro.AutorId != 0 && !EsAutorActivo(libro.AutorId))
+        {
+            ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            var listaErrores = ModelState.ToDictionary(
+                kvp => kvp.Key,
+                kvp => kvp.Value?.Errors.Select(e => e.ErrorMessage).FirstOrDefault()
+            );
+            return new JsonResult(new { success = false, errors = listaErrores });
+        }
+
+        if (libro.AutorId == 0 && !string.IsNullOrWhiteSpace(nombreAutorNormalizado))
+        {
+            var repo = _libroRepositoryFactory.CreateRepository();
+            if (repo is LibroRepository lr)
+            {
+                libro.AutorId = lr.InsertarAutorYObtenerID(nombreAutorNormalizado);
+            }
+        }
+
         var repository = _libroRepositoryFactory.CreateRepository();
         repository.Insert(libro);
 
-        return RedirectToPage();
+        return new JsonResult(new { success = true });
     }
 
     private bool EsAutorActivo(int autorId)
