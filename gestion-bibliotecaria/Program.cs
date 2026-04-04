@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<RouteTokenService>();
 
 builder.Services.AddScoped<LibroService>();
+// builder.Services.AddScoped<AutorService>(); 
+// builder.Services.AddScoped<EjemplarService>();
 
 builder.Services.AddScoped<RepositoryFactory<Autor, int>, AutorRepositoryCreator>();
 builder.Services.AddScoped<RepositoryFactory<Libro, int>, LibroRepositoryCreator>();
