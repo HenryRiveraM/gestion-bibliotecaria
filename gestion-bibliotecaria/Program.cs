@@ -1,18 +1,23 @@
-using gestion_bibliotecaria.Infrastructure.Creators;
-using gestion_bibliotecaria.Domain.Entities;
-using gestion_bibliotecaria.Infrastructure.Security;
 using gestion_bibliotecaria.Aplicacion.Servicios;
+using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Domain.Ports;
+using gestion_bibliotecaria.Infrastructure.Creators;
+using gestion_bibliotecaria.Infrastructure.Persistence;
+using gestion_bibliotecaria.Infrastructure.Security;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
 builder.Services.AddScoped<RouteTokenService>();
 
-builder.Services.AddScoped<LibroService>();
+builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository(connectionString));
+builder.Services.AddScoped<LibroServicio>();
 // builder.Services.AddScoped<AutorService>(); 
 // builder.Services.AddScoped<EjemplarService>();
 
 builder.Services.AddScoped<RepositoryFactory<Autor, int>, AutorRepositoryCreator>();
-builder.Services.AddScoped<RepositoryFactory<Libro, int>, LibroRepositoryCreator>();
 builder.Services.AddScoped<RepositoryFactory<Ejemplar, int>, EjemplarRepositoryCreator>();
 
 builder.Services.AddRazorPages(options =>

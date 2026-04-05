@@ -5,17 +5,22 @@ using gestion_bibliotecaria.Domain.Ports;
 
 namespace gestion_bibliotecaria.Infrastructure.Persistence;
 
-public class LibroRepository : IRepository<Libro, int>
+public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 {
-    private readonly IConfiguration _configuration;
+    private readonly string _connectionString;
 
-    public LibroRepository(IConfiguration configuration)
+    public LibroRepository(string connectionString)
     {
-        _configuration = configuration;
+        _connectionString = connectionString;
     }
 
-    private string ConnectionString => _configuration.GetConnectionString("DefaultConnection")
-        ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+    public LibroRepository(IConfiguration configuration)
+        : this(configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))
+    {
+    }
+
+    private string ConnectionString => _connectionString;
 
     private const string QueryLibros = @"
         SELECT LibroId,
@@ -131,7 +136,7 @@ public class LibroRepository : IRepository<Libro, int>
         VALUES (@Nombres, @Apellidos, 1, @FechaRegistro);
         SELECT LAST_INSERT_ID();";
 
-    public DataTable GetAll()
+    public DataTable Select()
     {
         var dataTable = new DataTable();
 
@@ -144,6 +149,8 @@ public class LibroRepository : IRepository<Libro, int>
 
         return dataTable;
     }
+
+    public DataTable GetAll() => Select();
 
     public Libro? GetById(int id)
     {
@@ -178,7 +185,7 @@ public class LibroRepository : IRepository<Libro, int>
         };
     }
 
-    public void Insert(Libro libro)
+    public void Create(Libro libro)
     {
         using var connection = new MySqlConnection(ConnectionString);
         connection.Open();
@@ -201,6 +208,8 @@ public class LibroRepository : IRepository<Libro, int>
 
         command.ExecuteNonQuery();
     }
+
+    public void Insert(Libro libro) => Create(libro);
 
     public void Update(Libro libro)
     {

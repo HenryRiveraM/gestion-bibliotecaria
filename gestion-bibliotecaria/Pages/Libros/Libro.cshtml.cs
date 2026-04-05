@@ -1,10 +1,6 @@
 using gestion_bibliotecaria.Aplicacion.Servicios;
-using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
-using gestion_bibliotecaria.Domain.Ports;
 using gestion_bibliotecaria.Domain.Validations;
-using gestion_bibliotecaria.Infrastructure.Creators;
-using gestion_bibliotecaria.Infrastructure.Persistence;
 using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -14,28 +10,24 @@ namespace gestion_bibliotecaria.Pages;
 
 public class LibroModel : PageModel
 {
-    private readonly RepositoryFactory<Libro, int> _libroRepositoryFactory;
     private readonly RouteTokenService _routeTokenService;
-    private readonly LibroService _libroService;
+    private readonly LibroServicio _libroServicio;
 
     public DataTable Libros { get; set; } = new DataTable();
     public Dictionary<int, string> AutoresNombres { get; set; } = new();
     public DataTable Autores { get; set; } = new();
 
     public LibroModel(
-        RepositoryFactory<Libro, int> libroRepositoryFactory,
         RouteTokenService routeTokenService,
-        LibroService libroService)
+        LibroServicio libroServicio)
     {
-        _libroRepositoryFactory = libroRepositoryFactory;
         _routeTokenService = routeTokenService;
-        _libroService = libroService;
+        _libroServicio = libroServicio;
     }
 
     public void OnGet()
     {
-        var repository = _libroRepositoryFactory.CreateRepository();
-        Libros = repository.GetAll();
+        Libros = _libroServicio.Select();
 
         if (!Libros.Columns.Contains("LibroToken"))
         {
@@ -48,11 +40,8 @@ public class LibroModel : PageModel
             row["LibroToken"] = _routeTokenService.CrearToken(libroId);
         }
 
-        if (repository is LibroRepository libroRepository)
-        {
-            AutoresNombres = libroRepository.ObtenerNombresAutores();
-            Autores = libroRepository.ObtenerAutoresActivos();
-        }
+        AutoresNombres = _libroServicio.ObtenerNombresAutores();
+        Autores = _libroServicio.ObtenerAutoresActivos();
     }
 
     public IActionResult OnPostEliminar(string token)
@@ -62,16 +51,15 @@ public class LibroModel : PageModel
             return NotFound();
         }
 
-        var repository = _libroRepositoryFactory.CreateRepository();
-        repository.Delete(new Libro { LibroId = libroId });
+        _libroServicio.Delete(new Libro { LibroId = libroId });
 
         return RedirectToPage();
     }
 
     public IActionResult OnPostEditar(
         string token,
-        int? AutorId, // Cambiado a int? para evitar el error Binder de ASP.NET
-        string? Titulo, // Agregado ? para soportar nulls antes de validar
+        int? AutorId,
+        string? Titulo,
         string? ISBN,
         string? Editorial,
         string? Genero,
@@ -85,17 +73,15 @@ public class LibroModel : PageModel
     {
         if (!_routeTokenService.TryObtenerId(token, out var id))
         {
-            // For fetch, NotFound is bad. Return JSON error general.
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 return new JsonResult(new { success = false, errors = new Dictionary<string, string> { { "", "Petición inválida o token expirado." } } });
             return NotFound();
         }
 
-        // Mapeamos a la entidad exacta. Manejamos el AutorId nulo convirtiéndolo en 0.
         var libro = new Libro
         {
             LibroId = id,
-            AutorId = AutorId ?? 0, // Si es null ( Binder vacío), ponle 0
+            AutorId = AutorId ?? 0,
             Titulo = Titulo,
             ISBN = ISBN,
             Editorial = Editorial,
@@ -110,21 +96,17 @@ public class LibroModel : PageModel
             UltimaActualizacion = DateTime.Now
         };
 
-        // Usamos EXACTAMENTE la misma lógica de validación de LibroService que para Crear
-        var resultado = _libroService.ValidarLibro(libro, null); // null porque en editar no hay autor nuevo
+        var resultado = _libroServicio.ValidarLibro(libro, null);
 
         if (resultado.IsFailure)
         {
-            // Split extrae el nombre del campo (ej: "Titulo")
             ModelState.AddModelError(resultado.Error.Code.Split('.')[1], resultado.Error.Message);
         }
-        // Lógica extra que tenías en tu código original
         else if (libro.AutorId != 0 && !EsAutorActivo(libro.AutorId))
         {
             ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
         }
 
-        // --- CAMBIO PARA FETCH: SI HAY ERRORES MANDA JSON ---
         if (!ModelState.IsValid)
         {
             var listaErrores = ModelState.ToDictionary(
@@ -134,11 +116,8 @@ public class LibroModel : PageModel
             return new JsonResult(new { success = false, errors = listaErrores });
         }
 
-        // Persistencia (se mantiene igual)
-        var repository = _libroRepositoryFactory.CreateRepository();
-        repository.Update(libro);
+        _libroServicio.Update(libro);
 
-        // --- CAMBIO PARA FETCH: ÉXITO MANDA JSON ---
         return new JsonResult(new { success = true });
     }
 
@@ -178,7 +157,7 @@ public class LibroModel : PageModel
         };
 
         var nombreAutorNormalizado = ValidadorEntrada.NormalizarEspacios(NombreAutorNuevo);
-        var resultado = _libroService.ValidarLibro(libro, nombreAutorNormalizado);
+        var resultado = _libroServicio.ValidarLibro(libro, nombreAutorNormalizado);
 
         if (resultado.IsFailure)
         {
@@ -200,22 +179,16 @@ public class LibroModel : PageModel
 
         if (libro.AutorId == 0 && !string.IsNullOrWhiteSpace(nombreAutorNormalizado))
         {
-            var repo = _libroRepositoryFactory.CreateRepository();
-            if (repo is LibroRepository lr)
-            {
-                libro.AutorId = lr.InsertarAutorYObtenerID(nombreAutorNormalizado);
-            }
+            libro.AutorId = _libroServicio.InsertarAutorYObtenerID(nombreAutorNormalizado);
         }
 
-        var repository = _libroRepositoryFactory.CreateRepository();
-        repository.Insert(libro);
+        _libroServicio.Create(libro);
 
         return new JsonResult(new { success = true });
     }
 
     private bool EsAutorActivo(int autorId)
     {
-        var repository = _libroRepositoryFactory.CreateRepository();
-        return repository is LibroRepository libroRepository && libroRepository.ExisteAutorActivo(autorId);
+        return _libroServicio.ExisteAutorActivo(autorId);
     }
 }
