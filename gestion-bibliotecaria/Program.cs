@@ -13,12 +13,13 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddScoped<RouteTokenService>();
 
 builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository(connectionString));
+builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository(connectionString));
 builder.Services.AddScoped<LibroServicio>();
+builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
 // builder.Services.AddScoped<AutorService>(); 
 // builder.Services.AddScoped<EjemplarService>();
 
 builder.Services.AddScoped<RepositoryFactory<Autor, int>, AutorRepositoryCreator>();
-builder.Services.AddScoped<RepositoryFactory<Ejemplar, int>, EjemplarRepositoryCreator>();
 
 builder.Services.AddRazorPages(options =>
 {

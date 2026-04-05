@@ -5,13 +5,80 @@ using MySql.Data.MySqlClient;
 
 namespace gestion_bibliotecaria.Infrastructure.Persistence;
 
-public class EjemplarRepository : IRepository<Ejemplar,int>
+public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, int>
 {
     private readonly string _connectionString;
 
-    public EjemplarRepository(IConfiguration configuration)
+    public EjemplarRepository(string connectionString)
     {
-        _connectionString = configuration.GetConnectionString("DefaultConnection")!;
+        _connectionString = connectionString;
+    }
+
+    public EjemplarRepository(IConfiguration configuration)
+        : this(configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))
+    {
+    }
+
+    private string ConnectionString => _connectionString;
+
+    public Dictionary<int, string> ObtenerTitulosLibros()
+    {
+        var titulos = new Dictionary<int, string>();
+
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+
+        const string query = "SELECT LibroId, Titulo FROM libro";
+
+        using var command = new MySqlCommand(query, connection);
+        using var reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            titulos[reader.GetInt32("LibroId")] = reader.GetString("Titulo");
+        }
+
+        return titulos;
+    }
+
+    public DataTable ObtenerLibrosActivos()
+    {
+        var dataTable = new DataTable();
+
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+
+        const string query = "SELECT LibroId, Titulo, Editorial FROM libro WHERE Estado = 1 ORDER BY Titulo";
+
+        using var command = new MySqlCommand(query, connection);
+        using var adapter = new MySqlDataAdapter(command);
+        adapter.Fill(dataTable);
+
+        return dataTable;
+    }
+
+    public bool ExisteLibroActivo(int libroId)
+    {
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+
+        const string query = "SELECT COUNT(1) FROM libro WHERE LibroId = @LibroId AND Estado = 1";
+
+        using var command = new MySqlCommand(query, connection);
+        command.Parameters.AddWithValue("@LibroId", libroId);
+
+        var result = command.ExecuteScalar();
+        return Convert.ToInt32(result) > 0;
+    }
+
+    public DataTable Select() => GetAll();
+
+    public void Create(Ejemplar ejemplar) => Insert(ejemplar);
+
+    public void DeleteById(int id)
+    {
+        Delete(new Ejemplar { EjemplarId = id });
     }
 
     public DataTable GetAll()
