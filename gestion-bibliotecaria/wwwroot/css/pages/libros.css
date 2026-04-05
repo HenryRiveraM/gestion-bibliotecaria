@@ -691,6 +691,90 @@
     font-size:14px;
 }
 
+/* BOTON VER MÁS */
+.btn-info{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#3b82f6;
+    color:white;
+    padding:6px 10px;
+    border-radius:6px;
+    font-size:13px;
+    border:none;
+    cursor:pointer;
+    transition:.2s;
+    white-space:nowrap;
+}
+
+.btn-info:hover{
+    background:#60a5fa;
+}
+
+/* DETALLE MODAL ver mas */
+/* GRID MODERNO */
+.detalle-libro-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));
+    gap:14px;
+    margin-bottom:20px;
+}
+
+/* TARJETAS */
+.detalle-card{
+    background:linear-gradient(145deg, #111418, #0b0f14);
+    border:1px solid #2a2f36;
+    border-radius:12px;
+    padding:14px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    transition:.2s;
+}
+
+.detalle-card:hover{
+    border-color:#10a37f;
+    transform:translateY(-2px);
+}
+
+/* LABEL */
+.detalle-card .label{
+    font-size:12px;
+    color:#9ca3af;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+}
+
+/* VALOR */
+.detalle-card .value{
+    font-size:15px;
+    font-weight:600;
+    color:#e5e7eb;
+}
+
+/* DESCRIPCIÓN GRANDE */
+.detalle-descripcion{
+    background:#111418;
+    border:1px solid #2a2f36;
+    border-radius:12px;
+    padding:16px;
+    margin-top:10px;
+}
+
+.detalle-descripcion .label{
+    font-size:12px;
+    color:#9ca3af;
+    text-transform:uppercase;
+    margin-bottom:6px;
+    display:block;
+}
+
+.detalle-descripcion p{
+    margin:0;
+    color:#e5e7eb;
+    line-height:1.5;
+}
+
 /* =========================
    RESPONSIVE
 ========================= */
