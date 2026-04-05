@@ -69,106 +69,108 @@ else
         </div>
     </div>
 
-    <div class="tabla-container">
-        <table id="tabla-libro" class="tabla-libros">
-            <thead>
-                <tr>
-                    <th>Título del libro</th>
-                    <th>Autor</th>
-                    <th>ISBN</th>
-                    <th>Editorial</th>
-                    <th>Género literario</th>
-                    <th>Edición</th>
-                    <th>Año de publicacion</th>
-                    <th>N.º de páginas</th>
-                    <th>Idioma</th>
-                    <th>País de publicación</th>
-                    <th>Estado del libro</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-            @foreach (DataRow row in Model.Libros.Rows)
-            {
-                var libroToken = row.Field<string>("LibroToken") ?? string.Empty;
-                var autorId = row.Field<int>("AutorId");
-                var titulo = row.Field<string>("Titulo");
-                var isbn = row.Table.Columns.Contains("ISBN") ? row["ISBN"]?.ToString() : "";
-                var editorial = row.Field<string>("Editorial");
-                var genero = row.Table.Columns.Contains("Genero") ? row["Genero"]?.ToString() : "";
-                var edicion = row.Field<string>("Edicion");
-                var añoPublicacion = row.Field<int?>("AñoPublicacion");
-                var numeroPaginas = row.Table.Columns.Contains("NumeroPaginas") && row["NumeroPaginas"] != DBNull.Value
-                    ? Convert.ToInt32(row["NumeroPaginas"]) : (int?)null;
-                var idioma = row.Table.Columns.Contains("Idioma") ? row["Idioma"]?.ToString() : "";
-                var paisPublicacion = row.Table.Columns.Contains("PaisPublicacion") ? row["PaisPublicacion"]?.ToString() : "";
-                var estado = row.Field<bool>("Estado");
-                var descripcion = row.Table.Columns.Contains("Descripcion") ? row["Descripcion"]?.ToString() : "";
-
-                <tr class="@(!estado ? "fila-inactiva" : "")">
-                    <td><strong>@titulo</strong></td>
-                    <td>
-                        @if (Model.AutoresNombres.TryGetValue(autorId, out var nombreAutor))
-                        {
-                            <span>@nombreAutor</span>
-                        }
-                        else
-                        {
-                            <span class="text-muted">Autor #@autorId</span>
-                        }
-                    </td>
-                    <td>@(string.IsNullOrWhiteSpace(isbn) ? "N/A" : isbn)</td>
-                    <td>@(editorial ?? "N/A")</td>
-                    <td>@(string.IsNullOrWhiteSpace(genero) ? "N/A" : genero)</td>
-                    <td>@(edicion ?? "N/A")</td>
-                    <td>@(añoPublicacion?.ToString() ?? "N/A")</td>
-                    <td>@(numeroPaginas?.ToString() ?? "N/A")</td>
-                    <td>@(string.IsNullOrWhiteSpace(idioma) ? "N/A" : idioma)</td>
-                    <td>@(string.IsNullOrWhiteSpace(paisPublicacion) ? "N/A" : paisPublicacion)</td>
-                    <td>
-                        @if (estado)
-                        {
-                            <span class="estado activo">Activo</span>
-                        }
-                        else
-                        {
-                            <span class="estado inactivo">Inactivo</span>
-                        }
-                    </td>
-                    <td class="acciones">
-                        <button type="button" class="btn-editar"
-                                onclick="abrirModalEditar(
-                                    '@libroToken',
-                                    '@autorId',
-                                    '@Js(titulo)',
-                                    '@Js(isbn)',
-                                    '@Js(editorial)',
-                                    '@Js(genero)',
-                                    '@Js(edicion)',
-                                    '@(añoPublicacion?.ToString() ?? "")',
-                                    '@(numeroPaginas?.ToString() ?? "")',
-                                    '@Js(idioma)',
-                                    '@Js(paisPublicacion)',
-                                    '@Js(descripcion)',
-                                    '@estado')">
-                            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn icon-white">
-                            Editar
-                        </button>
-                        <button type="button" class="btn-eliminar" onclick="abrirModalEliminar('@libroToken')">
-                            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn icon-white">
-                            Eliminar
-                        </button>
-                    </td>
-                </tr>
-            }
-            </tbody>
-            <tr id="fila-sin-resultados" style="display:none;">
-                <td colspan="12" style="text-align:center; padding:20px; color:#9ca3af;">
-                    No hay libros que coincidan con la búsqueda.
-                </td>
+<div class="tabla-container">
+    <table id="tabla-libro" class="tabla-libros">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Editorial</th>
+                <th>Año de Publicación</th>
+                <th>Estado</th>
+                <th>Acciones</th>
             </tr>
-        </table>
-    </div>
+        </thead>
+
+        <tbody>
+        @foreach (DataRow row in Model.Libros.Rows)
+        {
+            var libroToken = row.Field<string>("LibroToken") ?? string.Empty;
+            var autorId = row.Field<int>("AutorId");
+            var titulo = row.Field<string>("Titulo");
+            var isbn = row.Table.Columns.Contains("ISBN") ? row["ISBN"]?.ToString() : "";
+            var editorial = row.Field<string>("Editorial");
+            var genero = row.Table.Columns.Contains("Genero") ? row["Genero"]?.ToString() : "";
+            var edicion = row.Field<string>("Edicion");
+            var añoPublicacion = row.Field<int?>("AñoPublicacion");
+            var numeroPaginas = row.Table.Columns.Contains("NumeroPaginas") && row["NumeroPaginas"] != DBNull.Value
+                ? Convert.ToInt32(row["NumeroPaginas"]) : (int?)null;
+            var idioma = row.Table.Columns.Contains("Idioma") ? row["Idioma"]?.ToString() : "";
+            var paisPublicacion = row.Table.Columns.Contains("PaisPublicacion") ? row["PaisPublicacion"]?.ToString() : "";
+            var estado = row.Field<bool>("Estado");
+            var descripcion = row.Table.Columns.Contains("Descripcion") ? row["Descripcion"]?.ToString() : "";
+
+            <tr class="@(!estado ? "fila-inactiva" : "")">
+
+                <td><strong>@titulo</strong></td>
+
+                <td>
+                    @(Model.AutoresNombres.TryGetValue(autorId, out var nombreAutor)
+                        ? nombreAutor
+                        : $"Autor #{autorId}")
+                </td>
+
+                <td>@(editorial ?? "N/A")</td>
+
+                <td>@(añoPublicacion?.ToString() ?? "N/A")</td>
+
+                <td>
+                    <span class="estado @(estado ? "activo" : "inactivo")">
+                        @(estado ? "Activo" : "Inactivo")
+                    </span>
+                </td>
+
+                <td class="acciones">
+
+                    <!-- VER MÁS -->
+                    <button class="btn-info"
+                        onclick="abrirModalDetalle(
+                            '@Js(titulo)',
+                            '@Js(isbn)',
+                            '@Js(editorial)',
+                            '@Js(genero)',
+                            '@Js(edicion)',
+                            '@(añoPublicacion?.ToString() ?? "")',
+                            '@(numeroPaginas?.ToString() ?? "")',
+                            '@Js(idioma)',
+                            '@Js(paisPublicacion)',
+                            '@Js(descripcion)'
+                        )">
+                        Ver más
+                    </button>
+
+                    <!-- EDITAR -->
+                    <button type="button" class="btn-editar"
+                        onclick="abrirModalEditar(
+                            '@libroToken',
+                            '@autorId',
+                            '@Js(titulo)',
+                            '@Js(isbn)',
+                            '@Js(editorial)',
+                            '@Js(genero)',
+                            '@Js(edicion)',
+                            '@(añoPublicacion?.ToString() ?? "")',
+                            '@(numeroPaginas?.ToString() ?? "")',
+                            '@Js(idioma)',
+                            '@Js(paisPublicacion)',
+                            '@Js(descripcion)',
+                            '@estado')">
+                        Editar
+                    </button>
+
+                    <!-- ELIMINAR -->
+                    <button type="button" class="btn-eliminar"
+                        onclick="abrirModalEliminar('@libroToken')">
+                        Eliminar
+                    </button>
+
+                </td>
+
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
 
     <div class="estadisticas">
         <div class="stat stat-info">Total libros: @total</div>
@@ -478,6 +480,15 @@ else
                             <div class="option" data-value="1ra Edición">1ra Edición</div>
                             <div class="option" data-value="2da Edición">2da Edición</div>
                             <div class="option" data-value="3ra Edición">3ra Edición</div>
+                            <div class="option" data-value="4ta Edición">4ta Edición</div>
+                            <div class="option" data-value="5ta Edición">5ta Edición</div>
+                            <div class="option" data-value="6ta Edición">6ta Edición</div>
+                            <div class="option" data-value="7ma Edición">7ma Edición</div>
+                            <div class="option" data-value="8va Edición">8va Edición</div>
+                            <div class="option" data-value="9na Edición">9na Edición</div>
+                            <div class="option" data-value="10ma Edición">10ma Edición</div>
+                            <div class="option" data-value="11va Edición">11va Edición</div>
+                            <div class="option" data-value="12va Edición">12va Edición</div>
                         </div>
                     </div>
                 </div>
@@ -532,8 +543,99 @@ else
     </div>
 </div>
 
+@* Modal de detalle (solo lectura) *@
+<!-- MODAL DETALLE -->
+<div id="modalDetalle" class="modal">
+
+    <div class="modal-box">
+
+        <h2 class="modal-title">Detalle del libro</h2>
+
+        <div class="detalle-libro-grid">
+
+            <div class="detalle-card">
+                <span class="label">Título</span>
+                <span id="dTitulo" class="value"></span>
+            </div>
+
+            <div class="detalle-card">
+                <span class="label">Código ISBN</span>
+                <span id="dISBN" class="value"></span>
+            </div>
+
+            <div class="detalle-card">
+                <span class="label">Editorial</span>
+                <span id="dEditorial" class="value"></span>
+            </div>
+
+            <div class="detalle-card">
+                <span class="label">Género</span>
+                <span id="dGenero" class="value"></span>
+            </div>
+
+            <div class="detalle-card">
+                <span class="label">Edición del Libro</span>
+                <span id="dEdicion" class="value"></span>
+            </div>
+
+            <div class="detalle-card">
+                <span class="label">Año de Publicación</span>
+                <span id="dAnio" class="value"></span>
+            </div>
+
+            <div class="detalle-card">
+                <span class="label">Numero de Páginas</span>
+                <span id="dPaginas" class="value"></span>
+            </div>
+
+            <div class="detalle-card">
+                <span class="label">Idioma</span>
+                <span id="dIdioma" class="value"></span>
+            </div>
+
+            <div class="detalle-card">
+                <span class="label">País de Publicación</span>
+                <span id="dPais" class="value"></span>
+            </div>
+
+        </div>
+
+        <div class="detalle-descripcion">
+            <span class="label">Descripción</span>
+            <p id="dDescripcion"></p>
+        </div>
+
+        <div class="modal-buttons">
+            <button class="btn-secondary" onclick="cerrarModalDetalle()">Cerrar</button>
+        </div>
+
+    </div>
+</div>
+
 @section Scripts {
 <script>
+    function abrirModalDetalle(
+    titulo, isbn, editorial, genero, edicion,
+    anio, paginas, idioma, pais, descripcion
+){
+    document.getElementById("dTitulo").textContent = titulo || "N/A";
+    document.getElementById("dISBN").textContent = isbn || "N/A";
+    document.getElementById("dEditorial").textContent = editorial || "N/A";
+    document.getElementById("dGenero").textContent = genero || "N/A";
+    document.getElementById("dEdicion").textContent = edicion || "N/A";
+    document.getElementById("dAnio").textContent = anio || "N/A";
+    document.getElementById("dPaginas").textContent = paginas || "N/A";
+    document.getElementById("dIdioma").textContent = idioma || "N/A";
+    document.getElementById("dPais").textContent = pais || "N/A";
+    document.getElementById("dDescripcion").textContent = descripcion || "N/A";
+
+    document.getElementById("modalDetalle").style.display = "flex";
+}
+
+function cerrarModalDetalle(){
+    document.getElementById("modalDetalle").style.display = "none";
+}
+
 (function () {
     var input = document.getElementById('buscador-libro');
     var select = document.getElementById('orden-libro');
@@ -972,10 +1074,12 @@ window.onclick = function(e) {
     var modalEliminar = document.getElementById("modalEliminar");
     var modalEditar = document.getElementById("modalEditar");
     var modalCrear = document.getElementById("modalCrear");
+    var modalDetalle = document.getElementById("modalDetalle");
 
     if (e.target === modalEliminar) cerrarModalEliminar();
     if (e.target === modalEditar) cerrarModalEditar();
     if (e.target === modalCrear) cerrarModalCrear();
+    if (e.target === modalDetalle) cerrarModalDetalle();
 };
 </script>
 
@@ -1108,6 +1212,8 @@ window.onclick = function(e) {
                 document.getElementById("createDescripcion").value = descripcion || "";
             }
         });
+
+        
     </script>
 }
 }
