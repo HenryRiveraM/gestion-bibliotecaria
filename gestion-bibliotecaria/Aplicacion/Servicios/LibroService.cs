@@ -1,15 +1,39 @@
-﻿using gestion_bibliotecaria.Domain.Common;
-using gestion_bibliotecaria.Domain.Errors;
-using gestion_bibliotecaria.Domain.Validations;
+﻿using System.Data;
+using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Domain.Errors;
+using gestion_bibliotecaria.Domain.Ports;
+using gestion_bibliotecaria.Domain.Validations;
 
 namespace gestion_bibliotecaria.Aplicacion.Servicios;
 
-public class LibroService
+public class LibroServicio
 {
+    private readonly ILibroRepositorio _libroRepositorio;
+
+    public LibroServicio(ILibroRepositorio libroRepositorio)
+    {
+        _libroRepositorio = libroRepositorio;
+    }
+
+    public DataTable Select() => _libroRepositorio.Select();
+
+    public void Create(Libro libro) => _libroRepositorio.Create(libro);
+
+    public void Update(Libro libro) => _libroRepositorio.Update(libro);
+
+    public void Delete(Libro libro) => _libroRepositorio.Delete(libro);
+
+    public Dictionary<int, string> ObtenerNombresAutores() => _libroRepositorio.ObtenerNombresAutores();
+
+    public DataTable ObtenerAutoresActivos() => _libroRepositorio.ObtenerAutoresActivos();
+
+    public bool ExisteAutorActivo(int autorId) => _libroRepositorio.ExisteAutorActivo(autorId);
+
+    public int InsertarAutorYObtenerID(string nombreCompleto) => _libroRepositorio.InsertarAutorYObtenerID(nombreCompleto);
+
     public Result ValidarLibro(Libro libro, string? nombreAutorNuevo)
     {
-        // Normalizaciones exactas de tu código
         libro.Titulo = ValidadorEntrada.NormalizarEspacios(libro.Titulo);
         libro.ISBN = ValidadorEntrada.NormalizarEspacios(libro.ISBN);
         libro.Editorial = ValidadorEntrada.NormalizarEspacios(libro.Editorial);
@@ -19,7 +43,6 @@ public class LibroService
         libro.PaisPublicacion = ValidadorEntrada.NormalizarEspacios(libro.PaisPublicacion);
         libro.Descripcion = ValidadorEntrada.NormalizarEspacios(libro.Descripcion);
 
-        // Validaciones exactas de tu código
         if (ValidadorEntrada.EstaVacio(libro.Titulo)) return Result.Failure(LibroErrors.TituloObligatorio);
         if (ValidadorEntrada.ExcedeLongitud(libro.Titulo, 200)) return Result.Failure(LibroErrors.TituloLongitud);
 
@@ -44,7 +67,6 @@ public class LibroService
         if (!string.IsNullOrWhiteSpace(libro.PaisPublicacion) && ValidadorEntrada.ExcedeLongitud(libro.PaisPublicacion, 100)) return Result.Failure(LibroErrors.PaisLongitud);
         if (!string.IsNullOrWhiteSpace(libro.Descripcion) && ValidadorEntrada.ExcedeLongitud(libro.Descripcion, 500)) return Result.Failure(LibroErrors.DescripcionLongitud);
 
-        // Validación de autor nuevo/existente
         if (libro.AutorId == 0 && string.IsNullOrWhiteSpace(nombreAutorNuevo)) return Result.Failure(LibroErrors.AutorRequerido);
 
         return Result.Success();
