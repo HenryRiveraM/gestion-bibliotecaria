@@ -1,3 +1,12 @@
+@using gestion_bibliotecaria.Infrastructure.Security
+@using Microsoft.AspNetCore.Http
+@{
+    var nombreUsuarioSesion = Context.Session.GetString(SessionKeys.NombreUsuario);
+    var rolSesion = Context.Session.GetString(SessionKeys.Rol);
+    var haySesion = !string.IsNullOrWhiteSpace(Context.Session.GetString(SessionKeys.UsuarioId));
+    var esAdmin = string.Equals(rolSesion, "Admin", StringComparison.OrdinalIgnoreCase);
+}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -89,24 +98,15 @@
                         </ul>
                     </li>
 
-                    <!-- USUARIOS -->
-                    @* <li class="nav-item dropdown">
-                        <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
-                           href="#"
-                           role="button"
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false">
-                            <img src="~/assets/icons/group_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Usuarios
-                        </a>
-
-                        <ul class="dropdown-menu custom-dropdown-menu">
-                            <li><a class="dropdown-item custom-dropdown-item" href="#">Lectores</a></li>
-                            <li><a class="dropdown-item custom-dropdown-item" href="#">Bibliotecarios</a></li>
-                            <li><a class="dropdown-item custom-dropdown-item" href="#">Roles</a></li>
-                            <li><a class="dropdown-item custom-dropdown-item" href="#">Registro</a></li>
-                        </ul>
-                    </li> *@
+                    @if (esAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Usuarios">
+                                <img src="~/assets/icons/group_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Usuarios
+                            </a>
+                        </li>
+                    }
 
                     <!-- REPORTES -->
                     <li class="nav-item dropdown">
@@ -130,12 +130,36 @@
 
                 <!-- DERECHA -->
                 <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="#">
-                            <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Iniciar sesión
-                        </a>
-                    </li>
+                    @if (!haySesion)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Login">
+                                <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Iniciar sesion
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                @nombreUsuarioSesion
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
+                                <li>
+                                    <form method="post" asp-page="/Login" asp-page-handler="Logout">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item custom-dropdown-item">Cerrar sesion</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
 
                     @* <li class="nav-item">
                         <a class="nav-link nav-btn d-flex align-items-center gap-2" href="#">

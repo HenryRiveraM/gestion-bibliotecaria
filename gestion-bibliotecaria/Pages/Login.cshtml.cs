@@ -51,4 +51,10 @@ public class LoginModel : PageModel
 
         return RedirectToPage("/Index");
     }
+
+    public IActionResult OnPostLogout()
+    {
+        HttpContext.Session.Clear();
+        return RedirectToPage("/Login");
+    }
 }
