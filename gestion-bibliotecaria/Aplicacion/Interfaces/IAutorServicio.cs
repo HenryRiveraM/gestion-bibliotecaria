@@ -1,8 +1,8 @@
-﻿using System.Data;
+using System.Data;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
 
-namespace gestion_bibliotecaria.Aplicacion.Servicios;
+namespace gestion_bibliotecaria.Aplicacion.Interfaces;
 
 public interface IAutorServicio
 {

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using gestion_bibliotecaria.Aplicacion.Servicios;
+using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Errors;

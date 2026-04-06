@@ -3,6 +3,7 @@ using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Domain.Ports;
+using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Validations;
 
 namespace gestion_bibliotecaria.Aplicacion.Servicios;
