@@ -47,7 +47,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
                                 SegundoApellido,
                                 Email,
                                 NombreUsuario,
-                                Hash,
+                                PasswordHash,
                                 Salt,
                                 Rol,
                                 Estado,
@@ -73,20 +73,20 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
             connection.Open();
 
             string query = @"INSERT INTO usuario
-                (UsuarioSesionId, Nombres, PrimerApellido, SegundoApellido, Email, NombreUsuario, Hash, Salt, Rol, Estado, FechaRegistro)
+                (UsuarioSesionId, Nombres, PrimerApellido, SegundoApellido, Email, NombreUsuario, PasswordHash, Salt, Rol, Estado, FechaRegistro)
                 VALUES
-                (@UsuarioSesionId, @Nombres, @PrimerApellido, @SegundoApellido, @Email, @NombreUsuario, @Hash, @Salt, @Rol, @Estado, NOW());";
+                (@UsuarioSesionId, @Nombres, @PrimerApellido, @SegundoApellido, @Email, @NombreUsuario, @PasswordHash, @Salt, @Rol, @Estado, NOW());";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@UsuarioSesionId", usuario.UsuarioSesionId ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Nombres", usuario.Nombres);
                 command.Parameters.AddWithValue("@PrimerApellido", usuario.PrimerApellido);
-                command.Parameters.AddWithValue("@SegundoApellido", usuario.SegundoApellido ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@SegundoApellido", usuario.SegundoApellido);
                 command.Parameters.AddWithValue("@Email", usuario.Email);
                 command.Parameters.AddWithValue("@NombreUsuario", usuario.NombreUsuario);
-                command.Parameters.AddWithValue("@Hash", usuario.Hash);
-                command.Parameters.AddWithValue("@Salt", usuario.Salt);
+                command.Parameters.AddWithValue("@PasswordHash", usuario.PasswordHash);
+                command.Parameters.AddWithValue("@Salt", usuario.Salt ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Rol", usuario.Rol);
                 command.Parameters.AddWithValue("@Estado", usuario.Estado);
 
@@ -108,7 +108,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
                     SegundoApellido = @SegundoApellido,
                     Email = @Email,
                     NombreUsuario = @NombreUsuario,
-                    Hash = @Hash,
+                    PasswordHash = @PasswordHash,
                     Salt = @Salt,
                     Rol = @Rol,
                     Estado = @Estado,
@@ -121,11 +121,11 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
                 command.Parameters.AddWithValue("@UsuarioSesionId", usuario.UsuarioSesionId ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Nombres", usuario.Nombres);
                 command.Parameters.AddWithValue("@PrimerApellido", usuario.PrimerApellido);
-                command.Parameters.AddWithValue("@SegundoApellido", usuario.SegundoApellido ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@SegundoApellido", usuario.SegundoApellido);
                 command.Parameters.AddWithValue("@Email", usuario.Email);
                 command.Parameters.AddWithValue("@NombreUsuario", usuario.NombreUsuario);
-                command.Parameters.AddWithValue("@Hash", usuario.Hash);
-                command.Parameters.AddWithValue("@Salt", usuario.Salt);
+                command.Parameters.AddWithValue("@PasswordHash", usuario.PasswordHash);
+                command.Parameters.AddWithValue("@Salt", usuario.Salt ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Rol", usuario.Rol);
                 command.Parameters.AddWithValue("@Estado", usuario.Estado);
 
@@ -176,11 +176,11 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
                             UsuarioSesionId = reader.IsDBNull("UsuarioSesionId") ? null : reader.GetInt32("UsuarioSesionId"),
                             Nombres = reader.GetString("Nombres"),
                             PrimerApellido = reader.GetString("PrimerApellido"),
-                            SegundoApellido = reader.IsDBNull("SegundoApellido") ? null : reader.GetString("SegundoApellido"),
+                            SegundoApellido = reader.GetString("SegundoApellido"),
                             Email = reader.GetString("Email"),
                             NombreUsuario = reader.GetString("NombreUsuario"),
-                            Hash = reader.GetString("Hash"),
-                            Salt = reader.GetString("Salt"),
+                            PasswordHash = reader.GetString("PasswordHash"),
+                            Salt = reader.IsDBNull("Salt") ? null : reader.GetString("Salt"),
                             Rol = reader.GetString("Rol"),
                             Estado = reader.GetBoolean("Estado"),
                             FechaRegistro = reader.GetDateTime("FechaRegistro"),

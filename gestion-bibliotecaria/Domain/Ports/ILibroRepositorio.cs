@@ -14,5 +14,5 @@ public interface ILibroRepositorio
     Dictionary<int, string> ObtenerNombresAutores();
     DataTable ObtenerAutoresActivos();
     bool ExisteAutorActivo(int autorId);
-    int InsertarAutorYObtenerID(string nombreCompleto);
+    int InsertarAutorYObtenerID(string nombreCompleto, int? usuarioSesionId);
 }

@@ -192,7 +192,7 @@ public class LibroModel : PageModel
 
         if (libro.AutorId == 0 && !string.IsNullOrWhiteSpace(nombreAutorNormalizado))
         {
-            libro.AutorId = _libroServicio.InsertarAutorYObtenerID(nombreAutorNormalizado);
+            libro.AutorId = _libroServicio.InsertarAutorYObtenerID(nombreAutorNormalizado, libro.UsuarioSesionId);
         }
 
         _libroServicio.Create(libro);

@@ -137,8 +137,8 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         WHERE AutorId = @AutorId AND Estado = 1";
     
     private const string QueryInsertarAutor = @"
-        INSERT INTO autor (Nombres, Apellidos, Estado, FechaRegistro)
-        VALUES (@Nombres, @Apellidos, 1, @FechaRegistro);
+        INSERT INTO autor (UsuarioSesionId, Nombres, Apellidos, Estado, FechaRegistro)
+        VALUES (@UsuarioSesionId, @Nombres, @Apellidos, 1, @FechaRegistro);
         SELECT LAST_INSERT_ID();";
 
     public DataTable Select()
@@ -315,7 +315,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         return Convert.ToInt32(result) > 0;
     }
     
-    public int InsertarAutorYObtenerID(string nombreCompleto)
+    public int InsertarAutorYObtenerID(string nombreCompleto, int? usuarioSesionId)
     {
         var partes = nombreCompleto.Trim().Split(' ', 2);
         var nombres = partes[0];
@@ -325,6 +325,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         connection.Open();
 
         using var command = new MySqlCommand(QueryInsertarAutor, connection);
+        command.Parameters.AddWithValue("@UsuarioSesionId", usuarioSesionId ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@Nombres", nombres);
         command.Parameters.AddWithValue("@Apellidos", apellidos);
         command.Parameters.AddWithValue("@FechaRegistro", DateTime.Now);

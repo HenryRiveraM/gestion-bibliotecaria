@@ -32,7 +32,8 @@ public class LibroServicio
 
     public bool ExisteAutorActivo(int autorId) => _libroRepositorio.ExisteAutorActivo(autorId);
 
-    public int InsertarAutorYObtenerID(string nombreCompleto) => _libroRepositorio.InsertarAutorYObtenerID(nombreCompleto);
+    public int InsertarAutorYObtenerID(string nombreCompleto, int? usuarioSesionId)
+        => _libroRepositorio.InsertarAutorYObtenerID(nombreCompleto, usuarioSesionId);
 
     public Result ValidarLibro(Libro libro, string? nombreAutorNuevo)
     {
