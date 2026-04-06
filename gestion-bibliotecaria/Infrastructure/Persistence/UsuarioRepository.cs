@@ -47,8 +47,6 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
                                 SegundoApellido,
                                 Email,
                                 NombreUsuario,
-                                PasswordHash,
-                                Salt,
                                 Rol,
                                 Estado,
                                 FechaRegistro,
@@ -141,11 +139,14 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
             connection.Open();
 
             string query = @"UPDATE usuario
-                             SET Estado = 0, UltimaActualizacion = NOW()
+                             SET UsuarioSesionId = @UsuarioSesionId,
+                                 Estado = 0,
+                                 UltimaActualizacion = NOW()
                              WHERE UsuarioId = @UsuarioId;";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
+                command.Parameters.AddWithValue("@UsuarioSesionId", usuario.UsuarioSesionId ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@UsuarioId", usuario.UsuarioId);
                 command.ExecuteNonQuery();
             }
@@ -194,6 +195,48 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
         return usuario;
     }
 
+    public Usuario? GetByNombreUsuario(string nombreUsuario)
+    {
+        Usuario? usuario = null;
+
+        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+
+            string query = "SELECT * FROM usuario WHERE NombreUsuario = @NombreUsuario LIMIT 1;";
+
+            using (MySqlCommand command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@NombreUsuario", nombreUsuario);
+
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        usuario = new Usuario
+                        {
+                            UsuarioId = reader.GetInt32("UsuarioId"),
+                            UsuarioSesionId = reader.IsDBNull("UsuarioSesionId") ? null : reader.GetInt32("UsuarioSesionId"),
+                            Nombres = reader.GetString("Nombres"),
+                            PrimerApellido = reader.GetString("PrimerApellido"),
+                            SegundoApellido = reader.GetString("SegundoApellido"),
+                            Email = reader.GetString("Email"),
+                            NombreUsuario = reader.GetString("NombreUsuario"),
+                            PasswordHash = reader.GetString("PasswordHash"),
+                            Salt = reader.IsDBNull("Salt") ? null : reader.GetString("Salt"),
+                            Rol = reader.GetString("Rol"),
+                            Estado = reader.GetBoolean("Estado"),
+                            FechaRegistro = reader.GetDateTime("FechaRegistro"),
+                            UltimaActualizacion = reader.IsDBNull("UltimaActualizacion") ? null : reader.GetDateTime("UltimaActualizacion")
+                        };
+                    }
+                }
+            }
+        }
+
+        return usuario;
+    }
+
     public bool ExisteNombreUsuario(string nombreUsuario)
     {
         using (MySqlConnection connection = new MySqlConnection(ConnectionString))
@@ -205,6 +248,23 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@NombreUsuario", nombreUsuario);
+                var resultado = Convert.ToInt32(command.ExecuteScalar());
+                return resultado > 0;
+            }
+        }
+    }
+
+    public bool ExisteEmail(string email)
+    {
+        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+
+            string query = "SELECT COUNT(1) FROM usuario WHERE Email = @Email;";
+
+            using (MySqlCommand command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Email", email);
                 var resultado = Convert.ToInt32(command.ExecuteScalar());
                 return resultado > 0;
             }

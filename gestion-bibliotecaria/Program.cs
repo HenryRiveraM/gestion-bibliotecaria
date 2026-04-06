@@ -32,6 +32,7 @@ builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository(conn
 builder.Services.AddScoped<IEmailSender>(EmailSenderFactory.Create);
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
 builder.Services.AddScoped<IUserCredentialProvisioningService, UserCredentialProvisioningService>();
+builder.Services.AddScoped<IUsuarioServicio, UsuarioServicio>();
 builder.Services.AddScoped<LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
 // builder.Services.AddScoped<AutorService>(); 
