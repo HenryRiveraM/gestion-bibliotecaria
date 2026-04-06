@@ -1,53 +1,34 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using System;
-using System.Data;
+using gestion_bibliotecaria.Aplicacion.Servicios;
+using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
-using gestion_bibliotecaria.Domain.Ports;
-using gestion_bibliotecaria.Infrastructure.Creators;
-using gestion_bibliotecaria.Domain.Validations;
 using gestion_bibliotecaria.Infrastructure.Security;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Data;
 
 namespace gestion_bibliotecaria.Pages;
 
 public class AutorModel : PageModel
 {
-    public DataTable AutorDataTable { get; set; } = new DataTable();
-
-    private readonly RepositoryFactory<Autor, int> _autorRepositoryFactory;
+    private readonly IAutorServicio _autorServicio;
     private readonly RouteTokenService _routeTokenService;
 
-    public AutorModel(
-        RepositoryFactory<Autor, int> autorRepositoryFactory,
-        RouteTokenService routeTokenService)
-    {
-        _autorRepositoryFactory = autorRepositoryFactory;
-        _routeTokenService = routeTokenService;
-    }
-
-    [BindProperty]
-    public string ModalActivo { get; set; } = string.Empty;
-
-    [BindProperty]
-    public string EditToken { get; set; } = string.Empty;
-
-    [BindProperty]
-    public string EditNombres { get; set; } = string.Empty;
-
-    [BindProperty]
-    public string? EditApellidos { get; set; }
-
-    [BindProperty]
-    public string? EditNacionalidad { get; set; }
-
-    [BindProperty]
-    public DateTime? EditFechaNacimiento { get; set; }
-
-    [BindProperty]
-    public bool EditEstado { get; set; }
+    public List<Autor> Autores { get; set; } = new();
 
     [BindProperty]
     public Autor Autor { get; set; } = new Autor();
+
+    public string ModalActivo { get; set; } = string.Empty;
+
+    public AutorModel(
+        IAutorServicio autorServicio,
+        RouteTokenService routeTokenService)
+    {
+        _autorServicio = autorServicio;
+        _routeTokenService = routeTokenService;
+    }
+
 
     public void OnGet()
     {
@@ -56,92 +37,51 @@ public class AutorModel : PageModel
 
     private void CargarAutores()
     {
-        var repository = _autorRepositoryFactory.CreateRepository();
-        AutorDataTable = repository.GetAll();
+        var tabla = _autorServicio.Select();
 
-        if (!AutorDataTable.Columns.Contains("AutorToken"))
-        {
-            AutorDataTable.Columns.Add("AutorToken", typeof(string));
-        }
+        Autores = new List<Autor>();
 
-        foreach (DataRow row in AutorDataTable.Rows)
+        foreach (DataRow row in tabla.Rows)
         {
-            var autorId = Convert.ToInt32(row["AutorId"]);
-            row["AutorToken"] = _routeTokenService.CrearToken(autorId);
+            var autor = new Autor
+            {
+                AutorId = Convert.ToInt32(row["AutorId"]),
+                Nombres = row["Nombres"].ToString()!,
+                Apellidos = row["Apellidos"] == DBNull.Value ? null : row["Apellidos"].ToString(),
+                Nacionalidad = row["Nacionalidad"] == DBNull.Value ? null : row["Nacionalidad"].ToString(),
+                FechaNacimiento = row["FechaNacimiento"] == DBNull.Value ? null : Convert.ToDateTime(row["FechaNacimiento"]),
+                Estado = Convert.ToBoolean(row["Estado"])
+            };
+
+            autor.RouteToken = _routeTokenService.CrearToken(autor.AutorId);
+
+            Autores.Add(autor);
         }
     }
 
     public IActionResult OnPostEliminar(string token)
     {
-        if (!_routeTokenService.TryObtenerId(token, out var autorId))
-        {
+        if (!_routeTokenService.TryObtenerId(token, out var id))
             return NotFound();
-        }
 
-        var repository = _autorRepositoryFactory.CreateRepository();
+        var autor = _autorServicio.GetById(id);
+        if (autor == null)
+            return NotFound();
 
-        repository.Delete(new Autor
-        {
-            AutorId = autorId
-        });
+        _autorServicio.Delete(autor);
 
         return RedirectToPage();
     }
 
-    public IActionResult OnPostCrear(Autor Autor)
+    public IActionResult OnPostCrear()
     {
         ModalActivo = "crear";
-        this.Autor = Autor;
 
-        Autor.Nombres = ValidadorEntrada.NormalizarEspacios(Autor.Nombres);
-        Autor.Apellidos = ValidadorEntrada.NormalizarEspacios(Autor.Apellidos);
-        Autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(Autor.Nacionalidad);
+        var validacion = _autorServicio.ValidarAutor(Autor);
 
-        ModelState.Clear();
-
-        if (ValidadorEntrada.EstaVacio(Autor.Nombres))
+        if (validacion.IsFailure)
         {
-            ModelState.AddModelError("Autor.Nombres", "Los nombres son obligatorios.");
-        }
-        else
-        {
-            if (!ValidadorEntrada.SoloLetras(Autor.Nombres))
-            {
-                ModelState.AddModelError("Autor.Nombres", "Los nombres solo pueden contener letras y espacios.");
-            }
-            else if (ValidadorEntrada.ExcedeLongitud(Autor.Nombres, 100))
-            {
-                ModelState.AddModelError("Autor.Nombres", "Los nombres exceden la longitud máxima de 100 caracteres.");
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(Autor.Apellidos))
-        {
-            if (!ValidadorEntrada.SoloLetras(Autor.Apellidos))
-            {
-                ModelState.AddModelError("Autor.Apellidos", "Los apellidos solo pueden contener letras y espacios.");
-            }
-            else if (ValidadorEntrada.ExcedeLongitud(Autor.Apellidos, 100))
-            {
-                ModelState.AddModelError("Autor.Apellidos", "Los apellidos exceden la longitud máxima de 100 caracteres.");
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(Autor.Nacionalidad))
-        {
-            if (!ValidadorEntrada.SoloLetras(Autor.Nacionalidad))
-            {
-                ModelState.AddModelError("Autor.Nacionalidad", "La nacionalidad solo puede contener letras y espacios.");
-            }
-            else if (ValidadorEntrada.ExcedeLongitud(Autor.Nacionalidad, 100))
-            {
-                ModelState.AddModelError("Autor.Nacionalidad", "La nacionalidad excede la longitud máxima de 100 caracteres.");
-            }
-        }
-
-        if (!ValidadorEntrada.FechaNoFutura(Autor.FechaNacimiento))
-        {
-            ModelState.AddModelError("Autor.FechaNacimiento", "La fecha de nacimiento no puede ser futura.");
+            AgregarError(validacion.Error, true);
         }
 
         if (!ModelState.IsValid)
@@ -150,8 +90,7 @@ public class AutorModel : PageModel
             return Page();
         }
 
-        var repository = _autorRepositoryFactory.CreateRepository();
-        repository.Insert(Autor);
+        _autorServicio.Create(Autor);
 
         return RedirectToPage();
     }
@@ -161,95 +100,59 @@ public class AutorModel : PageModel
         string Nombres,
         string? Apellidos,
         string? Nacionalidad,
-        DateTime? FechaNacimiento)
+        DateTime? FechaNacimiento,
+        bool? Estado)
     {
         ModalActivo = "editar";
 
-        EditToken = token;
-        EditNombres = Nombres;
-        EditApellidos = Apellidos;
-        EditNacionalidad = Nacionalidad;
-        EditFechaNacimiento = FechaNacimiento;
-
-        if (!_routeTokenService.TryObtenerId(token, out var autorId))
-        {
+        if (!_routeTokenService.TryObtenerId(token, out var id))
             return NotFound();
-        }
 
-        var estadoForm = Request.Form["Estado"].ToString();
-        bool estadoParseado = estadoForm == "true" || estadoForm == "True" || estadoForm == "on";
-        EditEstado = estadoParseado;
+        var autor = _autorServicio.GetById(id);
+        if (autor == null)
+            return NotFound();
 
-        var autor = new Autor
+        autor.Nombres = Nombres;
+        autor.Apellidos = Apellidos;
+        autor.Nacionalidad = Nacionalidad;
+        autor.FechaNacimiento = FechaNacimiento;
+        autor.Estado = Estado ?? false;
+
+        var validacion = _autorServicio.ValidarAutor(autor);
+
+        if (validacion.IsFailure)
         {
-            AutorId = autorId,
-            Nombres = ValidadorEntrada.NormalizarEspacios(Nombres),
-            Apellidos = ValidadorEntrada.NormalizarEspacios(Apellidos),
-            Nacionalidad = ValidadorEntrada.NormalizarEspacios(Nacionalidad),
-            FechaNacimiento = FechaNacimiento,
-            Estado = estadoParseado
-        };
-
-        EditNombres = autor.Nombres;
-        EditApellidos = autor.Apellidos;
-        EditNacionalidad = autor.Nacionalidad;
-
-        ModelState.Clear();
-
-        if (ValidadorEntrada.EstaVacio(autor.Nombres))
-        {
-            ModelState.AddModelError("Nombres", "Los nombres son obligatorios.");
-        }
-        else
-        {
-            if (!ValidadorEntrada.SoloLetras(autor.Nombres))
-            {
-                ModelState.AddModelError("Nombres", "Los nombres solo pueden contener letras y espacios.");
-            }
-            else if (ValidadorEntrada.ExcedeLongitud(autor.Nombres, 100))
-            {
-                ModelState.AddModelError("Nombres", "Los nombres exceden la longitud máxima de 100 caracteres.");
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(autor.Apellidos))
-        {
-            if (!ValidadorEntrada.SoloLetras(autor.Apellidos))
-            {
-                ModelState.AddModelError("Apellidos", "Los apellidos solo pueden contener letras y espacios.");
-            }
-            else if (ValidadorEntrada.ExcedeLongitud(autor.Apellidos, 100))
-            {
-                ModelState.AddModelError("Apellidos", "Los apellidos exceden la longitud máxima de 100 caracteres.");
-            }
-        }
-
-        if (!string.IsNullOrWhiteSpace(autor.Nacionalidad))
-        {
-            if (!ValidadorEntrada.SoloLetras(autor.Nacionalidad))
-            {
-                ModelState.AddModelError("Nacionalidad", "La nacionalidad solo puede contener letras y espacios.");
-            }
-            else if (ValidadorEntrada.ExcedeLongitud(autor.Nacionalidad, 100))
-            {
-                ModelState.AddModelError("Nacionalidad", "La nacionalidad excede la longitud máxima de 100 caracteres.");
-            }
-        }
-
-        if (!ValidadorEntrada.FechaNoFutura(autor.FechaNacimiento))
-        {
-            ModelState.AddModelError("FechaNacimiento", "La fecha de nacimiento no puede ser futura.");
+            AgregarError(validacion.Error);
         }
 
         if (!ModelState.IsValid)
         {
+            ModelState.SetModelValue("token", new ValueProviderResult(token));
+            ModelState.SetModelValue("Nombres", new ValueProviderResult(Nombres));
+            ModelState.SetModelValue("Apellidos", new ValueProviderResult(Apellidos ?? ""));
+            ModelState.SetModelValue("Nacionalidad", new ValueProviderResult(Nacionalidad ?? ""));
+            ModelState.SetModelValue("FechaNacimiento", new ValueProviderResult(FechaNacimiento?.ToString("yyyy-MM-dd") ?? ""));
+            ModelState.SetModelValue("Estado", new ValueProviderResult((Estado ?? false).ToString()));
             CargarAutores();
             return Page();
         }
 
-        var repository = _autorRepositoryFactory.CreateRepository();
-        repository.Update(autor);
+        _autorServicio.Update(autor);
 
         return RedirectToPage();
+    }
+
+    private void AgregarError(Error error, bool esCrear = false)
+    {
+        var key = error.Code.Split('.').LastOrDefault() ?? string.Empty;
+
+        if (esCrear)
+        {
+            ModelState.AddModelError($"Autor.{key}", error.Message);
+        }
+        else
+        {
+            ModelState.AddModelError(key, error.Message);
+        }
     }
 }
