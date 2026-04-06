@@ -357,10 +357,17 @@ else
                 <span class="text-error" id="error-edit-Descripcion"></span>
             </div>
 
-            <select id="editEstado" name="Estado">
-                <option value="true">Activo</option>
-                <option value="false">Inactivo</option>
-            </select>
+            <div class="radio-group estado-group">
+                <span class="radio-label">Estado</span>
+                <label class="radio-option">
+                    <input type="radio" id="editEstadoActivo" name="Estado" value="true" checked>
+                    Activo
+                </label>
+                <label class="radio-option">
+                    <input type="radio" id="editEstadoInactivo" name="Estado" value="false">
+                    Inactivo
+                </label>
+            </div>
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-warning">Guardar cambios</button>
@@ -533,6 +540,18 @@ else
             <div class="input-group">
                 <textarea id="createDescripcion" name="Descripcion" placeholder="Descripción breve" rows="4"></textarea>
                 <span class="text-error" id="error-create-Descripcion"></span>
+            </div>
+
+            <div class="radio-group estado-group">
+                <span class="radio-label">Estado</span>
+                <label class="radio-option">
+                    <input type="radio" id="createEstadoActivo" name="Estado" value="true" checked>
+                    Activo
+                </label>
+                <label class="radio-option">
+                    <input type="radio" id="createEstadoInactivo" name="Estado" value="false">
+                    Inactivo
+                </label>
             </div>
 
             <div class="modal-buttons">
@@ -798,7 +817,9 @@ function abrirModalEditar(token, autorId, titulo, isbn, editorial, genero, edici
 
     document.getElementById("editPaisPublicacion").value = paisPublicacion || "";
     document.getElementById("editDescripcion").value = descripcion || "";
-    document.getElementById("editEstado").value = estado === "True" ? "true" : "false";
+    const estadoEditEsActivo = String(estado).toLowerCase() === "true";
+    document.getElementById("editEstadoActivo").checked = estadoEditEsActivo;
+    document.getElementById("editEstadoInactivo").checked = !estadoEditEsActivo;
 
     const autorOption = document.querySelector('#custom-select-autor-edit .option[data-value="' + autorId + '"]');
     document.getElementById("editAutorText").textContent =
@@ -844,6 +865,8 @@ function abrirModalCrear() {
 
     document.getElementById("createPaisPublicacion").value = "";
     document.getElementById("createDescripcion").value = "";
+    document.getElementById("createEstadoActivo").checked = true;
+    document.getElementById("createEstadoInactivo").checked = false;
 
     sincronizarCamposCrear();
     mostrarModalCrear();
@@ -1146,7 +1169,8 @@ window.onclick = function(e) {
 
                 document.getElementById("editPaisPublicacion").value = pais || "";
                 document.getElementById("editDescripcion").value = descripcion || "";
-                document.getElementById("editEstado").value = estado || "true";
+                document.getElementById("editEstadoActivo").checked = estado === "True";
+                document.getElementById("editEstadoInactivo").checked = estado !== "True";
 
                 const autorOption = document.querySelector('#custom-select-autor-edit .option[data-value="' + autorId + '"]');
                 document.getElementById("editAutorText").textContent =
@@ -1204,16 +1228,20 @@ window.onclick = function(e) {
                 document.getElementById("createAnioPublicacion").value = anio || "";
                 document.getElementById("createNumeroPaginas").value = paginas || "";
 
-                document.getElementById("createIdiomaHidden").value = idioma || "";
+                document.getElementById("createIdiomaHidden").value = idioma;
                 document.getElementById("createIdiomaText").textContent = idioma || "Idioma";
                 document.getElementById("idioma-search-create").value = idioma || "";
 
                 document.getElementById("createPaisPublicacion").value = pais || "";
                 document.getElementById("createDescripcion").value = descripcion || "";
+
+                const estadoCreateEsActivo = String('@estadoForm').toLowerCase() === "true";
+                document.getElementById("createEstadoActivo").checked = estadoCreateEsActivo;
+                document.getElementById("createEstadoInactivo").checked = !estadoCreateEsActivo;
             }
         });
 
-        
+
     </script>
 }
 }

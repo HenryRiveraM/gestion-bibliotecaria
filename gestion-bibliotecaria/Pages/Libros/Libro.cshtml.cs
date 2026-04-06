@@ -1,4 +1,4 @@
-using gestion_bibliotecaria.Aplicacion.Servicios;
+using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Validations;
 using gestion_bibliotecaria.Infrastructure.Security;
@@ -11,7 +11,7 @@ namespace gestion_bibliotecaria.Pages;
 public class LibroModel : PageModel
 {
     private readonly RouteTokenService _routeTokenService;
-    private readonly LibroServicio _libroServicio;
+    private readonly ILibroServicio _libroServicio;
 
     public DataTable Libros { get; set; } = new DataTable();
     public Dictionary<int, string> AutoresNombres { get; set; } = new();
@@ -19,7 +19,7 @@ public class LibroModel : PageModel
 
     public LibroModel(
         RouteTokenService routeTokenService,
-        LibroServicio libroServicio)
+        ILibroServicio libroServicio)
     {
         _routeTokenService = routeTokenService;
         _libroServicio = libroServicio;
@@ -132,7 +132,8 @@ public class LibroModel : PageModel
         int? NumeroPaginas,
         string? Idioma,
         string? PaisPublicacion,
-        string? Descripcion)
+        string? Descripcion,
+        bool Estado = true)
     {
         ModelState.Remove("AutorId");
 
@@ -152,7 +153,7 @@ public class LibroModel : PageModel
             Idioma = Idioma,
             PaisPublicacion = PaisPublicacion,
             Descripcion = Descripcion,
-            Estado = true,
+            Estado = Estado,
             FechaRegistro = DateTime.Now
         };
 

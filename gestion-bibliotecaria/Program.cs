@@ -1,8 +1,6 @@
 using gestion_bibliotecaria.Aplicacion.Servicios;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
-using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Ports;
-using gestion_bibliotecaria.Infrastructure.Creators;
 using gestion_bibliotecaria.Infrastructure.Persistence;
 using gestion_bibliotecaria.Infrastructure.Security;
 
@@ -17,12 +15,8 @@ builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository(connecti
 builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository(connectionString));
 builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository(connectionString));
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
-builder.Services.AddScoped<LibroServicio>();
+builder.Services.AddScoped<ILibroServicio, LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
-// builder.Services.AddScoped<AutorService>(); 
-// builder.Services.AddScoped<EjemplarService>();
-
-
 
 builder.Services.AddRazorPages(options =>
 {
