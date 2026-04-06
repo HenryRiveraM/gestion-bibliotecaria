@@ -3,6 +3,52 @@
 @model gestion_bibliotecaria.Pages.AutorModel
 @{
     ViewData["Title"] = "Gestión de Autores";
+
+    string editToken = ViewData.ModelState.ContainsKey("token")
+        ? ViewData.ModelState["token"]?.AttemptedValue ?? ""
+        : "";
+
+    string editNombres = ViewData.ModelState.ContainsKey("Nombres")
+        ? ViewData.ModelState["Nombres"]?.AttemptedValue ?? ""
+        : "";
+
+    string editApellidos = ViewData.ModelState.ContainsKey("Apellidos")
+        ? ViewData.ModelState["Apellidos"]?.AttemptedValue ?? ""
+        : "";
+
+    string editNacionalidad = ViewData.ModelState.ContainsKey("Nacionalidad")
+        ? ViewData.ModelState["Nacionalidad"]?.AttemptedValue ?? ""
+        : "";
+
+    string editFechaNacimiento = ViewData.ModelState.ContainsKey("FechaNacimiento")
+        ? ViewData.ModelState["FechaNacimiento"]?.AttemptedValue ?? ""
+        : "";
+
+    bool editEstadoSeleccionado = !ViewData.ModelState.ContainsKey("Estado")
+        || ViewData.ModelState["Estado"]?.AttemptedValue == "true"
+        || ViewData.ModelState["Estado"]?.AttemptedValue == "True"
+        || ViewData.ModelState["Estado"]?.AttemptedValue == "on";
+
+    string createNombres = ViewData.ModelState.ContainsKey("Autor.Nombres")
+        ? ViewData.ModelState["Autor.Nombres"]?.AttemptedValue ?? ""
+        : "";
+
+    string createApellidos = ViewData.ModelState.ContainsKey("Autor.Apellidos")
+        ? ViewData.ModelState["Autor.Apellidos"]?.AttemptedValue ?? ""
+        : "";
+
+    string createNacionalidad = ViewData.ModelState.ContainsKey("Autor.Nacionalidad")
+        ? ViewData.ModelState["Autor.Nacionalidad"]?.AttemptedValue ?? ""
+        : "";
+
+    string createFechaNacimiento = ViewData.ModelState.ContainsKey("Autor.FechaNacimiento")
+        ? ViewData.ModelState["Autor.FechaNacimiento"]?.AttemptedValue ?? ""
+        : "";
+
+    bool createEstadoSeleccionado = !ViewData.ModelState.ContainsKey("Autor.Estado")
+        || ViewData.ModelState["Autor.Estado"]?.AttemptedValue == "true"
+        || ViewData.ModelState["Autor.Estado"]?.AttemptedValue == "True"
+        || ViewData.ModelState["Autor.Estado"]?.AttemptedValue == "on";
 }
 
 @section Styles {
@@ -47,22 +93,20 @@
             </thead>
 
             <tbody>
-                @foreach (System.Data.DataRow row in Model.AutorDataTable.Rows)
+                @foreach (var autor in Model.Autores)
                 {
-                    var token = row["AutorToken"]?.ToString() ?? "";
-                    var nombres = row["Nombres"]?.ToString() ?? "";
-                    var apellidos = row["Apellidos"]?.ToString() ?? "";
-                    var nacionalidad = row["Nacionalidad"]?.ToString() ?? "";
-                    var fecha = row.IsNull("FechaNacimiento")
-                        ? ""
-                        : ((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd");
-                    var estado = (bool)row["Estado"];
+                    var token = autor.RouteToken;
+                    var nombres = autor.Nombres ?? "";
+                    var apellidos = autor.Apellidos ?? "";
+                    var nacionalidad = autor.Nacionalidad ?? "";
+                    var fecha = autor.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "";
+                    var estado = autor.Estado;
 
                     <tr>
                         <td>@nombres</td>
                         <td>@apellidos</td>
                         <td>@nacionalidad</td>
-                        <td>@(row.IsNull("FechaNacimiento") ? "" : ((DateTime)row["FechaNacimiento"]).ToString("yyyy-MM-dd"))</td>
+                        <td>@fecha</td>
 
                         <td>
                             @if (estado)
@@ -79,13 +123,13 @@
                             <button type="button"
                                     class="btn-editar"
                                     onclick="abrirModalEditar(
-                                        '@token',
-                                        '@Html.Raw(nombres.Replace("'", "\\'"))',
-                                        '@Html.Raw(apellidos.Replace("'", "\\'"))',
-                                        '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
-                                        '@fecha',
-                                        '@(estado.ToString().ToLower())'
-                                    )">
+                                            '@token',
+                                            '@Html.Raw(nombres.Replace("'", "\\'"))',
+                                            '@Html.Raw(apellidos.Replace("'", "\\'"))',
+                                            '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
+                                            '@fecha',
+                                            '@(estado.ToString().ToLower())'
+                                        )">
                                 <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
                                      class="icono-btn">
                                 Editar
@@ -127,7 +171,6 @@
 
         <form method="post" asp-page-handler="Eliminar">
             @Html.AntiForgeryToken()
-
             <input type="hidden" id="autorTokenInput" name="token" />
 
             <div class="modal-buttons">
@@ -142,26 +185,19 @@
 <!-- MODAL EDITAR -->
 <div id="modalEditar" class="modal">
     <div class="modal-box">
-
-        <div class="modal-icon editar">
-            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                 class="icono-modal">
-        </div>
-
         <h2>Editar Autor</h2>
-        <p>Modifica la información del autor.</p>
 
         <form method="post" asp-page-handler="Editar" id="editAutorForm">
             @Html.AntiForgeryToken()
 
-            <input type="hidden" id="editToken" name="token" value="@Model.EditToken" />
+            <input type="hidden" id="editToken" name="token" value="@editToken" />
 
             <input type="text"
                    id="editNombres"
                    name="Nombres"
                    placeholder="Nombres"
                    required
-                   value="@Model.EditNombres" />
+                   value="@editNombres" />
             @if (ViewData.ModelState.ContainsKey("Nombres"))
             {
                 <span class="text-error">@ViewData.ModelState["Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
@@ -171,265 +207,19 @@
                    id="editApellidos"
                    name="Apellidos"
                    placeholder="Apellidos"
-                   value="@Model.EditApellidos" />
+                   value="@editApellidos" />
             @if (ViewData.ModelState.ContainsKey("Apellidos"))
             {
                 <span class="text-error">@ViewData.ModelState["Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <div class="custom-select-wrapper">
-                <input type="hidden"
-                       id="editNacionalidadValue"
-                       name="Nacionalidad"
-                       value="@Model.EditNacionalidad" />
-
-                <div class="custom-select" id="custom-select-nacionalidad-edit">
-                    <div class="select-trigger">
-                        <span id="editNacionalidadText">
-                            @(string.IsNullOrWhiteSpace(Model.EditNacionalidad) ? "-- Seleccione una nacionalidad --" : Model.EditNacionalidad)
-                        </span>
-                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </div>
-
-                    <div class="select-dropdown">
-                        <input type="text"
-                               class="select-search"
-                               id="editNacionalidadSearch"
-                               placeholder="Buscar nacionalidad..." />
-
-                        <div class="select-options">
-                            <div class="option" data-value="Afganistán">Afganistán</div>
-                            <div class="option" data-value="Albania">Albania</div>
-                            <div class="option" data-value="Alemania">Alemania</div>
-                            <div class="option" data-value="Andorra">Andorra</div>
-                            <div class="option" data-value="Angola">Angola</div>
-                            <div class="option" data-value="Antigua y Barbuda">Antigua y Barbuda</div>
-                            <div class="option" data-value="Arabia Saudita">Arabia Saudita</div>
-                            <div class="option" data-value="Argelia">Argelia</div>
-                            <div class="option" data-value="Argentina">Argentina</div>
-                            <div class="option" data-value="Armenia">Armenia</div>
-                            <div class="option" data-value="Australia">Australia</div>
-                            <div class="option" data-value="Austria">Austria</div>
-                            <div class="option" data-value="Azerbaiyán">Azerbaiyán</div>
-                            <div class="option" data-value="Bahamas">Bahamas</div>
-                            <div class="option" data-value="Bangladés">Bangladés</div>
-                            <div class="option" data-value="Barbados">Barbados</div>
-                            <div class="option" data-value="Baréin">Baréin</div>
-                            <div class="option" data-value="Bélgica">Bélgica</div>
-                            <div class="option" data-value="Belice">Belice</div>
-                            <div class="option" data-value="Benín">Benín</div>
-                            <div class="option" data-value="Bielorrusia">Bielorrusia</div>
-                            <div class="option" data-value="Birmania">Birmania</div>
-                            <div class="option" data-value="Bolivia">Bolivia</div>
-                            <div class="option" data-value="Bosnia y Herzegovina">Bosnia y Herzegovina</div>
-                            <div class="option" data-value="Botsuana">Botsuana</div>
-                            <div class="option" data-value="Brasil">Brasil</div>
-                            <div class="option" data-value="Brunéi">Brunéi</div>
-                            <div class="option" data-value="Bulgaria">Bulgaria</div>
-                            <div class="option" data-value="Burkina Faso">Burkina Faso</div>
-                            <div class="option" data-value="Burundi">Burundi</div>
-                            <div class="option" data-value="Bután">Bután</div>
-                            <div class="option" data-value="Camboya">Camboya</div>
-                            <div class="option" data-value="Camerún">Camerún</div>
-                            <div class="option" data-value="Canadá">Canadá</div>
-                            <div class="option" data-value="Catar">Catar</div>
-                            <div class="option" data-value="Chad">Chad</div>
-                            <div class="option" data-value="Chile">Chile</div>
-                            <div class="option" data-value="China">China</div>
-                            <div class="option" data-value="Chipre">Chipre</div>
-                            <div class="option" data-value="Ciudad del Vaticano">Ciudad del Vaticano</div>
-                            <div class="option" data-value="Colombia">Colombia</div>
-                            <div class="option" data-value="Comoras">Comoras</div>
-                            <div class="option" data-value="Congo">Congo</div>
-                            <div class="option" data-value="Corea del Norte">Corea del Norte</div>
-                            <div class="option" data-value="Corea del Sur">Corea del Sur</div>
-                            <div class="option" data-value="Costa Rica">Costa Rica</div>
-                            <div class="option" data-value="Costa de Marfil">Costa de Marfil</div>
-                            <div class="option" data-value="Croacia">Croacia</div>
-                            <div class="option" data-value="Cuba">Cuba</div>
-                            <div class="option" data-value="Curazao">Curazao</div>
-                            <div class="option" data-value="Dinamarca">Dinamarca</div>
-                            <div class="option" data-value="Dominica">Dominica</div>
-                            <div class="option" data-value="República Dominicana">República Dominicana</div>
-                            <div class="option" data-value="Ecuador">Ecuador</div>
-                            <div class="option" data-value="Egipto">Egipto</div>
-                            <div class="option" data-value="Emiratos Árabes Unidos">Emiratos Árabes Unidos</div>
-                            <div class="option" data-value="Escocia">Escocia</div>
-                            <div class="option" data-value="Eslovaca">Eslovaca</div>
-                            <div class="option" data-value="Eslovenia">Eslovenia</div>
-                            <div class="option" data-value="España">España</div>
-                            <div class="option" data-value="Estados Unidos">Estados Unidos</div>
-                            <div class="option" data-value="Estonia">Estonia</div>
-                            <div class="option" data-value="Etiopía">Etiopía</div>
-                            <div class="option" data-value="Filipinas">Filipinas</div>
-                            <div class="option" data-value="Finlandia">Finlandia</div>
-                            <div class="option" data-value="Fiyi">Fiyi</div>
-                            <div class="option" data-value="Francia">Francia</div>
-                            <div class="option" data-value="Gabón">Gabón</div>
-                            <div class="option" data-value="Gales">Gales</div>
-                            <div class="option" data-value="Gambia">Gambia</div>
-                            <div class="option" data-value="Georgia">Georgia</div>
-                            <div class="option" data-value="Ghana">Ghana</div>
-                            <div class="option" data-value="Gibraltar">Gibraltar</div>
-                            <div class="option" data-value="Grecia">Grecia</div>
-                            <div class="option" data-value="Groenlandia">Groenlandia</div>
-                            <div class="option" data-value="Guadalupe">Guadalupe</div>
-                            <div class="option" data-value="Guam">Guam</div>
-                            <div class="option" data-value="Guatemala">Guatemala</div>
-                            <div class="option" data-value="Guayana Francesa">Guayana Francesa</div>
-                            <div class="option" data-value="Guernsey">Guernsey</div>
-                            <div class="option" data-value="Guinea">Guinea</div>
-                            <div class="option" data-value="Guinea Ecuatorial">Guinea Ecuatorial</div>
-                            <div class="option" data-value="Guinea-Bisáu">Guinea-Bisáu</div>
-                            <div class="option" data-value="Guyana">Guyana</div>
-                            <div class="option" data-value="Haití">Haití</div>
-                            <div class="option" data-value="Holanda">Holanda</div>
-                            <div class="option" data-value="Honduras">Honduras</div>
-                            <div class="option" data-value="Hong Kong">Hong Kong</div>
-                            <div class="option" data-value="Hungría">Hungría</div>
-                            <div class="option" data-value="India">India</div>
-                            <div class="option" data-value="Indonesia">Indonesia</div>
-                            <div class="option" data-value="Irak">Irak</div>
-                            <div class="option" data-value="Irán">Irán</div>
-                            <div class="option" data-value="Irlanda">Irlanda</div>
-                            <div class="option" data-value="Isla Bouvet">Isla Bouvet</div>
-                            <div class="option" data-value="Isla de Man">Isla de Man</div>
-                            <div class="option" data-value="Isla Norfolk">Isla Norfolk</div>
-                            <div class="option" data-value="Islandia">Islandia</div>
-                            <div class="option" data-value="Islas Åland">Islas Åland</div>
-                            <div class="option" data-value="Islas Caimán">Islas Caimán</div>
-                            <div class="option" data-value="Islas Cocos">Islas Cocos</div>
-                            <div class="option" data-value="Islas Cook">Islas Cook</div>
-                            <div class="option" data-value="Islas Feroe">Islas Feroe</div>
-                            <div class="option" data-value="Islas Heard y McDonald">Islas Heard y McDonald</div>
-                            <div class="option" data-value="Islas Malvinas">Islas Malvinas</div>
-                            <div class="option" data-value="Islas Marianas del Norte">Islas Marianas del Norte</div>
-                            <div class="option" data-value="Islas Marshall">Islas Marshall</div>
-                            <div class="option" data-value="Islas Pitcairn">Islas Pitcairn</div>
-                            <div class="option" data-value="Islas Salomón">Islas Salomón</div>
-                            <div class="option" data-value="Islas Turcas y Caicos">Islas Turcas y Caicos</div>
-                            <div class="option" data-value="Islas Vírgenes Británicas">Islas Vírgenes Británicas</div>
-                            <div class="option" data-value="Islas Vírgenes de los Estados Unidos">Islas Vírgenes de los Estados Unidos</div>
-                            <div class="option" data-value="Israel">Israel</div>
-                            <div class="option" data-value="Italia">Italia</div>
-                            <div class="option" data-value="Jamaica">Jamaica</div>
-                            <div class="option" data-value="Japón">Japón</div>
-                            <div class="option" data-value="Jersey">Jersey</div>
-                            <div class="option" data-value="Jordania">Jordania</div>
-                            <div class="option" data-value="Kazajistán">Kazajistán</div>
-                            <div class="option" data-value="Kenia">Kenia</div>
-                            <div class="option" data-value="Kirguistán">Kirguistán</div>
-                            <div class="option" data-value="Kiribati">Kiribati</div>
-                            <div class="option" data-value="Kuwait">Kuwait</div>
-                            <div class="option" data-value="Laos">Laos</div>
-                            <div class="option" data-value="Lesoto">Lesoto</div>
-                            <div class="option" data-value="Letonia">Letonia</div>
-                            <div class="option" data-value="Líbano">Líbano</div>
-                            <div class="option" data-value="Liberia">Liberia</div>
-                            <div class="option" data-value="Libia">Libia</div>
-                            <div class="option" data-value="Liechtenstein">Liechtenstein</div>
-                            <div class="option" data-value="Lituania">Lituania</div>
-                            <div class="option" data-value="Luxemburgo">Luxemburgo</div>
-                            <div class="option" data-value="Macao">Macao</div>
-                            <div class="option" data-value="Madagascar">Madagascar</div>
-                            <div class="option" data-value="Malasia">Malasia</div>
-                            <div class="option" data-value="Malaui">Malaui</div>
-                            <div class="option" data-value="Maldivas">Maldivas</div>
-                            <div class="option" data-value="Malí">Malí</div>
-                            <div class="option" data-value="Malta">Malta</div>
-                            <div class="option" data-value="Marruecos">Marruecos</div>
-                            <div class="option" data-value="Martinica">Martinica</div>
-                            <div class="option" data-value="Mauricio">Mauricio</div>
-                            <div class="option" data-value="Mauritania">Mauritania</div>
-                            <div class="option" data-value="Mayotte">Mayotte</div>
-                            <div class="option" data-value="México">México</div>
-                            <div class="option" data-value="Micronesia">Micronesia</div>
-                            <div class="option" data-value="Mónaco">Mónaco</div>
-                            <div class="option" data-value="Mongolia">Mongolia</div>
-                            <div class="option" data-value="Montenegro">Montenegro</div>
-                            <div class="option" data-value="Montserrat">Montserrat</div>
-                            <div class="option" data-value="Mozambique">Mozambique</div>
-                            <div class="option" data-value="Namibia">Namibia</div>
-                            <div class="option" data-value="Nauru">Nauru</div>
-                            <div class="option" data-value="Nepal">Nepal</div>
-                            <div class="option" data-value="Nicaragua">Nicaragua</div>
-                            <div class="option" data-value="Níger">Níger</div>
-                            <div class="option" data-value="Nigeria">Nigeria</div>
-                            <div class="option" data-value="Niue">Niue</div>
-                            <div class="option" data-value="Noruega">Noruega</div>
-                            <div class="option" data-value="Nueva Caledonia">Nueva Caledonia</div>
-                            <div class="option" data-value="Nueva Zelanda">Nueva Zelanda</div>
-                            <div class="option" data-value="Omán">Omán</div>
-                            <div class="option" data-value="Pakistán">Pakistán</div>
-                            <div class="option" data-value="Palaos">Palaos</div>
-                            <div class="option" data-value="Palestina">Palestina</div>
-                            <div class="option" data-value="Panamá">Panamá</div>
-                            <div class="option" data-value="Papúa Nueva Guinea">Papúa Nueva Guinea</div>
-                            <div class="option" data-value="Paraguay">Paraguay</div>
-                            <div class="option" data-value="Perú">Perú</div>
-                            <div class="option" data-value="Polinesia Francesa">Polinesia Francesa</div>
-                            <div class="option" data-value="Polonia">Polonia</div>
-                            <div class="option" data-value="Portugal">Portugal</div>
-                            <div class="option" data-value="Puerto Rico">Puerto Rico</div>
-                            <div class="option" data-value="Reino Unido">Reino Unido</div>
-                            <div class="option" data-value="Reunión">Reunión</div>
-                            <div class="option" data-value="Ruanda">Ruanda</div>
-                            <div class="option" data-value="Rumania">Rumania</div>
-                            <div class="option" data-value="Rusia">Rusia</div>
-                            <div class="option" data-value="Sahara Occidental">Sahara Occidental</div>
-                            <div class="option" data-value="Samoa">Samoa</div>
-                            <div class="option" data-value="Samoa Americana">Samoa Americana</div>
-                            <div class="option" data-value="San Bartolomé">San Bartolomé</div>
-                            <div class="option" data-value="San Marino">San Marino</div>
-                            <div class="option" data-value="San Martín">San Martín</div>
-                            <div class="option" data-value="San Vicente y las Granadinas">San Vicente y las Granadinas</div>
-                            <div class="option" data-value="Santa Elena">Santa Elena</div>
-                            <div class="option" data-value="Santa Lucía">Santa Lucía</div>
-                            <div class="option" data-value="Santo Tomé y Príncipe">Santo Tomé y Príncipe</div>
-                            <div class="option" data-value="Senegal">Senegal</div>
-                            <div class="option" data-value="Serbia">Serbia</div>
-                            <div class="option" data-value="Seychelles">Seychelles</div>
-                            <div class="option" data-value="Siria">Siria</div>
-                            <div class="option" data-value="Somalia">Somalia</div>
-                            <div class="option" data-value="Sri Lanka">Sri Lanka</div>
-                            <div class="option" data-value="Sudáfrica">Sudáfrica</div>
-                            <div class="option" data-value="Sudán">Sudán</div>
-                            <div class="option" data-value="Sudán del Sur">Sudán del Sur</div>
-                            <div class="option" data-value="Suecia">Suecia</div>
-                            <div class="option" data-value="Suiza">Suiza</div>
-                            <div class="option" data-value="Surinam">Surinam</div>
-                            <div class="option" data-value="Tailandia">Tailandia</div>
-                            <div class="option" data-value="Taiwán">Taiwán</div>
-                            <div class="option" data-value="Tanzania">Tanzania</div>
-                            <div class="option" data-value="Tayikistán">Tayikistán</div>
-                            <div class="option" data-value="Territorio Británico del Océano Índico">Territorio Británico del Océano Índico</div>
-                            <div class="option" data-value="Timor Oriental">Timor Oriental</div>
-                            <div class="option" data-value="Togo">Togo</div>
-                            <div class="option" data-value="Tokelau">Tokelau</div>
-                            <div class="option" data-value="Tonga">Tonga</div>
-                            <div class="option" data-value="Trinidad y Tobago">Trinidad y Tobago</div>
-                            <div class="option" data-value="Túnez">Túnez</div>
-                            <div class="option" data-value="Turkmenistán">Turkmenistán</div>
-                            <div class="option" data-value="Turquía">Turquía</div>
-                            <div class="option" data-value="Tuvalu">Tuvalu</div>
-                            <div class="option" data-value="Ucrania">Ucrania</div>
-                            <div class="option" data-value="Uganda">Uganda</div>
-                            <div class="option" data-value="Uruguay">Uruguay</div>
-                            <div class="option" data-value="Uzbekistán">Uzbekistán</div>
-                            <div class="option" data-value="Vanuatu">Vanuatu</div>
-                            <div class="option" data-value="Venezuela">Venezuela</div>
-                            <div class="option" data-value="Vietnam">Vietnam</div>
-                            <div class="option" data-value="Wallis y Futuna">Wallis y Futuna</div>
-                            <div class="option" data-value="Yemen">Yemen</div>
-                            <div class="option" data-value="Yibuti">Yibuti</div>
-                            <div class="option" data-value="Zambia">Zambia</div>
-                            <div class="option" data-value="Zimbabue">Zimbabue</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <input type="text"
+                   id="editNacionalidad"
+                   name="Nacionalidad"
+                   placeholder="Nacionalidad"
+                   list="paises-lista"
+                   autocomplete="off"
+                   value="@editNacionalidad" />
             @if (ViewData.ModelState.ContainsKey("Nacionalidad"))
             {
                 <span class="text-error">@ViewData.ModelState["Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
@@ -438,7 +228,7 @@
             <input type="date"
                    id="editFechaNacimiento"
                    name="FechaNacimiento"
-                   value="@(Model.EditFechaNacimiento?.ToString("yyyy-MM-dd"))" />
+                   value="@editFechaNacimiento" />
             @if (ViewData.ModelState.ContainsKey("FechaNacimiento"))
             {
                 <span class="text-error">@ViewData.ModelState["FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
@@ -447,11 +237,11 @@
             <input type="hidden"
                    id="editEstadoHidden"
                    name="Estado"
-                   value="@(Model.EditEstado.ToString().ToLower())" />
+                   value="@(editEstadoSeleccionado ? "true" : "false")" />
 
             <select id="editEstado">
-                <option value="true" selected="@(Model.EditEstado ? "selected" : null)">Activo</option>
-                <option value="false" selected="@(!Model.EditEstado ? "selected" : null)">Inactivo</option>
+                <option value="true" selected="@(editEstadoSeleccionado ? "selected" : null)">Activo</option>
+                <option value="false" selected="@(!editEstadoSeleccionado ? "selected" : null)">Inactivo</option>
             </select>
 
             <div class="modal-buttons">
@@ -461,30 +251,19 @@
         </form>
     </div>
 </div>
-
 <!-- MODAL CREAR -->
 <div id="modalCrear" class="modal">
     <div class="modal-box">
-
-        <div class="modal-icon crear">
-            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                 class="icono-modal">
-        </div>
-
         <h2>Nuevo Autor</h2>
-        <p>Ingresa los datos del autor</p>
 
         <form method="post" asp-page-handler="Crear">
             @Html.AntiForgeryToken()
 
-            <div asp-validation-summary="ModelOnly" class="text-error-summary"></div>
-
             <input type="text"
                    name="Autor.Nombres"
-                   id="createNombres"
                    placeholder="Nombres"
                    required
-                   value="@Model.Autor.Nombres" />
+                   value="@createNombres" />
             @if (ViewData.ModelState.ContainsKey("Autor.Nombres"))
             {
                 <span class="text-error">@ViewData.ModelState["Autor.Nombres"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
@@ -492,451 +271,44 @@
 
             <input type="text"
                    name="Autor.Apellidos"
-                   id="createApellidos"
                    placeholder="Apellidos"
-                   value="@Model.Autor.Apellidos" />
+                   value="@createApellidos" />
             @if (ViewData.ModelState.ContainsKey("Autor.Apellidos"))
             {
                 <span class="text-error">@ViewData.ModelState["Autor.Apellidos"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <div class="custom-select-wrapper">
-                <input type="hidden"
-                       id="nacionalidad-value-modal"
-                       name="Autor.Nacionalidad"
-                       value="@Model.Autor.Nacionalidad" />
-
-                <div class="custom-select" id="custom-select-nacionalidad-modal">
-                    <div class="select-trigger">
-                        <span id="nacionalidad-text-modal">
-                            @(string.IsNullOrWhiteSpace(Model.Autor.Nacionalidad) ? "-- Seleccione una nacionalidad --" : Model.Autor.Nacionalidad)
-                        </span>
-                        <svg class="select-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                    </div>
-
-                    <div class="select-dropdown">
-                        <input type="text"
-                               class="select-search"
-                               id="nacionalidad-search-modal"
-                               placeholder="Buscar nacionalidad..." />
-
-                        <div class="select-options">
-                            <div class="option" data-value="Afganistán">Afganistán</div>
-                            <div class="option" data-value="Albania">Albania</div>
-                            <div class="option" data-value="Alemania">Alemania</div>
-                            <div class="option" data-value="Andorra">Andorra</div>
-                            <div class="option" data-value="Angola">Angola</div>
-                            <div class="option" data-value="Antigua y Barbuda">Antigua y Barbuda</div>
-                            <div class="option" data-value="Arabia Saudita">Arabia Saudita</div>
-                            <div class="option" data-value="Argelia">Argelia</div>
-                            <div class="option" data-value="Argentina">Argentina</div>
-                            <div class="option" data-value="Armenia">Armenia</div>
-                            <div class="option" data-value="Australia">Australia</div>
-                            <div class="option" data-value="Austria">Austria</div>
-                            <div class="option" data-value="Azerbaiyán">Azerbaiyán</div>
-                            <div class="option" data-value="Bahamas">Bahamas</div>
-                            <div class="option" data-value="Bangladés">Bangladés</div>
-                            <div class="option" data-value="Barbados">Barbados</div>
-                            <div class="option" data-value="Baréin">Baréin</div>
-                            <div class="option" data-value="Bélgica">Bélgica</div>
-                            <div class="option" data-value="Belice">Belice</div>
-                            <div class="option" data-value="Benín">Benín</div>
-                            <div class="option" data-value="Bielorrusia">Bielorrusia</div>
-                            <div class="option" data-value="Birmania">Birmania</div>
-                            <div class="option" data-value="Bolivia">Bolivia</div>
-                            <div class="option" data-value="Bosnia y Herzegovina">Bosnia y Herzegovina</div>
-                            <div class="option" data-value="Botsuana">Botsuana</div>
-                            <div class="option" data-value="Brasil">Brasil</div>
-                            <div class="option" data-value="Brunéi">Brunéi</div>
-                            <div class="option" data-value="Bulgaria">Bulgaria</div>
-                            <div class="option" data-value="Burkina Faso">Burkina Faso</div>
-                            <div class="option" data-value="Burundi">Burundi</div>
-                            <div class="option" data-value="Bután">Bután</div>
-                            <div class="option" data-value="Camboya">Camboya</div>
-                            <div class="option" data-value="Camerún">Camerún</div>
-                            <div class="option" data-value="Canadá">Canadá</div>
-                            <div class="option" data-value="Catar">Catar</div>
-                            <div class="option" data-value="Chad">Chad</div>
-                            <div class="option" data-value="Chile">Chile</div>
-                            <div class="option" data-value="China">China</div>
-                            <div class="option" data-value="Chipre">Chipre</div>
-                            <div class="option" data-value="Ciudad del Vaticano">Ciudad del Vaticano</div>
-                            <div class="option" data-value="Colombia">Colombia</div>
-                            <div class="option" data-value="Comoras">Comoras</div>
-                            <div class="option" data-value="Congo">Congo</div>
-                            <div class="option" data-value="Corea del Norte">Corea del Norte</div>
-                            <div class="option" data-value="Corea del Sur">Corea del Sur</div>
-                            <div class="option" data-value="Costa Rica">Costa Rica</div>
-                            <div class="option" data-value="Costa de Marfil">Costa de Marfil</div>
-                            <div class="option" data-value="Croacia">Croacia</div>
-                            <div class="option" data-value="Cuba">Cuba</div>
-                            <div class="option" data-value="Curazao">Curazao</div>
-                            <div class="option" data-value="Dinamarca">Dinamarca</div>
-                            <div class="option" data-value="Dominica">Dominica</div>
-                            <div class="option" data-value="República Dominicana">República Dominicana</div>
-                            <div class="option" data-value="Ecuador">Ecuador</div>
-                            <div class="option" data-value="Egipto">Egipto</div>
-                            <div class="option" data-value="Emiratos Árabes Unidos">Emiratos Árabes Unidos</div>
-                            <div class="option" data-value="Escocia">Escocia</div>
-                            <div class="option" data-value="Eslovaca">Eslovaca</div>
-                            <div class="option" data-value="Eslovenia">Eslovenia</div>
-                            <div class="option" data-value="España">España</div>
-                            <div class="option" data-value="Estados Unidos">Estados Unidos</div>
-                            <div class="option" data-value="Estonia">Estonia</div>
-                            <div class="option" data-value="Etiopía">Etiopía</div>
-                            <div class="option" data-value="Filipinas">Filipinas</div>
-                            <div class="option" data-value="Finlandia">Finlandia</div>
-                            <div class="option" data-value="Fiyi">Fiyi</div>
-                            <div class="option" data-value="Francia">Francia</div>
-                            <div class="option" data-value="Gabón">Gabón</div>
-                            <div class="option" data-value="Gales">Gales</div>
-                            <div class="option" data-value="Gambia">Gambia</div>
-                            <div class="option" data-value="Georgia">Georgia</div>
-                            <div class="option" data-value="Ghana">Ghana</div>
-                            <div class="option" data-value="Gibraltar">Gibraltar</div>
-                            <div class="option" data-value="Grecia">Grecia</div>
-                            <div class="option" data-value="Groenlandia">Groenlandia</div>
-                            <div class="option" data-value="Guadalupe">Guadalupe</div>
-                            <div class="option" data-value="Guam">Guam</div>
-                            <div class="option" data-value="Guatemala">Guatemala</div>
-                            <div class="option" data-value="Guayana Francesa">Guayana Francesa</div>
-                            <div class="option" data-value="Guernsey">Guernsey</div>
-                            <div class="option" data-value="Guinea">Guinea</div>
-                            <div class="option" data-value="Guinea Ecuatorial">Guinea Ecuatorial</div>
-                            <div class="option" data-value="Guinea-Bisáu">Guinea-Bisáu</div>
-                            <div class="option" data-value="Guyana">Guyana</div>
-                            <div class="option" data-value="Haití">Haití</div>
-                            <div class="option" data-value="Holanda">Holanda</div>
-                            <div class="option" data-value="Honduras">Honduras</div>
-                            <div class="option" data-value="Hong Kong">Hong Kong</div>
-                            <div class="option" data-value="Hungría">Hungría</div>
-                            <div class="option" data-value="India">India</div>
-                            <div class="option" data-value="Indonesia">Indonesia</div>
-                            <div class="option" data-value="Irak">Irak</div>
-                            <div class="option" data-value="Irán">Irán</div>
-                            <div class="option" data-value="Irlanda">Irlanda</div>
-                            <div class="option" data-value="Isla Bouvet">Isla Bouvet</div>
-                            <div class="option" data-value="Isla de Man">Isla de Man</div>
-                            <div class="option" data-value="Isla Norfolk">Isla Norfolk</div>
-                            <div class="option" data-value="Islandia">Islandia</div>
-                            <div class="option" data-value="Islas Åland">Islas Åland</div>
-                            <div class="option" data-value="Islas Caimán">Islas Caimán</div>
-                            <div class="option" data-value="Islas Cocos">Islas Cocos</div>
-                            <div class="option" data-value="Islas Cook">Islas Cook</div>
-                            <div class="option" data-value="Islas Feroe">Islas Feroe</div>
-                            <div class="option" data-value="Islas Heard y McDonald">Islas Heard y McDonald</div>
-                            <div class="option" data-value="Islas Malvinas">Islas Malvinas</div>
-                            <div class="option" data-value="Islas Marianas del Norte">Islas Marianas del Norte</div>
-                            <div class="option" data-value="Islas Marshall">Islas Marshall</div>
-                            <div class="option" data-value="Islas Pitcairn">Islas Pitcairn</div>
-                            <div class="option" data-value="Islas Salomón">Islas Salomón</div>
-                            <div class="option" data-value="Islas Turcas y Caicos">Islas Turcas y Caicos</div>
-                            <div class="option" data-value="Islas Vírgenes Británicas">Islas Vírgenes Británicas</div>
-                            <div class="option" data-value="Islas Vírgenes de los Estados Unidos">Islas Vírgenes de los Estados Unidos</div>
-                            <div class="option" data-value="Israel">Israel</div>
-                            <div class="option" data-value="Italia">Italia</div>
-                            <div class="option" data-value="Jamaica">Jamaica</div>
-                            <div class="option" data-value="Japón">Japón</div>
-                            <div class="option" data-value="Jersey">Jersey</div>
-                            <div class="option" data-value="Jordania">Jordania</div>
-                            <div class="option" data-value="Kazajistán">Kazajistán</div>
-                            <div class="option" data-value="Kenia">Kenia</div>
-                            <div class="option" data-value="Kirguistán">Kirguistán</div>
-                            <div class="option" data-value="Kiribati">Kiribati</div>
-                            <div class="option" data-value="Kuwait">Kuwait</div>
-                            <div class="option" data-value="Laos">Laos</div>
-                            <div class="option" data-value="Lesoto">Lesoto</div>
-                            <div class="option" data-value="Letonia">Letonia</div>
-                            <div class="option" data-value="Líbano">Líbano</div>
-                            <div class="option" data-value="Liberia">Liberia</div>
-                            <div class="option" data-value="Libia">Libia</div>
-                            <div class="option" data-value="Liechtenstein">Liechtenstein</div>
-                            <div class="option" data-value="Lituania">Lituania</div>
-                            <div class="option" data-value="Luxemburgo">Luxemburgo</div>
-                            <div class="option" data-value="Macao">Macao</div>
-                            <div class="option" data-value="Madagascar">Madagascar</div>
-                            <div class="option" data-value="Malasia">Malasia</div>
-                            <div class="option" data-value="Malaui">Malaui</div>
-                            <div class="option" data-value="Maldivas">Maldivas</div>
-                            <div class="option" data-value="Malí">Malí</div>
-                            <div class="option" data-value="Malta">Malta</div>
-                            <div class="option" data-value="Marruecos">Marruecos</div>
-                            <div class="option" data-value="Martinica">Martinica</div>
-                            <div class="option" data-value="Mauricio">Mauricio</div>
-                            <div class="option" data-value="Mauritania">Mauritania</div>
-                            <div class="option" data-value="Mayotte">Mayotte</div>
-                            <div class="option" data-value="México">México</div>
-                            <div class="option" data-value="Micronesia">Micronesia</div>
-                            <div class="option" data-value="Mónaco">Mónaco</div>
-                            <div class="option" data-value="Mongolia">Mongolia</div>
-                            <div class="option" data-value="Montenegro">Montenegro</div>
-                            <div class="option" data-value="Montserrat">Montserrat</div>
-                            <div class="option" data-value="Mozambique">Mozambique</div>
-                            <div class="option" data-value="Namibia">Namibia</div>
-                            <div class="option" data-value="Nauru">Nauru</div>
-                            <div class="option" data-value="Nepal">Nepal</div>
-                            <div class="option" data-value="Nicaragua">Nicaragua</div>
-                            <div class="option" data-value="Níger">Níger</div>
-                            <div class="option" data-value="Nigeria">Nigeria</div>
-                            <div class="option" data-value="Niue">Niue</div>
-                            <div class="option" data-value="Noruega">Noruega</div>
-                            <div class="option" data-value="Nueva Caledonia">Nueva Caledonia</div>
-                            <div class="option" data-value="Nueva Zelanda">Nueva Zelanda</div>
-                            <div class="option" data-value="Omán">Omán</div>
-                            <div class="option" data-value="Pakistán">Pakistán</div>
-                            <div class="option" data-value="Palaos">Palaos</div>
-                            <div class="option" data-value="Palestina">Palestina</div>
-                            <div class="option" data-value="Panamá">Panamá</div>
-                            <div class="option" data-value="Papúa Nueva Guinea">Papúa Nueva Guinea</div>
-                            <div class="option" data-value="Paraguay">Paraguay</div>
-                            <div class="option" data-value="Perú">Perú</div>
-                            <div class="option" data-value="Polinesia Francesa">Polinesia Francesa</div>
-                            <div class="option" data-value="Polonia">Polonia</div>
-                            <div class="option" data-value="Portugal">Portugal</div>
-                            <div class="option" data-value="Puerto Rico">Puerto Rico</div>
-                            <div class="option" data-value="Reino Unido">Reino Unido</div>
-                            <div class="option" data-value="Reunión">Reunión</div>
-                            <div class="option" data-value="Ruanda">Ruanda</div>
-                            <div class="option" data-value="Rumania">Rumania</div>
-                            <div class="option" data-value="Rusia">Rusia</div>
-                            <div class="option" data-value="Sahara Occidental">Sahara Occidental</div>
-                            <div class="option" data-value="Samoa">Samoa</div>
-                            <div class="option" data-value="Samoa Americana">Samoa Americana</div>
-                            <div class="option" data-value="San Bartolomé">San Bartolomé</div>
-                            <div class="option" data-value="San Marino">San Marino</div>
-                            <div class="option" data-value="San Martín">San Martín</div>
-                            <div class="option" data-value="San Vicente y las Granadinas">San Vicente y las Granadinas</div>
-                            <div class="option" data-value="Santa Elena">Santa Elena</div>
-                            <div class="option" data-value="Santa Lucía">Santa Lucía</div>
-                            <div class="option" data-value="Santo Tomé y Príncipe">Santo Tomé y Príncipe</div>
-                            <div class="option" data-value="Senegal">Senegal</div>
-                            <div class="option" data-value="Serbia">Serbia</div>
-                            <div class="option" data-value="Seychelles">Seychelles</div>
-                            <div class="option" data-value="Siria">Siria</div>
-                            <div class="option" data-value="Somalia">Somalia</div>
-                            <div class="option" data-value="Sri Lanka">Sri Lanka</div>
-                            <div class="option" data-value="Sudáfrica">Sudáfrica</div>
-                            <div class="option" data-value="Sudán">Sudán</div>
-                            <div class="option" data-value="Sudán del Sur">Sudán del Sur</div>
-                            <div class="option" data-value="Suecia">Suecia</div>
-                            <div class="option" data-value="Suiza">Suiza</div>
-                            <div class="option" data-value="Surinam">Surinam</div>
-                            <div class="option" data-value="Tailandia">Tailandia</div>
-                            <div class="option" data-value="Taiwán">Taiwán</div>
-                            <div class="option" data-value="Tanzania">Tanzania</div>
-                            <div class="option" data-value="Tayikistán">Tayikistán</div>
-                            <div class="option" data-value="Territorio Británico del Océano Índico">Territorio Británico del Océano Índico</div>
-                            <div class="option" data-value="Timor Oriental">Timor Oriental</div>
-                            <div class="option" data-value="Togo">Togo</div>
-                            <div class="option" data-value="Tokelau">Tokelau</div>
-                            <div class="option" data-value="Tonga">Tonga</div>
-                            <div class="option" data-value="Trinidad y Tobago">Trinidad y Tobago</div>
-                            <div class="option" data-value="Túnez">Túnez</div>
-                            <div class="option" data-value="Turkmenistán">Turkmenistán</div>
-                            <div class="option" data-value="Turquía">Turquía</div>
-                            <div class="option" data-value="Tuvalu">Tuvalu</div>
-                            <div class="option" data-value="Ucrania">Ucrania</div>
-                            <div class="option" data-value="Uganda">Uganda</div>
-                            <div class="option" data-value="Uruguay">Uruguay</div>
-                            <div class="option" data-value="Uzbekistán">Uzbekistán</div>
-                            <div class="option" data-value="Vanuatu">Vanuatu</div>
-                            <div class="option" data-value="Venezuela">Venezuela</div>
-                            <div class="option" data-value="Vietnam">Vietnam</div>
-                            <div class="option" data-value="Wallis y Futuna">Wallis y Futuna</div>
-                            <div class="option" data-value="Yemen">Yemen</div>
-                            <div class="option" data-value="Yibuti">Yibuti</div>
-                            <div class="option" data-value="Zambia">Zambia</div>
-                            <div class="option" data-value="Zimbabue">Zimbabue</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <input type="text"
+                   name="Autor.Nacionalidad"
+                   placeholder="Nacionalidad"
+                   list="paises-lista"
+                   autocomplete="off"
+                   value="@createNacionalidad" />
             @if (ViewData.ModelState.ContainsKey("Autor.Nacionalidad"))
             {
                 <span class="text-error">@ViewData.ModelState["Autor.Nacionalidad"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
             <input type="date"
-                   id="createFechaNacimiento"
                    name="Autor.FechaNacimiento"
-                   value="@(Model.Autor.FechaNacimiento?.ToString("yyyy-MM-dd"))" />
+                   value="@createFechaNacimiento" />
             @if (ViewData.ModelState.ContainsKey("Autor.FechaNacimiento"))
             {
                 <span class="text-error">@ViewData.ModelState["Autor.FechaNacimiento"]?.Errors.FirstOrDefault()?.ErrorMessage</span>
             }
 
-            <select name="Autor.Estado" id="createEstado">
-                <option value="true" selected="@(Model.Autor.Estado ? "selected" : null)">Activo</option>
-                <option value="false" selected="@(!Model.Autor.Estado ? "selected" : null)">Inactivo</option>
+            <select name="Autor.Estado">
+                <option value="true" selected="@(createEstadoSeleccionado ? "selected" : null)">Activo</option>
+                <option value="false" selected="@(!createEstadoSeleccionado ? "selected" : null)">Inactivo</option>
             </select>
 
             <div class="modal-buttons">
-                <button type="submit" class="btn-success">Crear</button>
+                <button type="submit" class="btn-primary">Crear</button>
                 <button type="button" class="btn-secondary" onclick="cerrarModalCrear()">Cancelar</button>
             </div>
         </form>
     </div>
 </div>
-
-@section Scripts {
-<script>
-(function () {
-    var input = document.getElementById('buscador-autor');
-    var tabla = document.getElementById('tabla-autores');
-
-    if (!input || !tabla) return;
-
-    input.addEventListener('input', function () {
-        var filtro = input.value.toLowerCase();
-        var filas = tabla.querySelectorAll('tbody tr');
-
-        filas.forEach(f => {
-            f.style.display = f.textContent.toLowerCase().includes(filtro) ? "" : "none";
-        });
-    });
-})();
-
-function abrirModal(token) {
-    document.getElementById("autorTokenInput").value = token;
-    document.getElementById("modalEliminar").style.display = "flex";
-}
-
-function cerrarModal() {
-    document.getElementById("modalEliminar").style.display = "none";
-}
-
-function abrirModalEditar(token, nombres, apellidos, nacionalidad, fecha, estado) {
-    document.getElementById("editToken").value = token;
-    document.getElementById("editNombres").value = nombres || "";
-    document.getElementById("editApellidos").value = apellidos || "";
-    document.getElementById("editFechaNacimiento").value = fecha || "";
-    // SIEMPRE setear el valor desde el botón (el JS manda en este caso)
-    document.getElementById("editEstado").value = (estado === "true") ? "true" : "false";
-    document.getElementById("editEstadoHidden").value = document.getElementById("editEstado").value;
-
-    document.getElementById("editNacionalidadValue").value = nacionalidad || "";
-    document.getElementById("editNacionalidadText").textContent =
-        nacionalidad && nacionalidad.trim() !== "" ? nacionalidad : "-- Seleccione una nacionalidad --";
-
-    document.getElementById("modalEditar").style.display = "flex";
-}
-
-function cerrarModalEditar() {
-    document.getElementById("modalEditar").style.display = "none";
-}
-
-function abrirModalCrear() {
-    document.getElementById("modalCrear").style.display = "flex";
-}
-
-function cerrarModalCrear() {
-    document.getElementById("modalCrear").style.display = "none";
-}
-
-function initCustomSelect(selectId, searchId, hiddenId, textId) {
-    const customSelect = document.getElementById(selectId);
-    if (!customSelect) return;
-
-    const trigger = customSelect.querySelector('.select-trigger');
-    const search = document.getElementById(searchId);
-    const options = customSelect.querySelectorAll('.option');
-    const hiddenInput = document.getElementById(hiddenId);
-    const selectText = document.getElementById(textId);
-    let isOpen = false;
-
-    function applyManualValue() {
-        const customValue = search.value.trim();
-        if (!customValue) return;
-        hiddenInput.value = customValue;
-        selectText.textContent = customValue;
-    }
-
-    trigger.addEventListener('click', function (e) {
-        e.stopPropagation();
-        isOpen = !isOpen;
-        customSelect.classList.toggle('active', isOpen);
-
-        if (isOpen) {
-            search.focus();
-            search.value = '';
-            options.forEach(opt => opt.classList.remove('hidden'));
-        }
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!customSelect.contains(e.target)) {
-            if (isOpen) {
-                applyManualValue();
-            }
-            isOpen = false;
-            customSelect.classList.remove('active');
-        }
-    });
-
-    search.addEventListener('input', function () {
-        const term = this.value.toLowerCase();
-        options.forEach(option => {
-            const text = option.textContent.toLowerCase();
-            option.classList.toggle('hidden', !text.includes(term));
-        });
-    });
-
-    options.forEach(option => {
-        option.addEventListener('click', function (e) {
-            e.stopPropagation();
-            hiddenInput.value = this.dataset.value;
-            selectText.textContent = this.textContent.trim();
-            isOpen = false;
-            customSelect.classList.remove('active');
-        });
-    });
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    initCustomSelect(
-        'custom-select-nacionalidad-modal',
-        'nacionalidad-search-modal',
-        'nacionalidad-value-modal',
-        'nacionalidad-text-modal'
-    );
-
-    initCustomSelect(
-        'custom-select-nacionalidad-edit',
-        'editNacionalidadSearch',
-        'editNacionalidadValue',
-        'editNacionalidadText'
-    );
-
-    const editEstadoSelect = document.getElementById("editEstado");
-    const editEstadoHidden = document.getElementById("editEstadoHidden");
-    const editAutorForm = document.getElementById("editAutorForm");
-
-    if (editEstadoSelect && editEstadoHidden) {
-        editEstadoSelect.addEventListener("change", function () {
-            editEstadoHidden.value = editEstadoSelect.value;
-        });
-    }
-
-    if (editAutorForm && editEstadoSelect && editEstadoHidden) {
-        editAutorForm.addEventListener("submit", function () {
-            editEstadoHidden.value = editEstadoSelect.value;
-        });
-    }
-});
-
-window.onclick = function (e) {
-    let m1 = document.getElementById("modalEliminar");
-    let m2 = document.getElementById("modalEditar");
-    let m3 = document.getElementById("modalCrear");
-
-    if (e.target === m1) cerrarModal();
-    if (e.target === m2) cerrarModalEditar();
-    if (e.target === m3) cerrarModalCrear();
-}
-</script>
-
 @if (!ViewData.ModelState.IsValid)
 {
     <script>
@@ -948,11 +320,177 @@ window.onclick = function (e) {
             }
 
             if (modalActivo === "editar") {
-                document.getElementById("editEstado").value = '@(Model.EditEstado.ToString().ToLower())';
-                document.getElementById("editEstadoHidden").value = '@(Model.EditEstado.ToString().ToLower())';
                 document.getElementById("modalEditar").style.display = "flex";
             }
         });
     </script>
 }
+
+@section Scripts {
+    <script>
+        function abrirModal(token){document.getElementById("autorTokenInput").value=token;modalEliminar.style.display="flex";}
+        function cerrarModal(){modalEliminar.style.display="none";}
+        function abrirModalEditar(t,n,a,na,f,e){
+            editToken.value = t;
+            editNombres.value = n || "";
+            editApellidos.value = a || "";
+            editNacionalidad.value = na || ""; 
+            editFechaNacimiento.value = f || "";
+
+            editEstado.value = (e === "true") ? "true" : "false";
+            editEstadoHidden.value = editEstado.value;
+
+            modalEditar.style.display = "flex";
+        }
+        function cerrarModalEditar(){modalEditar.style.display="none";}
+        function abrirModalCrear(){modalCrear.style.display="flex";}
+        function cerrarModalCrear(){modalCrear.style.display="none";}
+
+        document.addEventListener("DOMContentLoaded", function(){
+            const sel = document.getElementById("editEstado");
+            const hid = document.getElementById("editEstadoHidden");
+            if (sel && hid) {
+                sel.addEventListener("change", () => {
+                    hid.value = sel.value; // "true" o "false"
+                });
+            }
+        });
+
+       window.onclick = function(event) {
+            if (event.target === modalEliminar) cerrarModal();
+            if (event.target === modalEditar) cerrarModalEditar();
+            if (event.target === modalCrear) cerrarModalCrear();
+        }
+        function cerrarModalCrear(){
+            modalCrear.style.display = "none";
+        }
+    </script>
+
+    <script>
+        (function () {
+            const input = document.getElementById('buscador-autor');
+            const tabla = document.getElementById('tabla-autores');
+            const filaSinResultados = document.getElementById('fila-sin-resultados');
+
+            if (!input || !tabla) return;
+
+            input.addEventListener('input', function () {
+                const filtro = input.value.toLowerCase().trim();
+                const filas = tabla.querySelectorAll('tbody tr:not(#fila-sin-resultados)');
+                let hayResultados = false;
+
+                filas.forEach(fila => {
+                    const textoFila = fila.textContent.toLowerCase();
+                    const coincide = textoFila.includes(filtro);
+
+                    fila.style.display = coincide ? "" : "none";
+
+                    if (coincide) {
+                        hayResultados = true;
+                    }
+                });
+
+                if (filaSinResultados) {
+                    filaSinResultados.style.display = hayResultados ? "none" : "";
+                }
+            });
+        })();
+    </script>
+
+
+    <datalist id="paises-lista">
+
+        <!-- América -->
+        <option value="Argentina" />
+        <option value="Bolivia" />
+        <option value="Brasil" />
+        <option value="Chile" />
+        <option value="Colombia" />
+        <option value="Costa Rica" />
+        <option value="Cuba" />
+        <option value="Ecuador" />
+        <option value="El Salvador" />
+        <option value="Guatemala" />
+        <option value="Honduras" />
+        <option value="México" />
+        <option value="Nicaragua" />
+        <option value="Panamá" />
+        <option value="Paraguay" />
+        <option value="Perú" />
+        <option value="República Dominicana" />
+        <option value="Uruguay" />
+        <option value="Venezuela" />
+        <option value="Estados Unidos" />
+        <option value="Canadá" />
+
+        <!-- Europa -->
+        <option value="España" />
+        <option value="Francia" />
+        <option value="Alemania" />
+        <option value="Italia" />
+        <option value="Reino Unido" />
+        <option value="Irlanda" />
+        <option value="Portugal" />
+        <option value="Países Bajos" />
+        <option value="Bélgica" />
+        <option value="Suiza" />
+        <option value="Austria" />
+        <option value="Suecia" />
+        <option value="Noruega" />
+        <option value="Dinamarca" />
+        <option value="Finlandia" />
+        <option value="Polonia" />
+        <option value="Hungría" />
+        <option value="República Checa" />
+        <option value="Eslovaquia" />
+        <option value="Rusia" />
+        <option value="Ucrania" />
+        <option value="Grecia" />
+        <option value="Turquía" />
+        <option value="Rumania" />
+        <option value="Bulgaria" />
+        <option value="Serbia" />
+
+        <!-- Asia -->
+        <option value="China" />
+        <option value="Japón" />
+        <option value="Corea del Sur" />
+        <option value="Corea del Norte" />
+        <option value="India" />
+        <option value="Pakistán" />
+        <option value="Bangladés" />
+        <option value="Indonesia" />
+        <option value="Tailandia" />
+        <option value="Vietnam" />
+        <option value="Filipinas" />
+        <option value="Malasia" />
+        <option value="Singapur" />
+        <option value="Arabia Saudita" />
+        <option value="Emiratos Árabes Unidos" />
+        <option value="Israel" />
+        <option value="Irán" />
+        <option value="Irak" />
+        <option value="Qatar" />
+        <option value="Kuwait" />
+
+        <!-- África -->
+        <option value="Egipto" />
+        <option value="Marruecos" />
+        <option value="Argelia" />
+        <option value="Túnez" />
+        <option value="Sudáfrica" />
+        <option value="Nigeria" />
+        <option value="Kenia" />
+        <option value="Etiopía" />
+        <option value="Ghana" />
+        <option value="Senegal" />
+        <option value="Camerún" />
+        <option value="Costa de Marfil" />
+
+        <!-- Oceanía -->
+        <option value="Australia" />
+        <option value="Nueva Zelanda" />
+        <option value="Fiyi" />
+
+    </datalist>
 }
