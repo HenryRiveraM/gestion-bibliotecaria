@@ -10,11 +10,10 @@
 .page-header{
     display:flex;
     align-items:center;
+    justify-content:space-between;
     margin-bottom:25px;
     width:100%;
-    max-width:none;
     padding-right:35px;
-    position:relative;
 }
 
 .titulo-logo{
@@ -27,6 +26,7 @@
     font-size:28px;
     font-weight:600;
     color:#e5e7eb;
+    margin:0;
 }
 
 /* ICONOS */
@@ -47,10 +47,6 @@
 /* BOTON NUEVO */
 
 .btn-nuevo{
-    position:absolute;
-    top:18px;
-    right:35px;
-
     display:flex;
     align-items:center;
     gap:6px;
@@ -63,7 +59,6 @@
     transition:.25s;
     cursor:pointer;
     white-space:nowrap;
-
     border:none;
     outline:none;
     box-shadow:none;
@@ -100,10 +95,15 @@
 }
 
 .filtro-buscar{
-    flex:none;
-    width:900px;
-    min-width:900px;
+    flex:1;
+    width:100%;
+    min-width:0;
     max-width:none;
+}
+
+#buscador-libro{
+    width:100%;
+    display:block;
 }
 
 .input-filtro{
@@ -788,7 +788,6 @@
     }
 
     .btn-nuevo{
-        position:static;
         margin-top:10px;
     }
 
@@ -817,5 +816,10 @@
 
     .modal-box h2{
         font-size:24px;
+    }
+
+    #buscador-libro{
+        width:100%;
+        display:block;
     }
 }
