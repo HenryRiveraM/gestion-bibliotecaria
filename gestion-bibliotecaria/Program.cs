@@ -3,6 +3,8 @@ using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Ports;
 using gestion_bibliotecaria.Infrastructure.Creators;
+using gestion_bibliotecaria.Infrastructure.Configuration;
+using gestion_bibliotecaria.Infrastructure.Email;
 using gestion_bibliotecaria.Infrastructure.Persistence;
 using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +15,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
 builder.Services.AddScoped<RouteTokenService>();
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(EmailSettings.SectionName));
+builder.Services.AddHttpClient();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -25,7 +29,9 @@ builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository(connecti
 builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository(connectionString));
 builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository(connectionString));
 builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository(connectionString));
+builder.Services.AddScoped<IEmailSender>(EmailSenderFactory.Create);
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
+builder.Services.AddScoped<IUserCredentialProvisioningService, UserCredentialProvisioningService>();
 builder.Services.AddScoped<LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
 // builder.Services.AddScoped<AutorService>(); 

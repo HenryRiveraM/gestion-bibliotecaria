@@ -10,4 +10,5 @@ public interface IUsuarioRepositorio
     void Update(Usuario usuario);
     void Delete(Usuario usuario);
     Usuario? GetById(int id);
+    bool ExisteNombreUsuario(string nombreUsuario);
 }

@@ -193,4 +193,21 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
 
         return usuario;
     }
+
+    public bool ExisteNombreUsuario(string nombreUsuario)
+    {
+        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+
+            string query = "SELECT COUNT(1) FROM usuario WHERE NombreUsuario = @NombreUsuario;";
+
+            using (MySqlCommand command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@NombreUsuario", nombreUsuario);
+                var resultado = Convert.ToInt32(command.ExecuteScalar());
+                return resultado > 0;
+            }
+        }
+    }
 }
