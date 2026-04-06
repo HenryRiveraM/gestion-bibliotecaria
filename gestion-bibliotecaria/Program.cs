@@ -16,6 +16,7 @@ builder.Services.AddScoped<RouteTokenService>();
 builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository(connectionString));
 builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository(connectionString));
 builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository(connectionString));
+builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository(connectionString));
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
 builder.Services.AddScoped<LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();

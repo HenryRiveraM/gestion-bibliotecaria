@@ -91,6 +91,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
 
             string query = @"SELECT 
                             e.EjemplarId,
+                            e.UsuarioSesionId,
                             e.LibroId,
                             l.Titulo AS LibroTitulo,
                             e.CodigoInventario,
@@ -121,12 +122,13 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
             connection.Open();
 
             string query = @"INSERT INTO ejemplar
-                (LibroId, CodigoInventario, EstadoConservacion, Disponible, DadoDeBaja, MotivoBaja, Ubicacion, Estado)
+                (UsuarioSesionId, LibroId, CodigoInventario, EstadoConservacion, Disponible, DadoDeBaja, MotivoBaja, Ubicacion, Estado)
                 VALUES
-                (@LibroId, @CodigoInventario, @EstadoConservacion, @Disponible, @DadoDeBaja, @MotivoBaja, @Ubicacion, @Estado);";
+                (@UsuarioSesionId, @LibroId, @CodigoInventario, @EstadoConservacion, @Disponible, @DadoDeBaja, @MotivoBaja, @Ubicacion, @Estado);";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
+                command.Parameters.AddWithValue("@UsuarioSesionId", e.UsuarioSesionId ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@LibroId", e.LibroId);
                 command.Parameters.AddWithValue("@CodigoInventario", e.CodigoInventario);
                 command.Parameters.AddWithValue("@EstadoConservacion", e.EstadoConservacion ?? (object)DBNull.Value);
@@ -148,7 +150,8 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
             connection.Open();
 
             string query = @"UPDATE ejemplar
-                SET LibroId = @LibroId,
+                SET UsuarioSesionId = @UsuarioSesionId,
+                    LibroId = @LibroId,
                     CodigoInventario = @CodigoInventario,
                     EstadoConservacion = @EstadoConservacion,
                     Disponible = @Disponible,
@@ -161,6 +164,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@EjemplarId", e.EjemplarId);
+                command.Parameters.AddWithValue("@UsuarioSesionId", e.UsuarioSesionId ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@LibroId", e.LibroId);
                 command.Parameters.AddWithValue("@CodigoInventario", e.CodigoInventario);
                 command.Parameters.AddWithValue("@EstadoConservacion", e.EstadoConservacion ?? (object)DBNull.Value);
@@ -201,6 +205,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
 
             string query = @"SELECT 
                             EjemplarId,
+                            UsuarioSesionId,
                             LibroId,
                             CodigoInventario,
                             EstadoConservacion,
@@ -224,6 +229,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
                         e = new Ejemplar
                         {
                             EjemplarId = reader.GetInt32("EjemplarId"),
+                            UsuarioSesionId = reader.IsDBNull("UsuarioSesionId") ? null : reader.GetInt32("UsuarioSesionId"),
                             LibroId = reader.GetInt32("LibroId"),
                             CodigoInventario = reader.GetString("CodigoInventario"),
                             EstadoConservacion = reader.IsDBNull("EstadoConservacion") ? null : reader.GetString("EstadoConservacion"),

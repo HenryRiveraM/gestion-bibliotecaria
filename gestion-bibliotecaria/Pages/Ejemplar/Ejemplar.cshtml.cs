@@ -7,6 +7,7 @@ using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Infrastructure.Security;
 using MySql.Data.MySqlClient;
 using System.Data;
+using System.Security.Claims;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -93,6 +94,9 @@ public class EjemplarModel : PageModel
         ejemplar.Ubicacion = Ubicacion;
         ejemplar.Estado = Estado ?? false;
 
+        var usuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims();
+        ejemplar.UsuarioSesionId = usuarioSesionId ?? ejemplar.UsuarioSesionId;
+
         var validacion = _ejemplarServicio.ValidarEjemplar(ejemplar);
         if (validacion.IsFailure)
         {
@@ -134,6 +138,8 @@ public class EjemplarModel : PageModel
 
     public IActionResult OnPostCrear(Ejemplar Ejemplar)
     {
+        Ejemplar.UsuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims();
+
         var validacion = _ejemplarServicio.ValidarEjemplar(Ejemplar);
         if (validacion.IsFailure)
         {
@@ -225,5 +231,16 @@ public class EjemplarModel : PageModel
     {
         var key = error.Code.Split('.').LastOrDefault() ?? string.Empty;
         ModelState.AddModelError(key, error.Message);
+    }
+
+    private int? ObtenerUsuarioSesionIdDesdeClaims()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(claim, out var usuarioId))
+        {
+            return usuarioId;
+        }
+
+        return null;
     }
 }

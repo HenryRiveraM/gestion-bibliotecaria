@@ -24,6 +24,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
     private const string QueryLibros = @"
         SELECT LibroId,
+               UsuarioSesionId,
                AutorId,
                Titulo,
                ISBN,
@@ -49,6 +50,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
     private const string QueryLibroPorId = @"
         SELECT LibroId,
+               UsuarioSesionId,
                AutorId,
                Titulo,
                ISBN,
@@ -72,6 +74,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
     private const string QueryInsertLibro = @"
         INSERT INTO libro
         (
+            UsuarioSesionId,
             AutorId,
             Titulo,
             ISBN,
@@ -88,6 +91,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         )
         VALUES
         (
+            @UsuarioSesionId,
             @AutorId,
             @Titulo,
             @ISBN,
@@ -105,7 +109,8 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
     private const string QueryUpdateLibro = @"
         UPDATE libro
-        SET AutorId = @AutorId,
+        SET UsuarioSesionId = @UsuarioSesionId,
+            AutorId = @AutorId,
             Titulo = @Titulo,
             ISBN = @ISBN,
             Editorial = @Editorial,
@@ -168,6 +173,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         return new Libro
         {
             LibroId = reader.GetInt32("LibroId"),
+            UsuarioSesionId = reader["UsuarioSesionId"] == DBNull.Value ? null : Convert.ToInt32(reader["UsuarioSesionId"]),
             AutorId = reader.GetInt32("AutorId"),
             Titulo = reader.GetString("Titulo"),
             ISBN = reader["ISBN"] == DBNull.Value ? null : reader["ISBN"].ToString(),
@@ -192,6 +198,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
         using var command = new MySqlCommand(QueryInsertLibro, connection);
 
+        command.Parameters.AddWithValue("@UsuarioSesionId", libro.UsuarioSesionId ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@AutorId", libro.AutorId);
         command.Parameters.AddWithValue("@Titulo", libro.Titulo);
         command.Parameters.AddWithValue("@ISBN", string.IsNullOrWhiteSpace(libro.ISBN) ? DBNull.Value : libro.ISBN);
@@ -219,6 +226,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         using var command = new MySqlCommand(QueryUpdateLibro, connection);
 
         command.Parameters.AddWithValue("@LibroId", libro.LibroId);
+        command.Parameters.AddWithValue("@UsuarioSesionId", libro.UsuarioSesionId ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@AutorId", libro.AutorId);
         command.Parameters.AddWithValue("@Titulo", libro.Titulo);
         command.Parameters.AddWithValue("@ISBN", string.IsNullOrWhiteSpace(libro.ISBN) ? DBNull.Value : libro.ISBN);

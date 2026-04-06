@@ -6,6 +6,7 @@ namespace gestion_bibliotecaria.Domain.Ports;
 public interface ILibroRepositorio
 {
     DataTable Select();
+    Libro? GetById(int id);
     void Create(Libro libro);
     void Update(Libro libro);
     void Delete(Libro libro);

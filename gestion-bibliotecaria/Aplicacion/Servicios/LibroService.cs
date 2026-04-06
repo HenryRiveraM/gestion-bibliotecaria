@@ -18,6 +18,8 @@ public class LibroServicio
 
     public DataTable Select() => _libroRepositorio.Select();
 
+    public Libro? GetById(int id) => _libroRepositorio.GetById(id);
+
     public void Create(Libro libro) => _libroRepositorio.Create(libro);
 
     public void Update(Libro libro) => _libroRepositorio.Update(libro);

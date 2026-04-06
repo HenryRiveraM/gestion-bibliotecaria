@@ -4,6 +4,7 @@ using gestion_bibliotecaria.Domain.Validations;
 using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System.Security.Claims;
 using System.Data;
 
 namespace gestion_bibliotecaria.Pages;
@@ -78,9 +79,20 @@ public class LibroModel : PageModel
             return NotFound();
         }
 
+        var libroActual = _libroServicio.GetById(id);
+        if (libroActual == null)
+        {
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                return new JsonResult(new { success = false, errors = new Dictionary<string, string> { { "", "El libro no existe o fue eliminado." } } });
+            return NotFound();
+        }
+
+        var usuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims();
+
         var libro = new Libro
         {
             LibroId = id,
+            UsuarioSesionId = usuarioSesionId ?? libroActual.UsuarioSesionId,
             AutorId = AutorId ?? 0,
             Titulo = Titulo,
             ISBN = ISBN,
@@ -141,6 +153,7 @@ public class LibroModel : PageModel
 
         var libro = new Libro
         {
+            UsuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims(),
             AutorId = AutorId ?? 0,
             Titulo = Titulo,
             ISBN = ISBN,
@@ -190,5 +203,16 @@ public class LibroModel : PageModel
     private bool EsAutorActivo(int autorId)
     {
         return _libroServicio.ExisteAutorActivo(autorId);
+    }
+
+    private int? ObtenerUsuarioSesionIdDesdeClaims()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(claim, out var usuarioId))
+        {
+            return usuarioId;
+        }
+
+        return null;
     }
 }
