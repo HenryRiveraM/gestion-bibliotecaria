@@ -152,7 +152,7 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
                                 <li>
-                                    <form method="post" asp-page="/Login" asp-page-handler="Logout">
+                                    <form method="post" asp-page="/Pages/Login" asp-page-handler="Logout">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="dropdown-item custom-dropdown-item">Cerrar sesion</button>
                                     </form>

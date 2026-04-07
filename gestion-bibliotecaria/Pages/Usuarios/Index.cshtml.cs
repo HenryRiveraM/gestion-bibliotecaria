@@ -34,7 +34,7 @@ public class IndexModel : PageModel
     {
         if (!EsAdmin())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/Pages/Index");
         }
 
         CargarUsuarios();
@@ -45,13 +45,13 @@ public class IndexModel : PageModel
     {
         if (!EsAdmin())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/Pages/Index");
         }
 
         var usuarioSesionId = ObtenerUsuarioSesionId();
         if (!usuarioSesionId.HasValue)
         {
-            return RedirectToPage("/Login");
+            return RedirectToPage("/Pages/Login");
         }
 
         NuevoUsuario.Rol = RolNuevoUsuario;
@@ -73,13 +73,13 @@ public class IndexModel : PageModel
     {
         if (!EsAdmin())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/Pages/Index");
         }
 
         var usuarioSesionId = ObtenerUsuarioSesionId();
         if (!usuarioSesionId.HasValue)
         {
-            return RedirectToPage("/Login");
+            return RedirectToPage("/Pages/Login");
         }
 
         if (!_routeTokenService.TryObtenerId(token, out var usuarioId))

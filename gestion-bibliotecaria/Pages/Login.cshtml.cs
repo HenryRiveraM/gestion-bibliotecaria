@@ -27,7 +27,7 @@ public class LoginModel : PageModel
     {
         if (!string.IsNullOrWhiteSpace(HttpContext.Session.GetString(SessionKeys.UsuarioId)))
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/Pages/Index");
         }
 
         return Page();
@@ -49,12 +49,12 @@ public class LoginModel : PageModel
         HttpContext.Session.SetString(SessionKeys.NombreUsuario, usuario.NombreUsuario);
         HttpContext.Session.SetString(SessionKeys.Rol, usuario.Rol);
 
-        return RedirectToPage("/Index");
+        return RedirectToPage("/Pages/Index");
     }
 
     public IActionResult OnPostLogout()
     {
         HttpContext.Session.Clear();
-        return RedirectToPage("/Login");
+        return RedirectToPage("/Pages/Login");
     }
 }
