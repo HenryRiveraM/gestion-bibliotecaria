@@ -3,6 +3,7 @@
 public class Ejemplar
 {
     public int EjemplarId { get; set; }
+    public int? UsuarioSesionId { get; set; }
     public string RouteToken { get; set; } = string.Empty;
     public int LibroId { get; set; }
     public string CodigoInventario { get; set; } = string.Empty;

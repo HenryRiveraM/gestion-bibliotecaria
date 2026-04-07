@@ -22,7 +22,7 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
 
     private string ConnectionString => _connectionString;
 
-    // ?? Métodos extra (igual que Ejemplar)
+    // ?? Mï¿½todos extra (igual que Ejemplar)
 
     public Dictionary<int, string> ObtenerAutoresActivos()
     {
@@ -77,7 +77,7 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
         return Convert.ToInt32(result) > 0;
     }
 
-    // ?? Métodos base (igual patrón que Ejemplar)
+    // ?? Mï¿½todos base (igual patrï¿½n que Ejemplar)
 
     public DataTable Select() => GetAll();
 
@@ -97,10 +97,11 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
             connection.Open();
 
             string query = @"SELECT 
-                                AutorId,
-                                Nombres,
-                                Apellidos,
-                                Nacionalidad,
+                                 AutorId,
+                                 UsuarioSesionId,
+                                 Nombres,
+                                 Apellidos,
+                                 Nacionalidad,
                                 FechaNacimiento,
                                 Estado
                              FROM autor
@@ -123,12 +124,13 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
             connection.Open();
 
             string query = @"INSERT INTO autor
-                (Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado, FechaRegistro)
+                (UsuarioSesionId, Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado, FechaRegistro)
                 VALUES
-                (@Nombres, @Apellidos, @Nacionalidad, @FechaNacimiento, @Estado, NOW());";
+                (@UsuarioSesionId, @Nombres, @Apellidos, @Nacionalidad, @FechaNacimiento, @Estado, NOW());";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
+                command.Parameters.AddWithValue("@UsuarioSesionId", autor.UsuarioSesionId ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Nombres", autor.Nombres);
                 command.Parameters.AddWithValue("@Apellidos", autor.Apellidos ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Nacionalidad", autor.Nacionalidad ?? (object)DBNull.Value);
@@ -147,7 +149,8 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
             connection.Open();
 
             string query = @"UPDATE autor
-                SET Nombres = @Nombres,
+                SET UsuarioSesionId = @UsuarioSesionId,
+                    Nombres = @Nombres,
                     Apellidos = @Apellidos,
                     Nacionalidad = @Nacionalidad,
                     FechaNacimiento = @FechaNacimiento,
@@ -158,6 +161,7 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@AutorId", autor.AutorId);
+                command.Parameters.AddWithValue("@UsuarioSesionId", autor.UsuarioSesionId ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Nombres", autor.Nombres);
                 command.Parameters.AddWithValue("@Apellidos", autor.Apellidos ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@Nacionalidad", autor.Nacionalidad ?? (object)DBNull.Value);
@@ -208,6 +212,7 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
                         autor = new Autor
                         {
                             AutorId = reader.GetInt32("AutorId"),
+                            UsuarioSesionId = reader.IsDBNull("UsuarioSesionId") ? null : reader.GetInt32("UsuarioSesionId"),
                             Nombres = reader.GetString("Nombres"),
                             Apellidos = reader.IsDBNull("Apellidos") ? null : reader.GetString("Apellidos"),
                             Nacionalidad = reader.IsDBNull("Nacionalidad") ? null : reader.GetString("Nacionalidad"),

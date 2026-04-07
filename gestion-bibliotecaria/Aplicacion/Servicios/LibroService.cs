@@ -19,6 +19,8 @@ public class LibroServicio : ILibroServicio
 
     public DataTable Select() => _libroRepositorio.Select();
 
+    public Libro? GetById(int id) => _libroRepositorio.GetById(id);
+
     public void Create(Libro libro) => _libroRepositorio.Create(libro);
 
     public void Update(Libro libro) => _libroRepositorio.Update(libro);
@@ -31,7 +33,8 @@ public class LibroServicio : ILibroServicio
 
     public bool ExisteAutorActivo(int autorId) => _libroRepositorio.ExisteAutorActivo(autorId);
 
-    public int InsertarAutorYObtenerID(string nombreCompleto) => _libroRepositorio.InsertarAutorYObtenerID(nombreCompleto);
+    public int InsertarAutorYObtenerID(string nombreCompleto, int? usuarioSesionId)
+        => _libroRepositorio.InsertarAutorYObtenerID(nombreCompleto, usuarioSesionId);
 
     public Result ValidarLibro(Libro libro, string? nombreAutorNuevo)
     {
