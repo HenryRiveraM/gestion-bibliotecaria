@@ -10,7 +10,7 @@ namespace gestion_bibliotecaria.Aplicacion.Servicios;
 
 public class UserCredentialProvisioningService : IUserCredentialProvisioningService
 {
-    private const int TemporaryPasswordLength = 16;
+    private const int TemporaryPasswordLength = 6;
     private const int MaxUserNameLength = 50;
     private const string Sha2Algorithm = "SHA-256";
     private const string PasswordCharacters = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%*_-";
@@ -84,7 +84,7 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
             return baseName;
         }
 
-        var contador = 2;
+        var contador = 1;
 
         while (true)
         {
@@ -110,17 +110,21 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
 
     private static string BuildBaseUserName(string nombres, string primerApellido, string segundoApellido)
     {
-        var nombre = TakeFirstToken(nombres);
-        var apellido1 = TakeFirstToken(primerApellido);
-        var apellido2 = TakeFirstToken(segundoApellido);
+        var nombre = FormatToken(TakeFirstToken(nombres));
+        var apellido1 = FormatToken(TakeFirstToken(primerApellido));
+        var apellido2 = FormatToken(TakeFirstToken(segundoApellido));
 
-        var parts = new[] { nombre, apellido1, apellido2 }
-            .Where(static p => !string.IsNullOrWhiteSpace(p))
-            .Select(NormalizeForUserName)
-            .Where(static p => !string.IsNullOrWhiteSpace(p))
-            .ToArray();
+        return $"{nombre}{apellido1}{apellido2}";
+    }
 
-        return string.Join('.', parts).ToLowerInvariant();
+    private static string FormatToken(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+        var normalized = NormalizeForUserName(value);
+        if (string.IsNullOrWhiteSpace(normalized)) return string.Empty;
+        
+        var truncated = normalized.Length > 3 ? normalized[..3] : normalized;
+        return char.ToUpperInvariant(truncated[0]) + truncated[1..].ToLowerInvariant();
     }
 
     private static string TakeFirstToken(string value)
