@@ -4,7 +4,7 @@ namespace gestion_bibliotecaria.Domain.Errors;
 
 public static class UsuarioErrors
 {
-    public static readonly Error CredencialesInvalidas = new("Usuario.Login", "Usuario o contrasena invalidos.");
+    public static readonly Error CredencialesInvalidas = new("Usuario.Login", "Usuario o contraseña invalidos.");
     public static readonly Error RolInvalido = new("Usuario.Rol", "El rol seleccionado no es valido.");
     public static readonly Error DatosObligatorios = new("Usuario.Datos", "Completa todos los campos obligatorios.");
     public static readonly Error EmailInvalido = new("Usuario.Email", "El correo electronico ingresado no es valido.");
