@@ -7,7 +7,7 @@ using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Infrastructure.Security;
 using MySql.Data.MySqlClient;
 using System.Data;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -51,6 +51,7 @@ public class EjemplarModel : PageModel
                 return NotFound();
             }
 
+            ejemplar.UsuarioSesionId = ObtenerUsuarioSesionId() ?? ejemplar.UsuarioSesionId;
             _ejemplarServicio.Delete(ejemplar);
 
             return RedirectToPage();
@@ -94,7 +95,7 @@ public class EjemplarModel : PageModel
         ejemplar.Ubicacion = Ubicacion;
         ejemplar.Estado = Estado ?? false;
 
-        var usuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims();
+        var usuarioSesionId = ObtenerUsuarioSesionId();
         ejemplar.UsuarioSesionId = usuarioSesionId ?? ejemplar.UsuarioSesionId;
 
         var validacion = _ejemplarServicio.ValidarEjemplar(ejemplar);
@@ -138,7 +139,7 @@ public class EjemplarModel : PageModel
 
     public IActionResult OnPostCrear(Ejemplar Ejemplar)
     {
-        Ejemplar.UsuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims();
+        Ejemplar.UsuarioSesionId = ObtenerUsuarioSesionId();
 
         var validacion = _ejemplarServicio.ValidarEjemplar(Ejemplar);
         if (validacion.IsFailure)
@@ -233,9 +234,9 @@ public class EjemplarModel : PageModel
         ModelState.AddModelError(key, error.Message);
     }
 
-    private int? ObtenerUsuarioSesionIdDesdeClaims()
+    private int? ObtenerUsuarioSesionId()
     {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var claim = HttpContext.Session.GetString(SessionKeys.UsuarioId);
         if (int.TryParse(claim, out var usuarioId))
         {
             return usuarioId;

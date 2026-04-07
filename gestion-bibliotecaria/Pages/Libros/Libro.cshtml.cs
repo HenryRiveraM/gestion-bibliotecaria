@@ -4,7 +4,7 @@ using gestion_bibliotecaria.Domain.Validations;
 using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using System.Data;
 
 namespace gestion_bibliotecaria.Pages;
@@ -52,7 +52,12 @@ public class LibroModel : PageModel
             return NotFound();
         }
 
-        _libroServicio.Delete(new Libro { LibroId = libroId });
+        var libro = new Libro 
+        { 
+            LibroId = libroId, 
+            UsuarioSesionId = ObtenerUsuarioSesionId() 
+        };
+        _libroServicio.Delete(libro);
 
         return RedirectToPage();
     }
@@ -87,7 +92,7 @@ public class LibroModel : PageModel
             return NotFound();
         }
 
-        var usuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims();
+        var usuarioSesionId = ObtenerUsuarioSesionId();
 
         var libro = new Libro
         {
@@ -153,7 +158,7 @@ public class LibroModel : PageModel
 
         var libro = new Libro
         {
-            UsuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims(),
+            UsuarioSesionId = ObtenerUsuarioSesionId(),
             AutorId = AutorId ?? 0,
             Titulo = Titulo,
             ISBN = ISBN,
@@ -205,9 +210,9 @@ public class LibroModel : PageModel
         return _libroServicio.ExisteAutorActivo(autorId);
     }
 
-    private int? ObtenerUsuarioSesionIdDesdeClaims()
+    private int? ObtenerUsuarioSesionId()
     {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var claim = HttpContext.Session.GetString(SessionKeys.UsuarioId);
         if (int.TryParse(claim, out var usuarioId))
         {
             return usuarioId;
