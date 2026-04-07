@@ -2,106 +2,226 @@
 @using gestion_bibliotecaria.Domain.Entities
 @model gestion_bibliotecaria.Pages.Usuarios.IndexModel
 @{
-    ViewData["Title"] = "Gestion de Usuarios";
+    ViewData["Title"] = "Gestión de Usuarios";
 }
 
-<div class="container py-4">
-    <h1 class="mb-3">Gestion de Usuarios</h1>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/usuarios.css" />
+}
+
+<div class="usuarios-container">
+
+    <div class="page-header">
+        <div class="titulo-logo">
+            <h1>Gestión de Usuarios</h1>
+        </div>
+
+        <button type="button" class="btn-nuevo" onclick="abrirModalCrearUsuario()">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn">
+            Nuevo Usuario
+        </button>
+    </div>
 
     @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
     {
-        <div class="alert alert-success" role="alert">@Model.MensajeOk</div>
+        <div class="alert-custom alert-success-custom">
+            @Model.MensajeOk
+        </div>
     }
 
     @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
     {
-        <div class="alert alert-danger" role="alert">@Model.MensajeError</div>
+        <div class="alert-custom alert-danger-custom">
+            @Model.MensajeError
+        </div>
     }
 
-    <div class="card mb-4">
-        <div class="card-header">Alta de usuario (solo Admin)</div>
-        <div class="card-body">
-            <form method="post" asp-page-handler="Crear" class="row g-3">
-                @Html.AntiForgeryToken()
+    <div class="tabla-container">
+        <table class="tabla-usuarios">
+            <thead>
+                <tr>
+                    <th>Nombres</th>
+                    <th>Primer apellido</th>
+                    <th>Segundo apellido</th>
+                    <th>Email</th>
+                    <th>Username</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
 
-                <div class="col-md-6">
-                    <label class="form-label" for="Nombres">Nombres</label>
-                    <input asp-for="NuevoUsuario.Nombres" class="form-control" id="Nombres" required />
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label" for="PrimerApellido">Primer apellido</label>
-                    <input asp-for="NuevoUsuario.PrimerApellido" class="form-control" id="PrimerApellido" required />
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label" for="SegundoApellido">Segundo apellido</label>
-                    <input asp-for="NuevoUsuario.SegundoApellido" class="form-control" id="SegundoApellido" required />
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label" for="Email">Email</label>
-                    <input asp-for="NuevoUsuario.Email" class="form-control" id="Email" type="email" required />
-                </div>
-
-                <div class="col-md-6">
-                    <label class="form-label" for="RolNuevoUsuario">Rol</label>
-                    <select asp-for="RolNuevoUsuario" class="form-select" id="RolNuevoUsuario">
-                        <option value="@Usuario.RolBibliotecario">Bibliotecario</option>
-                        <option value="@Usuario.RolAdmin">Admin</option>
-                    </select>
-                </div>
-
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Crear usuario</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header">Listado de usuarios</div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped mb-0">
-                    <thead>
-                        <tr>
-                            <th>Nombres</th>
-                            <th>Primer apellido</th>
-                            <th>Segundo apellido</th>
-                            <th>Email</th>
-                            <th>Username</th>
-                            <th>Rol</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var usuario in Model.Usuarios)
-                    {
-                        <tr>
-                            <td>@usuario.Nombres</td>
-                            <td>@usuario.PrimerApellido</td>
-                            <td>@usuario.SegundoApellido</td>
-                            <td>@usuario.Email</td>
-                            <td>@usuario.NombreUsuario</td>
-                            <td>@usuario.Rol</td>
-                            <td>@(usuario.Estado ? "Activo" : "Inactivo")</td>
-                            <td>
-                                @if (usuario.Estado)
-                                {
-                                    <form method="post" asp-page-handler="Baja" class="d-inline">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="token" value="@usuario.UsuarioIdToken" />
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Dar de baja</button>
-                                    </form>
-                                }
-                            </td>
-                        </tr>
-                    }
-                    </tbody>
-                </table>
-            </div>
-        </div>
+            <tbody>
+            @foreach (var usuario in Model.Usuarios)
+            {
+                <tr>
+                    <td>@usuario.Nombres</td>
+                    <td>@usuario.PrimerApellido</td>
+                    <td>@usuario.SegundoApellido</td>
+                    <td>@usuario.Email</td>
+                    <td>@usuario.NombreUsuario</td>
+                    <td>@usuario.Rol</td>
+                    <td>
+                        @if (usuario.Estado)
+                        {
+                            <span class="estado activo">Activo</span>
+                        }
+                        else
+                        {
+                            <span class="estado inactivo">Inactivo</span>
+                        }
+                    </td>
+                    <td class="acciones">
+                        @if (usuario.Estado)
+                        {
+                            <button type="button"
+                                    class="btn-eliminar"
+                                    onclick="abrirModalBajaUsuario('@usuario.UsuarioIdToken', '@usuario.NombreUsuario')">
+                                <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                     class="icono-btn">
+                                Dar de baja
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sin acciones</span>
+                        }
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
     </div>
 </div>
+
+<!-- MODAL CREAR USUARIO -->
+<div id="modalCrearUsuario" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>Nuevo Usuario</h2>
+        <p>Completa los datos para registrar un nuevo usuario.</p>
+
+        <form method="post" asp-page-handler="Crear" autocomplete="off">
+            @Html.AntiForgeryToken()
+
+            <input asp-for="NuevoUsuario.Nombres"
+                   class="input-form"
+                   id="Nombres"
+                   placeholder="Nombres"
+                   required />
+
+            <input asp-for="NuevoUsuario.PrimerApellido"
+                   class="input-form"
+                   id="PrimerApellido"
+                   placeholder="Primer apellido"
+                   required />
+
+            <input asp-for="NuevoUsuario.SegundoApellido"
+                   class="input-form"
+                   id="SegundoApellido"
+                   placeholder="Segundo apellido"
+                   required />
+
+            <input asp-for="NuevoUsuario.Email"
+                   class="input-form"
+                   id="Email"
+                   type="email"
+                   placeholder="Correo electrónico"
+                   required />
+
+            <select asp-for="RolNuevoUsuario"
+                    class="input-form"
+                    id="RolNuevoUsuario">
+                <option value="@Usuario.RolBibliotecario">Bibliotecario</option>
+                <option value="@Usuario.RolAdmin">Admin</option>
+            </select>
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-success">
+                    Crear usuario
+                </button>
+
+                <button type="button"
+                        class="btn-secondary"
+                        onclick="cerrarModalCrearUsuario()">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<!-- MODAL BAJA USUARIO -->
+<div id="modalBajaUsuario" class="modal">
+    <div class="modal-box">
+
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal">
+        </div>
+
+        <h2>Dar de baja usuario</h2>
+        <p id="textoUsuarioBaja">¿Deseas dar de baja este usuario?</p>
+
+        <form method="post" asp-page-handler="Baja">
+            @Html.AntiForgeryToken()
+
+            <input type="hidden" id="usuarioTokenBaja" name="token" />
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-danger">
+                    Confirmar baja
+                </button>
+
+                <button type="button"
+                        class="btn-secondary"
+                        onclick="cerrarModalBajaUsuario()">
+                    Cancelar
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function abrirModalCrearUsuario() {
+    document.getElementById("modalCrearUsuario").style.display = "flex";
+}
+
+function cerrarModalCrearUsuario() {
+    document.getElementById("modalCrearUsuario").style.display = "none";
+}
+
+function abrirModalBajaUsuario(token, nombreUsuario) {
+    document.getElementById("usuarioTokenBaja").value = token || "";
+    document.getElementById("textoUsuarioBaja").textContent =
+        "¿Deseas dar de baja al usuario " + (nombreUsuario || "") + "?";
+    document.getElementById("modalBajaUsuario").style.display = "flex";
+}
+
+function cerrarModalBajaUsuario() {
+    document.getElementById("modalBajaUsuario").style.display = "none";
+}
+
+window.addEventListener("click", function (e) {
+    var modalCrear = document.getElementById("modalCrearUsuario");
+    var modalBaja = document.getElementById("modalBajaUsuario");
+
+    if (e.target === modalCrear) {
+        cerrarModalCrearUsuario();
+    }
+
+    if (e.target === modalBaja) {
+        cerrarModalBajaUsuario();
+    }
+});
+</script>
+}

@@ -84,7 +84,7 @@
                     {
                         <li class="nav-item">
                             <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Usuarios">
-                                <img src="~/assets/icons/group_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                <img src="~/assets/icons/groups_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                                 Usuarios
                             </a>
                         </li>
@@ -112,19 +112,22 @@
                     else
                     {
                         <li class="nav-item dropdown">
-                            <a class="nav-link text-dark dropdown-toggle d-flex align-items-center gap-2"
-                               href="#"
-                               role="button"
-                               data-bs-toggle="dropdown"
-                               aria-expanded="false">
+                            <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
                                 <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                                 @nombreUsuarioSesion
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+
+                            <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
                                 <li>
-                                    <form method="post" asp-page="/Pages/Login" asp-page-handler="Logout">
+                                    <form method="post" action="/Login?handler=Logout">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="dropdown-item">Cerrar sesion</button>
+                                        <button type="submit" class="dropdown-item custom-dropdown-item">
+                                            Cerrar sesion
+                                        </button>
                                     </form>
                                 </li>
                             </ul>

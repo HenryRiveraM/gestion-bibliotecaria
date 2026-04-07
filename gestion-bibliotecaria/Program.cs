@@ -59,6 +59,8 @@ app.Use(async (context, next) =>
 {
     var path = context.Request.Path;
     var isPublicPath =
+        path.Equals("/", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWithSegments("/Index", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/Login", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/Error", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/Privacy", StringComparison.OrdinalIgnoreCase) ||
