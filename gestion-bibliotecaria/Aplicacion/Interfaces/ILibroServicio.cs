@@ -7,6 +7,8 @@ namespace gestion_bibliotecaria.Aplicacion.Interfaces;
 public interface ILibroServicio
 {
     DataTable Select();
+    Libro? GetById(int id);
+
     void Create(Libro libro);
     void Update(Libro libro);
     void Delete(Libro libro);
@@ -14,7 +16,7 @@ public interface ILibroServicio
     Dictionary<int, string> ObtenerNombresAutores();
     DataTable ObtenerAutoresActivos();
     bool ExisteAutorActivo(int autorId);
-    int InsertarAutorYObtenerID(string nombreCompleto);
+    int InsertarAutorYObtenerID(string nombreCompleto, int? usuarioSesionId);
 
     Result ValidarLibro(Libro libro, string? nombreAutorNuevo);
 }

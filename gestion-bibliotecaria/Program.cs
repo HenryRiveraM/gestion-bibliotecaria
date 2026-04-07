@@ -1,6 +1,8 @@
 using gestion_bibliotecaria.Aplicacion.Servicios;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Ports;
+using gestion_bibliotecaria.Infrastructure.Configuration;
+using gestion_bibliotecaria.Infrastructure.Email;
 using gestion_bibliotecaria.Infrastructure.Persistence;
 using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +31,8 @@ builder.Services.AddScoped<IEmailSender>(EmailSenderFactory.Create);
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
 builder.Services.AddScoped<ILibroServicio, LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
+builder.Services.AddScoped<IUserCredentialProvisioningService, UserCredentialProvisioningService>();
+builder.Services.AddScoped<IUsuarioServicio, UsuarioServicio>();
 
 builder.Services.AddRazorPages(options =>
 {
