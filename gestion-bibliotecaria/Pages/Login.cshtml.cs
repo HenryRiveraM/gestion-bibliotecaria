@@ -25,12 +25,7 @@ public class LoginModel : PageModel
 
     public IActionResult OnGet()
     {
-        if (!string.IsNullOrWhiteSpace(HttpContext.Session.GetString(SessionKeys.UsuarioId)))
-        {
-            return RedirectToPage("/Pages/Index");
-        }
-
-        return Page();
+        return Redirect("/");
     }
 
     public IActionResult OnPost()
@@ -39,8 +34,8 @@ public class LoginModel : PageModel
 
         if (resultado.IsFailure)
         {
-            MensajeError = resultado.Error.Message;
-            return Page();
+            TempData["LoginError"] = resultado.Error.Message;
+            return Redirect("/");
         }
 
         var usuario = resultado.Value;
@@ -49,12 +44,12 @@ public class LoginModel : PageModel
         HttpContext.Session.SetString(SessionKeys.NombreUsuario, usuario.NombreUsuario);
         HttpContext.Session.SetString(SessionKeys.Rol, usuario.Rol);
 
-        return RedirectToPage("/Pages/Index");
+        return Redirect("/");
     }
 
     public IActionResult OnPostLogout()
     {
         HttpContext.Session.Clear();
-        return RedirectToPage("/Pages/Login");
+        return Redirect("/");
     }
 }

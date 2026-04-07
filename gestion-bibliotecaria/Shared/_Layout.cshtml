@@ -28,7 +28,6 @@
     <nav class="navbar navbar-expand-sm">
         <div class="container">
 
-            <!-- LOGO -->
             <a class="navbar-brand d-flex align-items-center" href="/">
                 <img src="~/assets/images/whiiteLogoR.png"
                      height="60"
@@ -36,7 +35,6 @@
                      class="me-2">
             </a>
 
-            <!-- BOTON MOBILE -->
             <button class="navbar-toggler"
                     type="button"
                     data-bs-toggle="collapse"
@@ -45,12 +43,10 @@
                      width="24">
             </button>
 
-            <!-- MENU -->
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 
                 <ul class="navbar-nav flex-grow-1">
 
-                    <!-- HOME -->
                     <li class="nav-item">
                         <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/">
                             <img src="~/assets/icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
@@ -58,7 +54,6 @@
                         </a>
                     </li>
 
-                    <!-- BIBLIOTECA -->
                     <li class="nav-item dropdown">
                         <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
                            href="#"
@@ -78,7 +73,6 @@
                         </ul>
                     </li>
 
-                    <!-- CIRCULACION -->
                     <li class="nav-item dropdown">
                         <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
                            href="#"
@@ -102,13 +96,12 @@
                     {
                         <li class="nav-item">
                             <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Usuarios">
-                                <img src="~/assets/icons/group_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                <img src="~/assets/icons/groups_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                                 Usuarios
                             </a>
                         </li>
                     }
 
-                    <!-- REPORTES -->
                     <li class="nav-item dropdown">
                         <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
                            href="#"
@@ -128,15 +121,16 @@
                     </li>
                 </ul>
 
-                <!-- DERECHA -->
                 <ul class="navbar-nav">
                     @if (!haySesion)
                     {
                         <li class="nav-item">
-                            <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/Login">
+                            <button type="button"
+                                    class="nav-link nav-btn d-flex align-items-center gap-2 btn-login-navbar"
+                                    onclick="abrirModalLogin()">
                                 <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                                Iniciar sesion
-                            </a>
+                                Iniciar sesión
+                            </button>
                         </li>
                     }
                     else
@@ -152,21 +146,16 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
                                 <li>
-                                    <form method="post" asp-page="/Pages/Login" asp-page-handler="Logout">
+                                    <form method="post" action="/Login?handler=Logout">
                                         @Html.AntiForgeryToken()
-                                        <button type="submit" class="dropdown-item custom-dropdown-item">Cerrar sesion</button>
+                                        <button type="submit" class="dropdown-item custom-dropdown-item">
+                                            Cerrar sesion
+                                        </button>
                                     </form>
                                 </li>
                             </ul>
                         </li>
                     }
-
-                    @* <li class="nav-item">
-                        <a class="nav-link nav-btn d-flex align-items-center gap-2" href="#">
-                            <img src="~/assets/icons/account_box_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Registrarse
-                        </a>
-                    </li> *@
                 </ul>
 
             </div>
@@ -174,26 +163,74 @@
     </nav>
 </header>
 
-
-<!-- CONTENIDO PRINCIPAL -->
-
 <main class="container-fluid main-content">
-
     @RenderBody()
-
 </main>
 
+@if (!haySesion)
+{
+    <div id="modalLogin" class="modal">
+        <div class="modal-box modal-login-box">
 
-<!-- FOOTER -->
+            <div class="modal-icon login">
+                <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                     class="icono-modal" />
+            </div>
+
+            <h2>Iniciar sesión</h2>
+            <p>Ingresa tus credenciales para acceder al sistema.</p>
+
+            <form method="post" action="/Login" autocomplete="off">
+                @Html.AntiForgeryToken()
+
+                <input type="text"
+                        name="NombreUsuario"
+                        id="loginNombreUsuario"
+                        class="input-form"
+                        placeholder="Nombre de usuario"
+                        required />
+
+                <div class="password-wrapper">
+                    <input type="password"
+                            name="Password"
+                            id="loginPassword"
+                            class="input-form password-input"
+                            placeholder="Contraseña"
+                            required />
+
+                    <button type="button"
+                            class="toggle-password-btn"
+                            onclick="togglePasswordLogin()"
+                            aria-label="Mostrar u ocultar contraseña">
+                        <img id="togglePasswordIcon"
+                                src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                alt="Ver contraseña" />
+                    </button>
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="submit" class="btn-login-modal">
+                        Ingresar
+                    </button>
+
+                    <button type="button"
+                            class="btn-secondary"
+                            onclick="cerrarModalLogin()">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+}
 
 <footer class="footer-custom">
-
     <div class="container footer-content">
-
         <div class="footer-left">
             <img src="~/assets/images/whiiteLogoR.png"
-                    height="60"
-                    width="100">
+                 height="60"
+                 width="100">
         </div>
 
         <div class="footer-center">
@@ -203,17 +240,52 @@
         <div class="footer-right">
             <a href="/Privacy">Privacy</a>
         </div>
-
     </div>
-
 </footer>
-
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>
 <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="~/js/site.js" asp-append-version="true"></script>
 
 @await RenderSectionAsync("Scripts", required: false)
+
+<script>
+    function abrirModalLogin() {
+        var modal = document.getElementById("modalLogin");
+        if (modal) {
+            modal.style.display = "flex";
+        }
+    }
+
+    function cerrarModalLogin() {
+        var modal = document.getElementById("modalLogin");
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function togglePasswordLogin() {
+        var input = document.getElementById("loginPassword");
+        var icon = document.getElementById("togglePasswordIcon");
+
+        if (!input || !icon) return;
+
+        if (input.type === "password") {
+            input.type = "text";
+            icon.src = "/assets/icons/visibility_off_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg";
+        } else {
+            input.type = "password";
+            icon.src = "/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg";
+        }
+    }
+
+    window.addEventListener("click", function (e) {
+        var modal = document.getElementById("modalLogin");
+        if (modal && e.target === modal) {
+            cerrarModalLogin();
+        }
+    });
+</script>
 
 </body>
 </html>
