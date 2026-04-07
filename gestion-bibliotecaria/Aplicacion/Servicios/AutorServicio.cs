@@ -36,24 +36,24 @@ public class AutorServicio : IAutorServicio
 
     public Result ValidarAutor(Autor autor)
     {
-        // 🔹 Normalizar
+        
         autor.Nombres = ValidadorEntrada.NormalizarEspacios(autor.Nombres);
         autor.Apellidos = ValidadorEntrada.NormalizarEspacios(autor.Apellidos);
         autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(autor.Nacionalidad);
 
-        // 🔹 NOMBRES OBLIGATORIOS
+        
         if (ValidadorEntrada.EstaVacio(autor.Nombres))
             return Result.Failure(AutorErrors.NombresObligatorios);
 
-        // 🔹 SOLO LETRAS Y ESPACIOS
+        
         if (!Regex.IsMatch(autor.Nombres, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
             return Result.Failure(AutorErrors.NombresFormato);
 
-        // 🔹 LONGITUD
+        
         if (ValidadorEntrada.ExcedeLongitud(autor.Nombres, 100))
             return Result.Failure(AutorErrors.NombresLongitud);
 
-        // 🔹 APELLIDOS (OPCIONAL)
+        
         if (!string.IsNullOrEmpty(autor.Apellidos))
         {
             if (!Regex.IsMatch(autor.Apellidos, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
@@ -63,7 +63,7 @@ public class AutorServicio : IAutorServicio
                 return Result.Failure(AutorErrors.ApellidosLongitud);
         }
 
-        // 🔹 NACIONALIDAD (OPCIONAL)
+        
         if (!string.IsNullOrEmpty(autor.Nacionalidad))
         {
             if (!Regex.IsMatch(autor.Nacionalidad, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
@@ -73,7 +73,7 @@ public class AutorServicio : IAutorServicio
                 return Result.Failure(AutorErrors.NacionalidadLongitud);
         }
 
-        // 🔹 FECHA
+        
         if (autor.FechaNacimiento.HasValue &&
             autor.FechaNacimiento > DateTime.Now)
             return Result.Failure(AutorErrors.FechaFutura);

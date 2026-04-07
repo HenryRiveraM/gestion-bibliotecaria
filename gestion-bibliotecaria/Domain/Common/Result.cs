@@ -8,7 +8,7 @@ public class Result
 
     protected Result(bool isSuccess, Error error)
     {
-        // Safety check: You can't have a success with an error, or a failure without one
+
         if (isSuccess && error != Error.None || !isSuccess && error == Error.None)
         {
             throw new InvalidOperationException();
@@ -22,7 +22,6 @@ public class Result
     public static Result Failure(Error error) => new(false, error);
 }
 
-// This generic version allows you to return a value (like an Entity)
 public class Result<TValue> : Result
 {
     private readonly TValue? _value;
