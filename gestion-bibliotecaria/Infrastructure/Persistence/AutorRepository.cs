@@ -180,12 +180,13 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
             connection.Open();
 
             string query = @"UPDATE autor 
-                             SET Estado = 0, UltimaActualizacion = NOW() 
+                             SET Estado = 0, UsuarioSesionId = @UsuarioSesionId, UltimaActualizacion = NOW() 
                              WHERE AutorId = @AutorId;";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@AutorId", autor.AutorId);
+                command.Parameters.AddWithValue("@UsuarioSesionId", autor.UsuarioSesionId ?? (object)DBNull.Value);
                 command.ExecuteNonQuery();
             }
         }

@@ -5,7 +5,7 @@ using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using System.Data;
 
 namespace gestion_bibliotecaria.Pages;
@@ -69,6 +69,7 @@ public class AutorModel : PageModel
         if (autor == null)
             return NotFound();
 
+        autor.UsuarioSesionId = ObtenerUsuarioSesionId() ?? autor.UsuarioSesionId;
         _autorServicio.Delete(autor);
 
         return RedirectToPage();
@@ -78,7 +79,7 @@ public class AutorModel : PageModel
     {
         ModalActivo = "crear";
 
-        Autor.UsuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims();
+        Autor.UsuarioSesionId = ObtenerUsuarioSesionId();
 
         var validacion = _autorServicio.ValidarAutor(Autor);
 
@@ -121,7 +122,7 @@ public class AutorModel : PageModel
         autor.FechaNacimiento = FechaNacimiento;
         autor.Estado = Estado ?? false;
 
-        var usuarioSesionId = ObtenerUsuarioSesionIdDesdeClaims();
+        var usuarioSesionId = ObtenerUsuarioSesionId();
         autor.UsuarioSesionId = usuarioSesionId ?? autor.UsuarioSesionId;
 
         var validacion = _autorServicio.ValidarAutor(autor);
@@ -162,9 +163,9 @@ public class AutorModel : PageModel
         }
     }
 
-    private int? ObtenerUsuarioSesionIdDesdeClaims()
+    private int? ObtenerUsuarioSesionId()
     {
-        var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var claim = HttpContext.Session.GetString(SessionKeys.UsuarioId);
         if (int.TryParse(claim, out var usuarioId))
         {
             return usuarioId;

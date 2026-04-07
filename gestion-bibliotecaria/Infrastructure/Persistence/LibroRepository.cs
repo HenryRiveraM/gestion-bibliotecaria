@@ -128,6 +128,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
     private const string QueryDeleteLibro = @"
         UPDATE libro
         SET Estado = 0,
+            UsuarioSesionId = @UsuarioSesionId,
             UltimaActualizacion = @UltimaActualizacion
         WHERE LibroId = @LibroId";
 
@@ -252,6 +253,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         using var command = new MySqlCommand(QueryDeleteLibro, connection);
 
         command.Parameters.AddWithValue("@LibroId", libro.LibroId);
+        command.Parameters.AddWithValue("@UsuarioSesionId", libro.UsuarioSesionId ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@UltimaActualizacion", DateTime.Now);
 
         command.ExecuteNonQuery();

@@ -185,11 +185,12 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
         {
             connection.Open();
 
-            string query = @"UPDATE ejemplar SET Estado = 0 WHERE EjemplarId = @EjemplarId;";
+            string query = @"UPDATE ejemplar SET Estado = 0, UsuarioSesionId = @UsuarioSesionId WHERE EjemplarId = @EjemplarId;";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@EjemplarId", e.EjemplarId);
+                command.Parameters.AddWithValue("@UsuarioSesionId", e.UsuarioSesionId ?? (object)DBNull.Value);
                 command.ExecuteNonQuery();
             }
         }
