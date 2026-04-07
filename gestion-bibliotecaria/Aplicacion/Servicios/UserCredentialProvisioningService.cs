@@ -56,13 +56,28 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
                 "Por seguridad, cambia tu contrasena al iniciar sesion.\n"
         };
 
-        await _emailSender.SendAsync(message, cancellationToken);
+        var emailSent = true;
+        string? emailError = null;
+
+        try
+        {
+            await _emailSender.SendAsync(message, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            emailSent = false;
+            emailError = ex.Message;
+
+            Console.WriteLine($"[WARN] No se pudo enviar el correo al usuario {usuario.Email}: {ex.Message}");
+        }
 
         return new CredentialProvisioningResult
         {
             GeneratedUserName = nombreUsuario,
             PasswordHash = hashPassword,
-            PasswordAlgorithm = Sha2Algorithm
+            PasswordAlgorithm = Sha2Algorithm,
+            EmailSent = emailSent,
+            EmailError = emailError
         };
     }
 
@@ -122,7 +137,7 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
         if (string.IsNullOrWhiteSpace(value)) return string.Empty;
         var normalized = NormalizeForUserName(value);
         if (string.IsNullOrWhiteSpace(normalized)) return string.Empty;
-        
+
         var truncated = normalized.Length > 3 ? normalized[..3] : normalized;
         return char.ToUpperInvariant(truncated[0]) + truncated[1..].ToLowerInvariant();
     }

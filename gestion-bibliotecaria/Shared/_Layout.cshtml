@@ -180,46 +180,53 @@
             <h2>Iniciar sesión</h2>
             <p>Ingresa tus credenciales para acceder al sistema.</p>
 
-            <form method="post" action="/Login" autocomplete="off">
-                @Html.AntiForgeryToken()
+                <form method="post" action="/Login" id="formLoginModal" autocomplete="off" novalidate>
+                    @Html.AntiForgeryToken()
 
-                <input type="text"
-                        name="NombreUsuario"
-                        id="loginNombreUsuario"
-                        class="input-form"
-                        placeholder="Nombre de usuario"
-                        required />
+                    <div id="mensajeLoginModal" class="text-error-summary" style="display:none;"></div>
 
-                <div class="password-wrapper">
-                    <input type="password"
-                            name="Password"
-                            id="loginPassword"
-                            class="input-form password-input"
-                            placeholder="Contraseña"
-                            required />
+                    @if (TempData["LoginError"] != null)
+                    {
+                        <div id="mensajeLoginServidor" class="text-error-summary">
+                            @TempData["LoginError"]
+                        </div>
+                    }
 
-                    <button type="button"
-                            class="toggle-password-btn"
-                            onclick="togglePasswordLogin()"
-                            aria-label="Mostrar u ocultar contraseña">
-                        <img id="togglePasswordIcon"
-                                src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                alt="Ver contraseña" />
-                    </button>
-                </div>
+                    <input type="text"
+                           name="NombreUsuario"
+                           id="loginNombreUsuario"
+                           class="input-form"
+                           placeholder="Nombre de usuario" />
 
-                <div class="modal-buttons">
-                    <button type="submit" class="btn-login-modal">
-                        Ingresar
-                    </button>
+                    <div class="password-wrapper">
+                        <input type="password"
+                               name="Password"
+                               id="loginPassword"
+                               class="input-form password-input"
+                               placeholder="Contraseña" />
 
-                    <button type="button"
-                            class="btn-secondary"
-                            onclick="cerrarModalLogin()">
-                        Cancelar
-                    </button>
-                </div>
-            </form>
+                        <button type="button"
+                                class="toggle-password-btn"
+                                onclick="togglePasswordLogin()"
+                                aria-label="Mostrar u ocultar contraseña">
+                            <img id="togglePasswordIcon"
+                                 src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                 alt="Ver contraseña" />
+                        </button>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn-login-modal">
+                            Ingresar
+                        </button>
+
+                        <button type="button"
+                                class="btn-secondary"
+                                onclick="cerrarModalLogin()">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
 
         </div>
     </div>
@@ -248,7 +255,6 @@
 <script src="~/js/site.js" asp-append-version="true"></script>
 
 @await RenderSectionAsync("Scripts", required: false)
-
 <script>
     function abrirModalLogin() {
         var modal = document.getElementById("modalLogin");
@@ -278,6 +284,64 @@
             icon.src = "/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg";
         }
     }
+
+    function mostrarErrorLogin(mensaje) {
+        var box = document.getElementById("mensajeLoginModal");
+        if (!box) return;
+
+        box.textContent = mensaje;
+        box.style.display = "block";
+
+        clearTimeout(box._hideTimer);
+        box._hideTimer = setTimeout(function () {
+            box.style.display = "none";
+            box.textContent = "";
+        }, 3500);
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        var form = document.getElementById("formLoginModal");
+        var usuario = document.getElementById("loginNombreUsuario");
+        var password = document.getElementById("loginPassword");
+        var mensajeServidor = document.getElementById("mensajeLoginServidor");
+
+        if (mensajeServidor) {
+            abrirModalLogin();
+        }
+
+        function limpiarMensajes() {
+            var box = document.getElementById("mensajeLoginModal");
+            if (box) {
+                box.style.display = "none";
+                box.textContent = "";
+            }
+
+            if (mensajeServidor) {
+                mensajeServidor.style.display = "none";
+            }
+        }
+
+        if (usuario) usuario.addEventListener("input", limpiarMensajes);
+        if (password) password.addEventListener("input", limpiarMensajes);
+
+        if (form) {
+            form.addEventListener("submit", function (e) {
+                if (!usuario.value.trim()) {
+                    e.preventDefault();
+                    mostrarErrorLogin("Debes ingresar el nombre de usuario.");
+                    usuario.focus();
+                    return;
+                }
+
+                if (!password.value.trim()) {
+                    e.preventDefault();
+                    mostrarErrorLogin("Debes ingresar la contraseña.");
+                    password.focus();
+                    return;
+                }
+            });
+        }
+    });
 
     window.addEventListener("click", function (e) {
         var modal = document.getElementById("modalLogin");

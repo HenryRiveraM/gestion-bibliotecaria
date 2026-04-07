@@ -250,3 +250,14 @@ thead{
 .toggle-password-btn:hover img{
     opacity:1;
 }
+
+.text-error-summary{
+    display:block;
+    background:rgba(239,68,68,.12);
+    border:1px solid rgba(239,68,68,.35);
+    color:#fca5a5;
+    padding:12px 14px;
+    border-radius:12px;
+    margin-bottom:12px;
+    font-weight:500;
+}
