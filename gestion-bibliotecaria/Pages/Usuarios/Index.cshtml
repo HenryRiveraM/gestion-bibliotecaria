@@ -1,0 +1,107 @@
+@page "/Usuarios"
+@using gestion_bibliotecaria.Domain.Entities
+@model gestion_bibliotecaria.Pages.Usuarios.IndexModel
+@{
+    ViewData["Title"] = "Gestion de Usuarios";
+}
+
+<div class="container py-4">
+    <h1 class="mb-3">Gestion de Usuarios</h1>
+
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
+    {
+        <div class="alert alert-success" role="alert">@Model.MensajeOk</div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+    {
+        <div class="alert alert-danger" role="alert">@Model.MensajeError</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-header">Alta de usuario (solo Admin)</div>
+        <div class="card-body">
+            <form method="post" asp-page-handler="Crear" class="row g-3">
+                @Html.AntiForgeryToken()
+
+                <div class="col-md-6">
+                    <label class="form-label" for="Nombres">Nombres</label>
+                    <input asp-for="NuevoUsuario.Nombres" class="form-control" id="Nombres" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="PrimerApellido">Primer apellido</label>
+                    <input asp-for="NuevoUsuario.PrimerApellido" class="form-control" id="PrimerApellido" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="SegundoApellido">Segundo apellido</label>
+                    <input asp-for="NuevoUsuario.SegundoApellido" class="form-control" id="SegundoApellido" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="Email">Email</label>
+                    <input asp-for="NuevoUsuario.Email" class="form-control" id="Email" type="email" required />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label" for="RolNuevoUsuario">Rol</label>
+                    <select asp-for="RolNuevoUsuario" class="form-select" id="RolNuevoUsuario">
+                        <option value="@Usuario.RolBibliotecario">Bibliotecario</option>
+                        <option value="@Usuario.RolAdmin">Admin</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Crear usuario</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Listado de usuarios</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nombres</th>
+                            <th>Primer apellido</th>
+                            <th>Segundo apellido</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var usuario in Model.Usuarios)
+                    {
+                        <tr>
+                            <td>@usuario.Nombres</td>
+                            <td>@usuario.PrimerApellido</td>
+                            <td>@usuario.SegundoApellido</td>
+                            <td>@usuario.Email</td>
+                            <td>@usuario.NombreUsuario</td>
+                            <td>@usuario.Rol</td>
+                            <td>@(usuario.Estado ? "Activo" : "Inactivo")</td>
+                            <td>
+                                @if (usuario.Estado)
+                                {
+                                    <form method="post" asp-page-handler="Baja" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="token" value="@usuario.UsuarioIdToken" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Dar de baja</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

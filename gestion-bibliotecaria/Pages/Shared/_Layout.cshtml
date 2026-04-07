@@ -1,3 +1,12 @@
+@using gestion_bibliotecaria.Infrastructure.Security
+@using Microsoft.AspNetCore.Http
+@{
+    var nombreUsuarioSesion = Context.Session.GetString(SessionKeys.NombreUsuario);
+    var rolSesion = Context.Session.GetString(SessionKeys.Rol);
+    var haySesion = !string.IsNullOrWhiteSpace(Context.Session.GetString(SessionKeys.UsuarioId));
+    var esAdmin = string.Equals(rolSesion, "Admin", StringComparison.OrdinalIgnoreCase);
+}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -71,6 +80,16 @@
                         </a>
                     </li>
 
+                    @if (esAdmin)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Usuarios">
+                                <img src="~/assets/icons/group_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Usuarios
+                            </a>
+                        </li>
+                    }
+
                     <!-- PRIVACY -->
                     <li class="nav-item">
                         <a class="nav-link text-dark" href="/Privacy">
@@ -78,6 +97,39 @@
                         </a>
                     </li>
 
+                </ul>
+
+                <ul class="navbar-nav">
+                    @if (!haySesion)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Login">
+                                <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Iniciar sesion
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="nav-item dropdown">
+                            <a class="nav-link text-dark dropdown-toggle d-flex align-items-center gap-2"
+                               href="#"
+                               role="button"
+                               data-bs-toggle="dropdown"
+                               aria-expanded="false">
+                                <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                @nombreUsuarioSesion
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li>
+                                    <form method="post" asp-page="/Pages/Login" asp-page-handler="Logout">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="dropdown-item">Cerrar sesion</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </li>
+                    }
                 </ul>
 
             </div>
