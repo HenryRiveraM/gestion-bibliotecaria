@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>gestion_bibliotecaria</RootNamespace>
+    <UserSecretsId>14bcc620-28c1-46f3-adb4-73b73aab6b0f</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
