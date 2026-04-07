@@ -59,6 +59,30 @@
         ? ViewData.ModelState["Ejemplar.LibroId"]?.AttemptedValue ?? ""
         : "";
 
+    string createCodigoInventarioValor = ViewData.ModelState.ContainsKey("Ejemplar.CodigoInventario")
+        ? ViewData.ModelState["Ejemplar.CodigoInventario"]?.AttemptedValue ?? ""
+        : "";
+
+    string createCodigoInventarioNumero = createCodigoInventarioValor;
+    if (!string.IsNullOrWhiteSpace(createCodigoInventarioValor))
+    {
+        var partesCodigo = createCodigoInventarioValor.Trim().ToUpperInvariant().Split('-', StringSplitOptions.RemoveEmptyEntries);
+        if (partesCodigo.Length == 3 && partesCodigo[0] == "INV")
+        {
+            createCodigoInventarioNumero = partesCodigo[1];
+        }
+    }
+
+    string createCodigoInventarioCompleto = string.Empty;
+    if (!string.IsNullOrWhiteSpace(createCodigoInventarioNumero))
+    {
+        var numeroLimpio = new string(createCodigoInventarioNumero.Where(char.IsDigit).ToArray());
+        if (!string.IsNullOrWhiteSpace(numeroLimpio))
+        {
+            createCodigoInventarioCompleto = $"INV-{numeroLimpio.PadLeft(3, '0')}-{DateTime.Now.Year}";
+        }
+    }
+
     bool createDisponibleChecked = ViewData.ModelState.ContainsKey("Ejemplar.Disponible")
         && (ViewData.ModelState["Ejemplar.Disponible"]?.AttemptedValue == "true"
             || ViewData.ModelState["Ejemplar.Disponible"]?.AttemptedValue == "True"
@@ -462,13 +486,21 @@ else
 
             <small class="text-muted" id="createLibroSeleccionadoTexto"></small>
 
-            <input type="text"
-                   name="Ejemplar.CodigoInventario"
-                   id="createCodigoInventario"
-                   class="input-form"
-                   placeholder="Ej: INV-001-2026"
-                   required
-                   value="@createCodigo" />
+                 <div class="codigo-inventario-wrapper">
+                  <span class="codigo-inventario-prefijo">INV-</span>
+                  <input type="text"
+                      id="createCodigoInventarioNumero"
+                      class="input-form codigo-inventario-numero"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      placeholder="001"
+                      value="@createCodigoInventarioNumero" />
+                  <span class="codigo-inventario-sufijo">-@DateTime.Now.Year</span>
+                 </div>
+                 <input type="hidden"
+                     name="Ejemplar.CodigoInventario"
+                     id="createCodigoInventario"
+                     value="@createCodigoInventarioCompleto" />
             @if (ViewData.ModelState.ContainsKey("Ejemplar.CodigoInventario"))
             {
                 <span class="text-error">
@@ -653,6 +685,23 @@ function toggleMotivoBajaCrear() {
     }
 }
 
+function sincronizarCodigoInventarioCrear() {
+    const numeroInput = document.getElementById("createCodigoInventarioNumero");
+    const codigoHidden = document.getElementById("createCodigoInventario");
+
+    if (!numeroInput || !codigoHidden) return;
+
+    const numeroLimpio = (numeroInput.value || "").replace(/\D/g, "");
+    numeroInput.value = numeroLimpio;
+
+    if (!numeroLimpio) {
+        codigoHidden.value = "";
+        return;
+    }
+
+    codigoHidden.value = `INV-${numeroLimpio.padStart(3, "0")}-${new Date().getFullYear()}`;
+}
+
 document.addEventListener("DOMContentLoaded", function () {
 
     const inputBuscador = document.getElementById("buscador-ejemplar");
@@ -726,6 +775,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 customCreate.classList.remove("active");
             }
         });
+    }
+
+    const numeroCodigoInventario = document.getElementById("createCodigoInventarioNumero");
+    if (numeroCodigoInventario) {
+        numeroCodigoInventario.addEventListener("input", sincronizarCodigoInventarioCrear);
+        sincronizarCodigoInventarioCrear();
     }
 
     (function () {

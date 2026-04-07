@@ -60,6 +60,11 @@ public class EjemplarServicio : IEjemplarServicio
 
         input = input.Trim().ToUpperInvariant();
 
+        if (long.TryParse(input, out var correlativoNumerico))
+        {
+            return $"INV-{correlativoNumerico.ToString("D3")}-{DateTime.Now.Year}";
+        }
+
         var coincidencia = Regex.Match(input, @"^INV-(\d+)-(\d{4})$");
         if (!coincidencia.Success)
             return input;

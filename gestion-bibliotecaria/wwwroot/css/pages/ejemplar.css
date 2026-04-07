@@ -365,6 +365,51 @@
     line-height:1.5;
 }
 
+.codigo-inventario-wrapper{
+    display:flex;
+    align-items:stretch;
+    width:100%;
+    border:1px solid #2a2f36;
+    border-radius:14px;
+    overflow:hidden;
+    background:#111418;
+    transition:.2s;
+    box-sizing:border-box;
+}
+
+.codigo-inventario-wrapper:focus-within{
+    border-color:#10a37f;
+    box-shadow:0 0 0 3px rgba(16,163,127,0.12);
+}
+
+.codigo-inventario-prefijo,
+.codigo-inventario-sufijo{
+    display:flex;
+    align-items:center;
+    padding:0 14px;
+    color:#9ca3af;
+    font-size:16px;
+    white-space:nowrap;
+    background:#111418;
+    user-select:none;
+}
+
+.codigo-inventario-numero{
+    border:none !important;
+    border-radius:0 !important;
+    box-shadow:none !important;
+    background:transparent !important;
+    flex:1;
+    min-width:0;
+    padding-left:0;
+    padding-right:0;
+}
+
+.codigo-inventario-numero:focus{
+    border:none !important;
+    box-shadow:none !important;
+}
+
 /* CHECKS */
 
 .modal-check,
