@@ -1,10 +1,6 @@
 using gestion_bibliotecaria.Aplicacion.Servicios;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
-using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Ports;
-using gestion_bibliotecaria.Infrastructure.Creators;
-using gestion_bibliotecaria.Infrastructure.Configuration;
-using gestion_bibliotecaria.Infrastructure.Email;
 using gestion_bibliotecaria.Infrastructure.Persistence;
 using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Http;
@@ -31,14 +27,8 @@ builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository(conne
 builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository(connectionString));
 builder.Services.AddScoped<IEmailSender>(EmailSenderFactory.Create);
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
-builder.Services.AddScoped<IUserCredentialProvisioningService, UserCredentialProvisioningService>();
-builder.Services.AddScoped<IUsuarioServicio, UsuarioServicio>();
-builder.Services.AddScoped<LibroServicio>();
+builder.Services.AddScoped<ILibroServicio, LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
-// builder.Services.AddScoped<AutorService>(); 
-// builder.Services.AddScoped<EjemplarService>();
-
-
 
 builder.Services.AddRazorPages(options =>
 {

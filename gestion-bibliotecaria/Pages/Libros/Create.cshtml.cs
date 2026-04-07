@@ -1,4 +1,4 @@
-using gestion_bibliotecaria.Aplicacion.Servicios;
+using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -7,12 +7,12 @@ namespace gestion_bibliotecaria.Pages.Libros;
 
 public class CreateModel : PageModel
 {
-    private readonly LibroServicio _libroServicio;
+    private readonly ILibroServicio _libroServicio;
 
     [BindProperty]
     public Libro Libro { get; set; } = new();
 
-    public CreateModel(LibroServicio libroServicio)
+    public CreateModel(ILibroServicio libroServicio)
     {
         _libroServicio = libroServicio;
     }

@@ -464,6 +464,34 @@
     line-height:1.5;
 }
 
+.radio-group.estado-group{
+    display:flex;
+    align-items:center;
+    gap:16px;
+    flex-wrap:wrap;
+    margin-top:2px;
+}
+
+.radio-label{
+    color:#e5e7eb;
+    font-size:14px;
+    font-weight:600;
+    min-width:54px;
+}
+
+.radio-option{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:#d1d5db;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.radio-option input[type="radio"]{
+    accent-color:#10a37f;
+}
+
 /* =========================
    CUSTOM SELECT
 ========================= */
