@@ -1,4 +1,5 @@
 using System.Data;
+using System.Text.RegularExpressions;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Errors;
@@ -59,14 +60,20 @@ public class EjemplarServicio : IEjemplarServicio
 
         input = input.Trim().ToUpperInvariant();
 
-        var numero = new string(input.Where(char.IsDigit).ToArray());
+        if (long.TryParse(input, out var correlativoNumerico))
+        {
+            return $"INV-{correlativoNumerico.ToString("D3")}-{DateTime.Now.Year}";
+        }
 
-        if (string.IsNullOrEmpty(numero))
+        var coincidencia = Regex.Match(input, @"^INV-(\d+)-(\d{4})$");
+        if (!coincidencia.Success)
             return input;
 
-        var num = int.Parse(numero);
-        var numeroFormateado = num.ToString("D3");
-        var anio = DateTime.Now.Year;
+        if (!long.TryParse(coincidencia.Groups[1].Value, out var correlativo))
+            return input;
+
+        var numeroFormateado = correlativo.ToString("D3");
+        var anio = coincidencia.Groups[2].Value;
 
         return $"INV-{numeroFormateado}-{anio}";
     }
