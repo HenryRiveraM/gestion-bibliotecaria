@@ -246,14 +246,21 @@ else
                             Editar
                         </button>
 
-                        <button type="button"
-                                class="btn-eliminar"
-                                onclick="abrirModalEliminar('@ejemplar.RouteToken')">
+                        @if (ejemplar.Estado)
+                        {
+                            <button type="button"
+                                    class="btn-eliminar"
+                                    onclick="abrirModalEliminar('@ejemplar.RouteToken')">
 
-                            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                 class="icono-btn">
-                            Eliminar
-                        </button>
+                                <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                     class="icono-btn">
+                                Eliminar
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="estado inactivo">Eliminado</span>
+                        }
                     </td>
 
                 </tr>
