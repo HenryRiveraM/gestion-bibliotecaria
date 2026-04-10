@@ -127,8 +127,7 @@
             <input asp-for="NuevoUsuario.SegundoApellido"
                    class="input-form"
                    id="SegundoApellido"
-                   placeholder="Segundo apellido"
-                   required />
+                   placeholder="Segundo apellido" />
 
             <input asp-for="NuevoUsuario.Email"
                    class="input-form"
@@ -264,12 +263,7 @@
                         return;
                     }
 
-                    if (!segundoApellido.value.trim()) {
-                        e.preventDefault();
-                        mostrarErrorUsuario("Debes ingresar el segundo apellido.");
-                        segundoApellido.focus();
-                        return;
-                    }
+                    // Segundo apellido es opcional, no validar aquí
 
                     if (!email.value.trim()) {
                         e.preventDefault();

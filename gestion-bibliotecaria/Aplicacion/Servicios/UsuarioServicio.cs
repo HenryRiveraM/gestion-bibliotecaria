@@ -69,9 +69,9 @@ public class UsuarioServicio : IUsuarioServicio
         usuario.SegundoApellido = ValidadorEntrada.NormalizarAMayusculas(usuario.SegundoApellido);
         usuario.Email = ValidadorEntrada.NormalizarEspacios(usuario.Email).ToLowerInvariant();
 
+        // SegundoApellido ya no es obligatorio; validar solo los campos requeridos
         if (string.IsNullOrWhiteSpace(usuario.Nombres)
             || string.IsNullOrWhiteSpace(usuario.PrimerApellido)
-            || string.IsNullOrWhiteSpace(usuario.SegundoApellido)
             || string.IsNullOrWhiteSpace(usuario.Email))
         {
             return Result.Failure(UsuarioErrors.DatosObligatorios);
