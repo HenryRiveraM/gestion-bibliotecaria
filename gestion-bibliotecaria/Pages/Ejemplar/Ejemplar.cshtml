@@ -28,6 +28,26 @@
         ? ViewData.ModelState["CodigoInventario"]?.AttemptedValue ?? ""
         : "";
 
+    string editCodigoInventarioNumero = editCodigo;
+    if (!string.IsNullOrWhiteSpace(editCodigo))
+    {
+        var partesCodigo = editCodigo.Trim().ToUpperInvariant().Split('-', StringSplitOptions.RemoveEmptyEntries);
+        if (partesCodigo.Length == 3 && partesCodigo[0] == "INV")
+        {
+            editCodigoInventarioNumero = partesCodigo[1];
+        }
+    }
+
+    string editCodigoInventarioCompleto = string.Empty;
+    if (!string.IsNullOrWhiteSpace(editCodigoInventarioNumero))
+    {
+        var numeroLimpio = new string(editCodigoInventarioNumero.Where(char.IsDigit).ToArray());
+        if (!string.IsNullOrWhiteSpace(numeroLimpio))
+        {
+            editCodigoInventarioCompleto = $"INV-{numeroLimpio.PadLeft(3, '0')}-{DateTime.Now.Year}";
+        }
+    }
+
     string editEstadoConservacion = ViewData.ModelState.ContainsKey("EstadoConservacion")
         ? ViewData.ModelState["EstadoConservacion"]?.AttemptedValue ?? ""
         : "";
@@ -354,13 +374,22 @@ else
                     @ViewData.ModelState["LibroId"]?.Errors.FirstOrDefault()?.ErrorMessage
                 </span>
             }
-            <input type="text"
-                   id="editCodigoInventario"
-                   name="CodigoInventario"
-                   class="input-form"
-                   placeholder="Código de Ejemplar"
-                   required
-                   value="@editCodigo" />
+                 <div class="codigo-inventario-wrapper">
+                  <span class="codigo-inventario-prefijo">INV-</span>
+                  <input type="text"
+                      id="editCodigoInventarioNumero"
+                      class="input-form codigo-inventario-numero"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      placeholder="001"
+                      required
+                      value="@editCodigoInventarioNumero" />
+                  <span class="codigo-inventario-sufijo">-@DateTime.Now.Year</span>
+                 </div>
+                 <input type="hidden"
+                     id="editCodigoInventario"
+                     name="CodigoInventario"
+                     value="@editCodigoInventarioCompleto" />
             @if (ViewData.ModelState.ContainsKey("CodigoInventario"))
             {
                 <span class="text-error">
@@ -625,6 +654,7 @@ function abrirModalEditar(token, libroId, codigo, estadoConservacion, disponible
     const editToken = document.getElementById("editToken");
     const editLibroId = document.getElementById("editLibroId");
     const editCodigoInventario = document.getElementById("editCodigoInventario");
+    const editCodigoInventarioNumero = document.getElementById("editCodigoInventarioNumero");
     const editEstadoConservacion = document.getElementById("editEstadoConservacion");
     const editUbicacion = document.getElementById("editUbicacion");
     const editMotivoBaja = document.getElementById("editMotivoBaja");
@@ -633,14 +663,25 @@ function abrirModalEditar(token, libroId, codigo, estadoConservacion, disponible
     const editEstado = document.getElementById("editEstado");
     const modalEditar = document.getElementById("modalEditar");
 
-    if (!editToken || !editLibroId || !editCodigoInventario || !editEstadoConservacion ||
+    if (!editToken || !editLibroId || !editCodigoInventario || !editCodigoInventarioNumero || !editEstadoConservacion ||
         !editUbicacion || !editMotivoBaja || !editDisponible || !editDadoDeBaja || !editEstado || !modalEditar) {
         return;
     }
 
     editToken.value = token || "";
     editLibroId.value = libroId || "";
-    editCodigoInventario.value = codigo || "";
+    const codigoOriginal = (codigo || "").toString();
+    const partesCodigo = codigoOriginal.trim().toUpperCase().split("-");
+    let numeroCodigo = "";
+
+    if (partesCodigo.length === 3 && partesCodigo[0] === "INV") {
+        numeroCodigo = (partesCodigo[1] || "").replace(/\D/g, "");
+    } else {
+        numeroCodigo = codigoOriginal.replace(/\D/g, "");
+    }
+
+    editCodigoInventarioNumero.value = numeroCodigo;
+    sincronizarCodigoInventarioEditar();
     editEstadoConservacion.value = estadoConservacion || "";
     editUbicacion.value = ubicacion || "";
     editMotivoBaja.value = motivoBaja || "";
@@ -696,6 +737,23 @@ function toggleMotivoBajaCrear() {
 function sincronizarCodigoInventarioCrear() {
     const numeroInput = document.getElementById("createCodigoInventarioNumero");
     const codigoHidden = document.getElementById("createCodigoInventario");
+
+    if (!numeroInput || !codigoHidden) return;
+
+    const numeroLimpio = (numeroInput.value || "").replace(/\D/g, "");
+    numeroInput.value = numeroLimpio;
+
+    if (!numeroLimpio) {
+        codigoHidden.value = "";
+        return;
+    }
+
+    codigoHidden.value = `INV-${numeroLimpio.padStart(3, "0")}-${new Date().getFullYear()}`;
+}
+
+function sincronizarCodigoInventarioEditar() {
+    const numeroInput = document.getElementById("editCodigoInventarioNumero");
+    const codigoHidden = document.getElementById("editCodigoInventario");
 
     if (!numeroInput || !codigoHidden) return;
 
@@ -789,6 +847,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (numeroCodigoInventario) {
         numeroCodigoInventario.addEventListener("input", sincronizarCodigoInventarioCrear);
         sincronizarCodigoInventarioCrear();
+    }
+
+    const numeroCodigoInventarioEditar = document.getElementById("editCodigoInventarioNumero");
+    if (numeroCodigoInventarioEditar) {
+        numeroCodigoInventarioEditar.addEventListener("input", sincronizarCodigoInventarioEditar);
+        sincronizarCodigoInventarioEditar();
     }
 
     (function () {
