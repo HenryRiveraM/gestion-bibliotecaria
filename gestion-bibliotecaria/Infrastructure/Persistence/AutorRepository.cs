@@ -126,7 +126,7 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
             string query = @"INSERT INTO autor
                 (UsuarioSesionId, Nombres, Apellidos, Nacionalidad, FechaNacimiento, Estado, FechaRegistro)
                 VALUES
-                (@UsuarioSesionId, @Nombres, @Apellidos, @Nacionalidad, @FechaNacimiento, @Estado, NOW());";
+                (@UsuarioSesionId, UPPER(@Nombres), UPPER(@Apellidos), @Nacionalidad, @FechaNacimiento, @Estado, NOW());";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
@@ -150,8 +150,8 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
 
             string query = @"UPDATE autor
                 SET UsuarioSesionId = @UsuarioSesionId,
-                    Nombres = @Nombres,
-                    Apellidos = @Apellidos,
+                    Nombres = UPPER(@Nombres),
+                    Apellidos = UPPER(@Apellidos),
                     Nacionalidad = @Nacionalidad,
                     FechaNacimiento = @FechaNacimiento,
                     Estado = @Estado,

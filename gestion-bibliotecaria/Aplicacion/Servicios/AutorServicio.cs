@@ -37,8 +37,8 @@ public class AutorServicio : IAutorServicio
     public Result ValidarAutor(Autor autor)
     {
         // 🔹 Normalizar
-        autor.Nombres = ValidadorEntrada.NormalizarEspacios(autor.Nombres);
-        autor.Apellidos = ValidadorEntrada.NormalizarEspacios(autor.Apellidos);
+        autor.Nombres = ValidadorEntrada.NormalizarAMayusculas(autor.Nombres);
+        autor.Apellidos = ValidadorEntrada.NormalizarAMayusculas(autor.Apellidos);
         autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(autor.Nacionalidad);
 
         // 🔹 NOMBRES OBLIGATORIOS

@@ -51,6 +51,11 @@ public class EjemplarModel : PageModel
                 return NotFound();
             }
 
+            if (!ejemplar.Estado)
+            {
+                return RedirectToPage();
+            }
+
             ejemplar.UsuarioSesionId = ObtenerUsuarioSesionId() ?? ejemplar.UsuarioSesionId;
             _ejemplarServicio.Delete(ejemplar);
 

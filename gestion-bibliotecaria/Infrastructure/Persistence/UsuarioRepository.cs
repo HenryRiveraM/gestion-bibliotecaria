@@ -73,7 +73,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
             string query = @"INSERT INTO usuario
                 (UsuarioSesionId, Nombres, PrimerApellido, SegundoApellido, Email, NombreUsuario, PasswordHash, Salt, Rol, Estado, FechaRegistro)
                 VALUES
-                (@UsuarioSesionId, @Nombres, @PrimerApellido, @SegundoApellido, @Email, @NombreUsuario, @PasswordHash, @Salt, @Rol, @Estado, NOW());";
+                (@UsuarioSesionId, UPPER(@Nombres), UPPER(@PrimerApellido), UPPER(@SegundoApellido), @Email, @NombreUsuario, @PasswordHash, @Salt, @Rol, @Estado, NOW());";
 
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
@@ -101,9 +101,9 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
 
             string query = @"UPDATE usuario
                 SET UsuarioSesionId = @UsuarioSesionId,
-                    Nombres = @Nombres,
-                    PrimerApellido = @PrimerApellido,
-                    SegundoApellido = @SegundoApellido,
+                    Nombres = UPPER(@Nombres),
+                    PrimerApellido = UPPER(@PrimerApellido),
+                    SegundoApellido = UPPER(@SegundoApellido),
                     Email = @Email,
                     NombreUsuario = @NombreUsuario,
                     PasswordHash = @PasswordHash,
