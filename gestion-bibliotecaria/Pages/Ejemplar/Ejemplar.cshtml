@@ -4,6 +4,26 @@
 @{
     ViewData["Title"] = "Gestión de Ejemplares";
 
+    bool ObtenerCheckDesdeModelState(string key)
+    {
+        if (!ViewData.ModelState.ContainsKey(key))
+        {
+            return false;
+        }
+
+        var attemptedValue = ViewData.ModelState[key]?.AttemptedValue;
+        if (string.IsNullOrWhiteSpace(attemptedValue))
+        {
+            return false;
+        }
+
+        var valores = attemptedValue.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return valores.Any(v =>
+            v.Equals("true", StringComparison.OrdinalIgnoreCase)
+            || v.Equals("on", StringComparison.OrdinalIgnoreCase)
+            || v == "1");
+    }
+
     string editCodigo = ViewData.ModelState.ContainsKey("CodigoInventario")
         ? ViewData.ModelState["CodigoInventario"]?.AttemptedValue ?? ""
         : "";
@@ -24,20 +44,11 @@
         ? ViewData.ModelState["LibroId"]?.AttemptedValue ?? ""
         : "";
 
-    bool editDisponibleChecked = ViewData.ModelState.ContainsKey("Disponible")
-        && (ViewData.ModelState["Disponible"]?.AttemptedValue == "true"
-            || ViewData.ModelState["Disponible"]?.AttemptedValue == "True"
-            || ViewData.ModelState["Disponible"]?.AttemptedValue == "on");
+    bool editDisponibleChecked = ObtenerCheckDesdeModelState("Disponible");
 
-    bool editDadoDeBajaChecked = ViewData.ModelState.ContainsKey("DadoDeBaja")
-        && (ViewData.ModelState["DadoDeBaja"]?.AttemptedValue == "true"
-            || ViewData.ModelState["DadoDeBaja"]?.AttemptedValue == "True"
-            || ViewData.ModelState["DadoDeBaja"]?.AttemptedValue == "on");
+    bool editDadoDeBajaChecked = ObtenerCheckDesdeModelState("DadoDeBaja");
 
-    bool editEstadoChecked = ViewData.ModelState.ContainsKey("Estado")
-        && (ViewData.ModelState["Estado"]?.AttemptedValue == "true"
-            || ViewData.ModelState["Estado"]?.AttemptedValue == "True"
-            || ViewData.ModelState["Estado"]?.AttemptedValue == "on");
+    bool editEstadoChecked = ObtenerCheckDesdeModelState("Estado");
 
     string createCodigo = ViewData.ModelState.ContainsKey("Ejemplar.CodigoInventario")
         ? ViewData.ModelState["Ejemplar.CodigoInventario"]?.AttemptedValue ?? ""
@@ -83,21 +94,11 @@
         }
     }
 
-    bool createDisponibleChecked = ViewData.ModelState.ContainsKey("Ejemplar.Disponible")
-        && (ViewData.ModelState["Ejemplar.Disponible"]?.AttemptedValue == "true"
-            || ViewData.ModelState["Ejemplar.Disponible"]?.AttemptedValue == "True"
-            || ViewData.ModelState["Ejemplar.Disponible"]?.AttemptedValue == "on");
+    bool createDisponibleChecked = ObtenerCheckDesdeModelState("Ejemplar.Disponible");
 
-    bool createDadoDeBajaChecked =
-        ViewData.ModelState.ContainsKey("Ejemplar.DadoDeBaja") &&
-        (ViewData.ModelState["Ejemplar.DadoDeBaja"]?.AttemptedValue == "true" ||
-         ViewData.ModelState["Ejemplar.DadoDeBaja"]?.AttemptedValue == "True" ||
-         ViewData.ModelState["Ejemplar.DadoDeBaja"]?.AttemptedValue == "on");
+    bool createDadoDeBajaChecked = ObtenerCheckDesdeModelState("Ejemplar.DadoDeBaja");
 
-    bool createEstadoChecked = ViewData.ModelState.ContainsKey("Ejemplar.Estado")
-        && (ViewData.ModelState["Ejemplar.Estado"]?.AttemptedValue == "true"
-            || ViewData.ModelState["Ejemplar.Estado"]?.AttemptedValue == "True"
-            || ViewData.ModelState["Ejemplar.Estado"]?.AttemptedValue == "on");
+    bool createEstadoChecked = ObtenerCheckDesdeModelState("Ejemplar.Estado");
 
     string createLibroTexto = "";
     if (!string.IsNullOrWhiteSpace(createLibroId))
