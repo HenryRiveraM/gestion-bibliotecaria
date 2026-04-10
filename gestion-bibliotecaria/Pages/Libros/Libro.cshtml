@@ -120,51 +120,55 @@ else
                     </span>
                 </td>
 
-                <td class="acciones">
+<td class="acciones">
 
-                    <!-- VER MÁS -->
-                    <button class="btn-info"
-                        onclick="abrirModalDetalle(
-                            '@Js(titulo)',
-                            '@Js(isbn)',
-                            '@Js(editorial)',
-                            '@Js(genero)',
-                            '@Js(edicion)',
-                            '@(añoPublicacion?.ToString() ?? "")',
-                            '@(numeroPaginas?.ToString() ?? "")',
-                            '@Js(idioma)',
-                            '@Js(paisPublicacion)',
-                            '@Js(descripcion)'
-                        )">
-                        Ver más
-                    </button>
+    <button class="btn-info"
+        onclick="abrirModalDetalle(
+            '@Js(titulo)',
+            '@Js(isbn)',
+            '@Js(editorial)',
+            '@Js(genero)',
+            '@Js(edicion)',
+            '@(añoPublicacion?.ToString() ?? "")',
+            '@(numeroPaginas?.ToString() ?? "")',
+            '@Js(idioma)',
+            '@Js(paisPublicacion)',
+            '@Js(descripcion)'
+        )">
+        Ver más
+    </button>
 
-                    <!-- EDITAR -->
-                    <button type="button" class="btn-editar"
-                        onclick="abrirModalEditar(
-                            '@libroToken',
-                            '@autorId',
-                            '@Js(titulo)',
-                            '@Js(isbn)',
-                            '@Js(editorial)',
-                            '@Js(genero)',
-                            '@Js(edicion)',
-                            '@(añoPublicacion?.ToString() ?? "")',
-                            '@(numeroPaginas?.ToString() ?? "")',
-                            '@Js(idioma)',
-                            '@Js(paisPublicacion)',
-                            '@Js(descripcion)',
-                            '@estado')">
-                        Editar
-                    </button>
+    <button type="button" class="btn-editar"
+        onclick="abrirModalEditar(
+            '@libroToken',
+            '@autorId',
+            '@Js(titulo)',
+            '@Js(isbn)',
+            '@Js(editorial)',
+            '@Js(genero)',
+            '@Js(edicion)',
+            '@(añoPublicacion?.ToString() ?? "")',
+            '@(numeroPaginas?.ToString() ?? "")',
+            '@Js(idioma)',
+            '@Js(paisPublicacion)',
+            '@Js(descripcion)',
+            '@estado')">
+        Editar
+    </button>
 
-                    <!-- ELIMINAR -->
-                    <button type="button" class="btn-eliminar"
-                        onclick="abrirModalEliminar('@libroToken')">
-                        Eliminar
-                    </button>
+    @if (estado)
+    {
+        <button type="button" class="btn-eliminar"
+            onclick="abrirModalEliminar('@libroToken')">
+            Eliminar
+        </button>
+    }
+    else
+    {
+        <span class="estado eliminado-label">Eliminado</span>
+    }
 
-                </td>
+</td>
 
             </tr>
         }

@@ -119,30 +119,37 @@
                             }
                         </td>
 
-                        <td class="acciones">
-                            <button type="button"
-                                    class="btn-editar"
-                                    onclick="abrirModalEditar(
-                                            '@token',
-                                            '@Html.Raw(nombres.Replace("'", "\\'"))',
-                                            '@Html.Raw(apellidos.Replace("'", "\\'"))',
-                                            '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
-                                            '@fecha',
-                                            '@(estado.ToString().ToLower())'
-                                        )">
-                                <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                     class="icono-btn">
-                                Editar
-                            </button>
+<td class="acciones">
+    <button type="button"
+            class="btn-editar"
+            onclick="abrirModalEditar(
+                    '@token',
+                    '@Html.Raw(nombres.Replace("'", "\\'"))',
+                    '@Html.Raw(apellidos.Replace("'", "\\'"))',
+                    '@Html.Raw(nacionalidad.Replace("'", "\\'"))',
+                    '@fecha',
+                    '@(estado.ToString().ToLower())'
+                )">
+        <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+             class="icono-btn">
+        Editar
+    </button>
 
-                            <button type="button"
-                                    class="btn-eliminar"
-                                    onclick="abrirModal('@token')">
-                                <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                     class="icono-btn">
-                                Eliminar
-                            </button>
-                        </td>
+    @if (estado)
+    {
+        <button type="button"
+                class="btn-eliminar"
+                onclick="abrirModal('@token')">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-btn">
+            Eliminar
+        </button>
+    }
+    else
+    {
+        <span class="estado eliminado-label">Eliminado</span>
+    }
+</td>
                     </tr>
                 }
 

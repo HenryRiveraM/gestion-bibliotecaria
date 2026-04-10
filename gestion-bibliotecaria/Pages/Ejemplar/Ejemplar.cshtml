@@ -247,42 +247,42 @@ else
                         }
                     </td>
 
-                    <td class="acciones">
-                        <button type="button"
-                                class="btn-editar"
-                                onclick="abrirModalEditar(
-                                    '@ejemplar.RouteToken',
-                                    '@ejemplar.LibroId',
-                                    '@Html.Raw((ejemplar.CodigoInventario ?? "").Replace("'", "\\'"))',
-                                    '@Html.Raw((ejemplar.EstadoConservacion ?? "").Replace("'", "\\'"))',
-                                    '@ejemplar.Disponible',
-                                    '@ejemplar.DadoDeBaja',
-                                    '@Html.Raw((ejemplar.MotivoBaja ?? "").Replace("'", "\\'"))',
-                                    '@Html.Raw((ejemplar.Ubicacion ?? "").Replace("'", "\\'"))',
-                                    '@ejemplar.Estado'
-                                )">
+<td class="acciones">
+    <button type="button"
+            class="btn-editar"
+            onclick="abrirModalEditar(
+                '@ejemplar.RouteToken',
+                '@ejemplar.LibroId',
+                '@Html.Raw((ejemplar.CodigoInventario ?? "").Replace("'", "\\'"))',
+                '@Html.Raw((ejemplar.EstadoConservacion ?? "").Replace("'", "\\'"))',
+                '@ejemplar.Disponible',
+                '@ejemplar.DadoDeBaja',
+                '@Html.Raw((ejemplar.MotivoBaja ?? "").Replace("'", "\\'"))',
+                '@Html.Raw((ejemplar.Ubicacion ?? "").Replace("'", "\\'"))',
+                '@ejemplar.Estado'
+            )">
 
-                            <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                 class="icono-btn">
-                            Editar
-                        </button>
+        <img src="~/assets/icons/edit_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+             class="icono-btn">
+        Editar
+    </button>
 
-                        @if (ejemplar.Estado)
-                        {
-                            <button type="button"
-                                    class="btn-eliminar"
-                                    onclick="abrirModalEliminar('@ejemplar.RouteToken')">
+@if (ejemplar.Estado)
+{
+    <button type="button"
+            class="btn-eliminar"
+            onclick="abrirModalEliminar('@ejemplar.RouteToken')">
 
-                                <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                     class="icono-btn">
-                                Eliminar
-                            </button>
-                        }
-                        else
-                        {
-                            <span class="estado inactivo">Eliminado</span>
-                        }
-                    </td>
+        <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+             class="icono-btn">
+        Eliminar
+    </button>
+}
+else
+{
+    <span class="estado eliminado-label">Eliminado</span>
+}
+</td>
 
                 </tr>
             }
