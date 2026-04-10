@@ -5,6 +5,8 @@
     var rolSesion = Context.Session.GetString(SessionKeys.Rol);
     var haySesion = !string.IsNullOrWhiteSpace(Context.Session.GetString(SessionKeys.UsuarioId));
     var esAdmin = string.Equals(rolSesion, "Admin", StringComparison.OrdinalIgnoreCase);
+    var esBibliotecario = string.Equals(rolSesion, "Bibliotecario", StringComparison.OrdinalIgnoreCase);
+    var esLector = string.Equals(rolSesion, "Lector", StringComparison.OrdinalIgnoreCase);
 }
 
 <!DOCTYPE html>
@@ -30,9 +32,9 @@
 
             <a class="navbar-brand d-flex align-items-center" href="/">
                 <img src="~/assets/images/whiiteLogoR.png"
-                     height="60"
-                     width="100"
-                     class="me-2">
+                    height="60"
+                    width="100"
+                    class="me-2">
             </a>
 
             <button class="navbar-toggler"
@@ -40,26 +42,28 @@
                     data-bs-toggle="collapse"
                     data-bs-target=".navbar-collapse">
                 <img src="~/assets/icons/menu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                     width="24">
+                    width="24">
             </button>
 
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 
                 <ul class="navbar-nav flex-grow-1">
-
+                    @if (haySesion){
                     <li class="nav-item">
                         <a class="nav-link nav-btn d-flex align-items-center gap-2" href="/">
                             <img src="~/assets/icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                             Home
                         </a>
                     </li>
-
+                    }
+                    @if (esAdmin || esBibliotecario)
+                    {
                     <li class="nav-item dropdown">
                         <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
-                           href="#"
-                           role="button"
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false">
+                            href="#"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
                             <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                             Biblioteca
                         </a>
@@ -72,13 +76,15 @@
                             <li><a class="dropdown-item custom-dropdown-item" href="#">Editoriales</a></li>
                         </ul>
                     </li>
-
+                    }
+                    @if (esAdmin || esBibliotecario)
+                    {
                     <li class="nav-item dropdown">
                         <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
-                           href="#"
-                           role="button"
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false">
+                            href="#"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
                             <img src="~/assets/icons/sync_alt_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                             Circulación
                         </a>
@@ -91,6 +97,7 @@
                             <li><a class="dropdown-item custom-dropdown-item" href="#">Multas</a></li>
                         </ul>
                     </li>
+                    }
 
                     @if (esAdmin)
                     {
@@ -101,13 +108,14 @@
                             </a>
                         </li>
                     }
-
+                    @if (esAdmin || esBibliotecario)
+                    {
                     <li class="nav-item dropdown">
                         <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
-                           href="#"
-                           role="button"
-                           data-bs-toggle="dropdown"
-                           aria-expanded="false">
+                            href="#"
+                            role="button"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false">
                             <img src="~/assets/icons/bar_chart_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                             Reportes
                         </a>
@@ -119,6 +127,7 @@
                             <li><a class="dropdown-item custom-dropdown-item" href="#">Usuarios con retraso</a></li>
                         </ul>
                     </li>
+                    }
                 </ul>
 
                 <ul class="navbar-nav">
@@ -137,10 +146,10 @@
                     {
                         <li class="nav-item dropdown">
                             <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
-                               href="#"
-                               role="button"
-                               data-bs-toggle="dropdown"
-                               aria-expanded="false">
+                                href="#"
+                                role="button"
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false">
                                 <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                                 @nombreUsuarioSesion
                             </a>
@@ -149,7 +158,7 @@
                                     <form method="post" action="/Login?handler=Logout">
                                         @Html.AntiForgeryToken()
                                         <button type="submit" class="dropdown-item custom-dropdown-item">
-                                            Cerrar sesion
+                                            Cerrar sesión
                                         </button>
                                     </form>
                                 </li>
@@ -174,7 +183,7 @@
 
             <div class="modal-icon login">
                 <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                     class="icono-modal" />
+                    class="icono-modal" />
             </div>
 
             <h2>Iniciar sesión</h2>
@@ -193,25 +202,25 @@
                     }
 
                     <input type="text"
-                           name="NombreUsuario"
-                           id="loginNombreUsuario"
-                           class="input-form"
-                           placeholder="Nombre de usuario" />
+                            name="NombreUsuario"
+                            id="loginNombreUsuario"
+                            class="input-form"
+                            placeholder="Nombre de usuario" />
 
                     <div class="password-wrapper">
                         <input type="password"
-                               name="Password"
-                               id="loginPassword"
-                               class="input-form password-input"
-                               placeholder="Contraseña" />
+                                name="Password"
+                                id="loginPassword"
+                                class="input-form password-input"
+                                placeholder="Contraseña" />
 
                         <button type="button"
                                 class="toggle-password-btn"
                                 onclick="togglePasswordLogin()"
                                 aria-label="Mostrar u ocultar contraseña">
                             <img id="togglePasswordIcon"
-                                 src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
-                                 alt="Ver contraseña" />
+                                src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                                alt="Ver contraseña" />
                         </button>
                     </div>
 
@@ -236,8 +245,8 @@
     <div class="container footer-content">
         <div class="footer-left">
             <img src="~/assets/images/whiiteLogoR.png"
-                 height="60"
-                 width="100">
+                height="60"
+                width="100">
         </div>
 
         <div class="footer-center">
