@@ -64,9 +64,9 @@ public class UsuarioServicio : IUsuarioServicio
             return Result.Failure(UsuarioErrors.DatosObligatorios);
         }
 
-        usuario.Nombres = ValidadorEntrada.NormalizarEspacios(usuario.Nombres);
-        usuario.PrimerApellido = ValidadorEntrada.NormalizarEspacios(usuario.PrimerApellido);
-        usuario.SegundoApellido = ValidadorEntrada.NormalizarEspacios(usuario.SegundoApellido);
+        usuario.Nombres = ValidadorEntrada.NormalizarAMayusculas(usuario.Nombres);
+        usuario.PrimerApellido = ValidadorEntrada.NormalizarAMayusculas(usuario.PrimerApellido);
+        usuario.SegundoApellido = ValidadorEntrada.NormalizarAMayusculas(usuario.SegundoApellido);
         usuario.Email = ValidadorEntrada.NormalizarEspacios(usuario.Email).ToLowerInvariant();
 
         if (string.IsNullOrWhiteSpace(usuario.Nombres)

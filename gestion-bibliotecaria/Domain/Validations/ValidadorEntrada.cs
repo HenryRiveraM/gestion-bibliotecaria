@@ -96,6 +96,17 @@ public static class ValidadorEntrada
         return Regex.Replace(trimmed, "\\s+", " ");
     }
 
+    public static string NormalizarAMayusculas(string? valor)
+    {
+        var normalizado = NormalizarEspacios(valor);
+        if (string.IsNullOrWhiteSpace(normalizado))
+        {
+            return string.Empty;
+        }
+
+        return normalizado.ToUpperInvariant();
+    }
+
     public static bool ValidYear(int? year, int minyear = 1000)
     {
         if (!year.HasValue)
