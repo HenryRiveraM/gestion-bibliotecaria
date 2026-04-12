@@ -182,8 +182,18 @@ public class PrestamoFachada : IPrestamoFachada
 
     public string? ObtenerLabelEjemplar(int ejemplarId)
     {
-        var dict = _ejemplarServicio.ObtenerEjemplaresDisponibles();
-        return dict.TryGetValue(ejemplarId, out var v) ? v : null;
+        var ejemplar = _ejemplarServicio.GetById(ejemplarId);
+        if (ejemplar == null)
+            return null;
+
+        // Get the title from the servicios
+        var titulos = _ejemplarServicio.ObtenerTitulosLibros();
+        if (titulos.TryGetValue(ejemplar.LibroId, out var titulo))
+        {
+            return $"{titulo} ({ejemplar.CodigoInventario})";
+        }
+
+        return null;
     }
 
     public gestion_bibliotecaria.Domain.Entities.Usuario? ObtenerUsuarioPorCi(string ci)

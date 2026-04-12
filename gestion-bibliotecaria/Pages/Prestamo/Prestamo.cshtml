@@ -4,49 +4,182 @@
     ViewData["Title"] = "Gestión de Préstamos";
 }
 
-<link rel="stylesheet" href="~/css/pages/ejemplar.css" />
-<link rel="stylesheet" href="~/css/pages/prestamo.css" />
-
-<div class="page-header">
-    <h1>Préstamos</h1>
-    <a class="btn-nuevo" href="/Prestamo/Create">Nuevo Préstamo</a>
-</div>
-
-<div class="filtros-barra">
-    <div class="filtro-item filtro-buscar">
-        <input id="buscador-prestamo" type="text" class="input-filtro" placeholder="Buscar..." />
-    </div>
-</div>
-
-@if (!Model.Prestamos.Any())
-{
-    <div class="alert alert-info">No hay préstamos registrados.</div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/ejemplar.css" />
+    <link rel="stylesheet" href="~/css/pages/prestamo.css" />
 }
-else
-{
-    <table class="tabla-ejemplar">
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Ejemplar</th>
-                <th>Lector</th>
-                <th>Fecha Prestamo</th>
-                <th>Fecha Devolución Esperada</th>
-                <th>Fecha Devolución Real</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var p in Model.Prestamos)
-        {
-            <tr>
-                <td>@p.PrestamoId</td>
-                <td>@(Model.LibrosTitulos.ContainsKey(p.EjemplarId) ? Model.LibrosTitulos[p.EjemplarId] : $"Ejemplar #{p.EjemplarId}")</td>
-                <td>@p.LectorId</td>
-                <td>@p.FechaPrestamo</td>
-                <td>@p.FechaDevolucionEsperada</td>
-                <td>@(p.FechaDevolucionReal?.ToString() ?? "-")</td>
-            </tr>
-        }
-        </tbody>
-    </table>
-}
+
+<div class="prestamo-container">
+    <div class="page-header">
+        <h1>
+            <img src="~/assets/icons/history_edu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" style="width: 35px; filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(142deg) brightness(96%) contrast(101%); margin-right: 10px;">
+                Gestión de Préstamos
+            </h1>
+            <a class="btn-nuevo" href="/Prestamo/Create">
+                <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                    Nuevo Préstamo
+                </a>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
+            {
+                <div class="alert-custom alert-success-custom">@Model.MensajeOk</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+            {
+                <div class="alert-custom alert-danger-custom">@Model.MensajeError</div>
+            }
+
+            <div class="filtros-barra">
+                <div class="filtro-item filtro-buscar">
+                    <input id="buscador-prestamo" type="text" class="input-filtro"
+                           placeholder="Buscar por lector, libro o código de inventario..." autocomplete="off" />
+                </div>
+            </div>
+
+            @if (!Model.PrestamosDetallados.Any())
+            {
+                <div class="alert alert-info">No hay préstamos registrados en el sistema.</div>
+            }
+            else
+            {
+                <div class="tabla-container">
+                    <table class="tabla-ejemplar">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Libro</th>
+                                <th>Código Inventario</th>
+                                <th>Lector</th>
+                                <th>Fecha Préstamo</th>
+                                <th>Devolución Esperada</th>
+                                <th>Devolución Real</th>
+                                <th style="width:120px; text-align:center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-prestamos-body">
+                            @foreach (var p in Model.PrestamosDetallados)
+                            {
+                                <tr class="prestamo-row"
+                                    data-lector="@p.NombreLector.ToLower()"
+                                    data-libro="@p.TituloLibro.ToLower()"
+                                    data-codigo="@p.CodigoInventario.ToLower()">
+                        
+                                    <td>@p.PrestamoId</td>
+                                    <td><strong>@p.TituloLibro</strong></td>
+                                    <td><span class="badge" style="background:#444; padding: 4px 8px;">@p.CodigoInventario</span></td>
+                                    <td>@p.NombreLector</td>
+                                    <td>@p.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td>@p.FechaDevolucionEsperada.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (p.FechaDevolucionReal.HasValue)
+                                        {
+                                            <span style="color:#00a884;">@p.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                        }
+                                        else
+                                        {
+                                            <span style="color:#9ca3af;">- Pendiente -</span>
+                                        }
+                                    </td>
+                                    <td class="td-acciones">
+                                        <button type="button" class="btn-accion btn-detalles" onclick="mostrarDetalles(@p.PrestamoId)" title="Ver detalles">
+                                            <img src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18" alt="Detalles">
+                                            </button>
+                            
+                                            @if (!p.EstaDevuelto)
+                                            {
+                                                <button type="button" class="btn-accion btn-anular" onclick="confirmarAnulacion(@p.PrestamoId)" title="Anular préstamo">
+                                                    <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18" alt="Anular">
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
+                <div id="modal-detalles" class="modal">
+                    <div class="modal-box" style="max-width:600px;">
+                        <div class="modal-icon editar">
+                            <img src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal">
+                            </div>
+                            <h2>Detalles del Préstamo</h2>
+                            <div id="modal-body-content" class="modal-body-custom">
+                            </div>
+                            <div class="modal-buttons">
+                                <button type="button" class="btn-secondary" onclick="cerrarModal()">Cerrar</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    @section Scripts {
+                        <script>
+                            function mostrarDetalles(prestamoId) {
+                                const base = window.location.pathname;
+                                fetch(`${base}?handler=DetallesPrestamo&id=${prestamoId}`)
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        if (data.success && data.data) {
+                                            const p = data.data;
+                                            const html = `
+                                                <div class="detalles-grid">
+                                                    <div class="detalle-item"><strong>ID:</strong> <span>#${p.prestamoId}</span></div>
+                                                    <div class="detalle-item"><strong>Libro:</strong> <span class="text-esmeralda">${p.tituloLibro}</span></div>
+                                                    <div class="detalle-item"><strong>Código:</strong> <span>${p.codigoInventario}</span></div>
+                                                    <div class="detalle-item"><strong>Lector:</strong> <span>${p.nombreLector}</span></div>
+                                                    <div class="detalle-item"><strong>Salida:</strong> <span>${new Date(p.fechaPrestamo).toLocaleString()}</span></div>
+                                                    <div class="detalle-item"><strong>Esperada:</strong> <span>${new Date(p.fechaDevolucionEsperada).toLocaleDateString()}</span></div>
+                                                    ${p.fechaDevolucionReal ? `<div class="detalle-item"><strong>Real:</strong> <span>${new Date(p.fechaDevolucionReal).toLocaleString()}</span></div>` : ''}
+                                                    ${p.observacionesSalida ? `<div class="detalle-obs"><strong>Observaciones Salida:</strong> <p>${p.observacionesSalida}</p></div>` : ''}
+                                                </div>
+                                            `;
+                                            document.getElementById('modal-body-content').innerHTML = html;
+                                            document.getElementById('modal-detalles').style.display = 'flex';
+                                        }
+                                    });
+                            }
+
+                            function cerrarModal() {
+                                document.getElementById('modal-detalles').style.display = 'none';
+                            }
+
+                            function confirmarAnulacion(prestamoId) {
+                                if (confirm('¿Estás seguro de que deseas anular este préstamo? El libro volverá a estar disponible.')) {
+                                    const form = document.createElement('form');
+                                    form.method = 'post';
+                                    form.action = window.location.pathname + '?handler=AnularPrestamo';
+                
+                                    const input = document.createElement('input');
+                                    input.type = 'hidden';
+                                    input.name = 'prestamoId';
+                                    input.value = prestamoId;
+                
+                                    // Anti-forgery token (necesario en Razor Pages)
+                                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
+                                    if (token) form.appendChild(token.cloneNode());
+
+                                    form.appendChild(input);
+                                    document.body.appendChild(form);
+                                    form.submit();
+                                }
+                            }
+
+                            // Buscador Instantáneo
+                            document.getElementById('buscador-prestamo')?.addEventListener('input', function(e) {
+                                const termino = e.target.value.toLowerCase();
+                                document.querySelectorAll('#tabla-prestamos-body tr').forEach(row => {
+                                    const texto = row.innerText.toLowerCase();
+                                    row.style.display = texto.includes(termino) ? '' : 'none';
+                                });
+                            });
+
+                            // Cerrar modal al hacer clic fuera
+                            window.onclick = function(e) {
+                                if (e.target === document.getElementById('modal-detalles')) cerrarModal();
+                            }
+                        </script>
+                    }

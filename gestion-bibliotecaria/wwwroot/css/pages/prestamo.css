@@ -170,3 +170,217 @@
     color: #00a884; /* Resaltamos la fecha en verde */
     letter-spacing: 0.5px;
 }
+
+/* Estilos para Modal de Detalles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: #1e1e1e;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+    border: 1px solid #333;
+    color: #e3e3e3;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #333;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #00a884;
+    font-size: 1.3rem;
+}
+
+.btn-cerrar {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.btn-cerrar:hover {
+    color: #ff5252;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.detalles-prestamo {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.detalle-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #2a2a2a;
+}
+
+.detalle-label {
+    font-weight: 600;
+    color: #888;
+    min-width: 200px;
+}
+
+.detalle-valor {
+    color: #e3e3e3;
+    text-align: right;
+    flex: 1;
+}
+
+/* Botones de acción en la tabla */
+.td-acciones {
+    display: flex !important;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+    min-width: 100px;
+    padding: 12px !important;
+}
+
+.btn-accion {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: 1.5px solid #555;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 0;
+    min-width: 36px;
+    flex-shrink: 0;
+}
+
+.btn-accion img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    filter: brightness(0.9);
+}
+
+.btn-detalles:hover {
+    background: rgba(0, 168, 132, 0.2);
+    border-color: #00a884;
+}
+
+.btn-detalles:hover img {
+    filter: brightness(1.2) invert(1);
+}
+
+.btn-anular:hover {
+    background: rgba(255, 82, 82, 0.2);
+    border-color: #ff5252;
+}
+
+.btn-anular:hover img {
+    filter: brightness(1.2) invert(1);
+}
+
+/* Badges para códigos */
+.badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Estilos para página header */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 0 20px;
+}
+
+.page-header h1 {
+    color: #00a884;
+    margin: 0;
+    font-size: 2rem;
+}
+
+.btn-nuevo {
+    background: #00a884;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-nuevo:hover {
+    background: #008870;
+}
+
+/* Barra de filtros */
+.filtros-barra {
+    padding: 15px 20px;
+    background: #1e1e1e;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 15px;
+}
+
+.filtro-item {
+    flex: 1;
+}
+
+.input-filtro {
+    width: 100%;
+    padding: 10px 15px;
+    background: #2a2a2a;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #e3e3e3;
+    transition: border-color 0.3s;
+}
+
+.input-filtro:focus {
+    border-color: #00a884;
+    outline: none;
+}

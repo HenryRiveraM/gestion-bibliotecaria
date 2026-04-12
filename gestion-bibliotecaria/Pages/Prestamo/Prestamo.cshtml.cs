@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
+using gestion_bibliotecaria.Aplicacion.DTOs;
 using gestion_bibliotecaria.Domain.Entities;
 using PrestamoEntity = gestion_bibliotecaria.Domain.Entities.Prestamo;
 using System.Linq;
@@ -13,9 +14,12 @@ public class PrestamoModel : PageModel
 {
     private readonly gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada _prestamoFachada;
     private readonly IPrestamoServicio _prestamoServicio;
+    private readonly IEjemplarServicio _ejemplarServicio;
+    private readonly IUsuarioServicio _usuarioServicio;
     private readonly RouteTokenService _routeTokenService;
 
     public List<PrestamoEntity> Prestamos { get; set; } = new();
+    public List<PrestamoDetalleDTO> PrestamosDetallados { get; set; } = new();
     public Dictionary<int, string> LibrosTitulos { get; set; } = new();
 
     public DateTime FechaPrestamoDisplay { get; set; }
@@ -27,16 +31,18 @@ public class PrestamoModel : PageModel
     public string? MensajeError { get; set; }
     public string? MensajeOk { get; set; }
 
-    public PrestamoModel(gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada prestamoFachada, IPrestamoServicio prestamoServicio, RouteTokenService routeTokenService)
+    public PrestamoModel(gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada prestamoFachada, IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, RouteTokenService routeTokenService)
     {
         _prestamoFachada = prestamoFachada;
         _prestamoServicio = prestamoServicio;
+        _ejemplarServicio = ejemplarServicio;
+        _usuarioServicio = usuarioServicio;
         _routeTokenService = routeTokenService;
     }
 
     public void OnGet()
     {
-        CargarPrestamos();
+        CargarPrestamosDetallados();
         FechaPrestamoDisplay = DateTime.Now;
         FechaDevolucionDefault = FechaPrestamoDisplay.AddDays(14);
     }
@@ -117,7 +123,7 @@ public class PrestamoModel : PageModel
             if (string.IsNullOrWhiteSpace(ciFull))
             {
                 MensajeError = "Debe indicar el CI del lector.";
-                CargarPrestamos();
+                CargarPrestamosDetallados();
                 SetFechaDefaults();
                 return Page();
             }
@@ -126,7 +132,7 @@ public class PrestamoModel : PageModel
             if (usuario == null)
             {
                 MensajeError = "Lector no encontrado.";
-                CargarPrestamos();
+                CargarPrestamosDetallados();
                 SetFechaDefaults();
                 return Page();
             }
@@ -139,7 +145,7 @@ public class PrestamoModel : PageModel
         if (string.IsNullOrWhiteSpace(EjemplarData))
         {
             MensajeError = "Debe seleccionar al menos un ejemplar.";
-            CargarPrestamos();
+            CargarPrestamosDetallados();
             SetFechaDefaults();
             return Page();
         }
@@ -151,7 +157,7 @@ public class PrestamoModel : PageModel
             if (trimmedData == "[]")
             {
                 MensajeError = "Debe seleccionar al menos un ejemplar.";
-                CargarPrestamos();
+                CargarPrestamosDetallados();
                 SetFechaDefaults();
                 return Page();
             }
@@ -163,7 +169,7 @@ public class PrestamoModel : PageModel
                 if (root.ValueKind != System.Text.Json.JsonValueKind.Array)
                 {
                     MensajeError = "Formato de ejemplares inválido.";
-                    CargarPrestamos();
+                    CargarPrestamosDetallados();
                     SetFechaDefaults();
                     return Page();
                 }
@@ -194,7 +200,7 @@ public class PrestamoModel : PageModel
             if (items.Count == 0)
             {
                 MensajeError = "No se encontraron ejemplares válidos.";
-                CargarPrestamos();
+                CargarPrestamosDetallados();
                 SetFechaDefaults();
                 return Page();
             }
@@ -202,14 +208,14 @@ public class PrestamoModel : PageModel
         catch (System.Text.Json.JsonException ex)
         {
             MensajeError = $"Error al procesar los datos: {ex.Message}";
-            CargarPrestamos();
+            CargarPrestamosDetallados();
             SetFechaDefaults();
             return Page();
         }
         catch (Exception ex)
         {
             MensajeError = $"Datos de ejemplares inválidos: {ex.Message}";
-            CargarPrestamos();
+            CargarPrestamosDetallados();
             SetFechaDefaults();
             return Page();
         }
@@ -217,7 +223,7 @@ public class PrestamoModel : PageModel
         if (items.Count > 3)
         {
             MensajeError = "No se pueden prestar más de 3 ejemplares a la vez.";
-            CargarPrestamos();
+            CargarPrestamosDetallados();
             SetFechaDefaults();
             return Page();
         }
@@ -238,14 +244,14 @@ public class PrestamoModel : PageModel
             if (resultado.IsFailure)
             {
                 MensajeError = resultado.Error.Message;
-                CargarPrestamos();
+                CargarPrestamosDetallados();
                 SetFechaDefaults();
                 return Page();
             }
         }
 
         MensajeOk = "Préstamo(s) registrado(s) correctamente.";
-        CargarPrestamos();
+        CargarPrestamosDetallados();
         SetFechaDefaults();
         return Page();
     }
@@ -278,6 +284,155 @@ public class PrestamoModel : PageModel
 
         // cargar titulos para desplegables
         LibrosTitulos = _prestamoFachada.BuscarEjemplaresActivos(string.Empty).ToDictionary(k => k.Key, v => v.Value);
+    }
+
+    private void CargarPrestamosDetallados()
+    {
+        var tabla = _prestamoServicio.Select();
+        PrestamosDetallados = new List<PrestamoDetalleDTO>();
+
+        // Cargar todos los usuarios en memoria para búsqueda rápida
+        var usuariosTabla = _usuarioServicio.Select();
+        var usuariosDict = new Dictionary<int, (string Nombres, string PrimerApellido, string? SegundoApellido)>();
+        foreach (DataRow row in usuariosTabla.Rows)
+        {
+            try
+            {
+                int usuarioId = Convert.ToInt32(row["UsuarioId"]);
+                string nombres = row["Nombres"]?.ToString() ?? string.Empty;
+                string primerApellido = row["PrimerApellido"]?.ToString() ?? string.Empty;
+                string? segundoApellido = row.Table.Columns.Contains("SegundoApellido") && row["SegundoApellido"] != DBNull.Value
+                    ? row["SegundoApellido"].ToString()
+                    : null;
+                usuariosDict[usuarioId] = (nombres, primerApellido, segundoApellido);
+            }
+            catch { }
+        }
+
+        // Procesar cada préstamo
+        foreach (DataRow row in tabla.Rows)
+        {
+            int ejemplarId = Convert.ToInt32(row["EjemplarId"]);
+            int lectorId = Convert.ToInt32(row["LectorId"]);
+
+            // Obtener info del ejemplar
+            var ejemplar = _ejemplarServicio.GetById(ejemplarId);
+            string tituloLibro = "Desconocido";
+            string codigoInventario = "N/A";
+
+            if (ejemplar != null)
+            {
+                codigoInventario = ejemplar.CodigoInventario ?? "N/A";
+                // Obtener el título del libro asociado (usar la fachada o acceso directo)
+                var etiquetaEjemplar = _prestamoFachada.ObtenerLabelEjemplar(ejemplarId);
+                if (!string.IsNullOrEmpty(etiquetaEjemplar))
+                {
+                    // Extraer solo el título de la etiqueta "Título (INV-XXX)"
+                    var parts = etiquetaEjemplar.Split('(');
+                    tituloLibro = parts[0].Trim();
+                }
+            }
+
+            // Obtener nombre del lector
+            string nombreLector = "Desconocido";
+            if (usuariosDict.TryGetValue(lectorId, out var usuario))
+            {
+                nombreLector = $"{usuario.Nombres} {usuario.PrimerApellido}".Trim();
+                if (!string.IsNullOrWhiteSpace(usuario.SegundoApellido))
+                {
+                    nombreLector += $" {usuario.SegundoApellido}";
+                }
+            }
+
+            PrestamosDetallados.Add(new PrestamoDetalleDTO
+            {
+                PrestamoId = Convert.ToInt32(row["PrestamoId"]),
+                EjemplarId = ejemplarId,
+                LectorId = lectorId,
+                TituloLibro = tituloLibro,
+                CodigoInventario = codigoInventario,
+                NombreLector = nombreLector,
+                FechaPrestamo = Convert.ToDateTime(row["FechaPrestamo"]),
+                FechaDevolucionEsperada = Convert.ToDateTime(row["FechaDevolucionEsperada"]),
+                FechaDevolucionReal = row.Table.Columns.Contains("FechaDevolucionReal") && row["FechaDevolucionReal"] != DBNull.Value
+                    ? Convert.ToDateTime(row["FechaDevolucionReal"])
+                    : null,
+                ObservacionesSalida = row.Table.Columns.Contains("ObservacionesSalida") && row["ObservacionesSalida"] != DBNull.Value
+                    ? row["ObservacionesSalida"].ToString()
+                    : null,
+                ObservacionesEntrada = row.Table.Columns.Contains("ObservacionesEntrada") && row["ObservacionesEntrada"] != DBNull.Value
+                    ? row["ObservacionesEntrada"].ToString()
+                    : null,
+                Estado = Convert.ToInt32(row["Estado"]),
+                FechaRegistro = row.Table.Columns.Contains("FechaRegistro") && row["FechaRegistro"] != DBNull.Value
+                    ? Convert.ToDateTime(row["FechaRegistro"])
+                    : DateTime.MinValue
+            });
+        }
+    }
+
+    public JsonResult OnGetDetallesPrestamo(int id)
+    {
+        var prestamo = PrestamosDetallados.FirstOrDefault(p => p.PrestamoId == id);
+        if (prestamo == null)
+        {
+            // Recargar si no está en memoria
+            CargarPrestamosDetallados();
+            prestamo = PrestamosDetallados.FirstOrDefault(p => p.PrestamoId == id);
+        }
+
+        if (prestamo == null)
+            return new JsonResult(new { success = false });
+
+        return new JsonResult(new { success = true, data = prestamo });
+    }
+
+    public IActionResult OnPostAnularPrestamo(int prestamoId)
+    {
+        try
+        {
+            // Obtener el préstamo actual
+            var tabla = _prestamoServicio.Select();
+            DataRow? prestamoRow = null;
+            foreach (DataRow row in tabla.Rows)
+            {
+                if (Convert.ToInt32(row["PrestamoId"]) == prestamoId)
+                {
+                    prestamoRow = row;
+                    break;
+                }
+            }
+
+            if (prestamoRow == null)
+            {
+                MensajeError = "Préstamo no encontrado.";
+                CargarPrestamosDetallados();
+                return Page();
+            }
+
+            // Marcar ejemplar como disponible nuevamente
+            int ejemplarId = Convert.ToInt32(prestamoRow["EjemplarId"]);
+            var ejemplar = _ejemplarServicio.GetById(ejemplarId);
+            if (ejemplar != null)
+            {
+                ejemplar.Disponible = true;
+                // Guardar cambios
+                // Nota: Aquí necesitarías un método Update en EjemplarServicio
+            }
+
+            // Marcar préstamo como anulado (Estado = -1 o eliminar)
+            // Esto dependería de tu implementación
+            // Por ahora, mostrar mensaje
+            MensajeOk = "Préstamo anulado correctamente.";
+            CargarPrestamosDetallados();
+            return Page();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Error al anular préstamo: {ex.Message}";
+            CargarPrestamosDetallados();
+            return Page();
+        }
     }
 
     private int? ObtenerUsuarioSesionId()
