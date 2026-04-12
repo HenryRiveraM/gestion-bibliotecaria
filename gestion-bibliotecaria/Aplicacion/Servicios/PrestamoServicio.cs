@@ -21,7 +21,43 @@ public class PrestamoServicio : IPrestamoServicio
         _usuarioRepositorio = usuarioRepositorio;
     }
 
-    public DataTable Select() => _prestamoRepositorio.GetAll();
+    public DataTable Select()
+    {
+        var prestamos = _prestamoRepositorio.GetAll();
+        var dt = new DataTable();
+        dt.Columns.Add("PrestamoId", typeof(int));
+        dt.Columns.Add("EjemplarId", typeof(int));
+        dt.Columns.Add("LectorId", typeof(int));
+        dt.Columns.Add("FechaPrestamo", typeof(DateTime));
+        dt.Columns.Add("FechaDevolucionEsperada", typeof(DateTime));
+        dt.Columns.Add("FechaDevolucionReal", typeof(DateTime));
+        dt.Columns.Add("ObservacionesSalida", typeof(string));
+        dt.Columns.Add("ObservacionesEntrada", typeof(string));
+        dt.Columns.Add("Estado", typeof(int));
+        dt.Columns.Add("UsuarioSesionId", typeof(int));
+        dt.Columns.Add("FechaRegistro", typeof(DateTime));
+        dt.Columns.Add("UltimaActualizacion", typeof(DateTime));
+
+        foreach (var p in prestamos)
+        {
+            dt.Rows.Add(
+                p.PrestamoId,
+                p.EjemplarId,
+                p.LectorId,
+                p.FechaPrestamo,
+                p.FechaDevolucionEsperada,
+                p.FechaDevolucionReal.HasValue ? (object)p.FechaDevolucionReal.Value : DBNull.Value,
+                p.ObservacionesSalida ?? (object)DBNull.Value,
+                p.ObservacionesEntrada ?? (object)DBNull.Value,
+                p.Estado,
+                p.UsuarioSesionId.HasValue ? (object)p.UsuarioSesionId.Value : DBNull.Value,
+                p.FechaRegistro,
+                p.UltimaActualizacion.HasValue ? (object)p.UltimaActualizacion.Value : DBNull.Value
+            );
+        }
+
+        return dt;
+    }
 
     public void Create(Prestamo prestamo) => _prestamoRepositorio.Insert(prestamo);
 
@@ -76,17 +112,7 @@ public class PrestamoServicio : IPrestamoServicio
 
     public int CountPrestamosActivos(int lectorId)
     {
-        var tabla = _prestamoRepositorio.GetAll();
-        var count = 0;
-        foreach (DataRow row in tabla.Rows)
-        {
-            var estado = Convert.ToInt32(row["Estado"]);
-            var lector = Convert.ToInt32(row["LectorId"]);
-            // Estado 1 = activo
-            if (estado == 1 && lector == lectorId)
-                count++;
-        }
-
-        return count;
+        var prestamos = _prestamoRepositorio.GetAll();
+        return prestamos.Count(p => p.Estado == 1 && p.LectorId == lectorId);
     }
 }

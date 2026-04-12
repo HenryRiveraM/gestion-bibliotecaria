@@ -34,7 +34,7 @@ builder.Services.AddScoped<IEmailSender>(EmailSenderFactory.Create);
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
 builder.Services.AddScoped<ILibroServicio, LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
-builder.Services.AddScoped<IPrestamoRepositorio>(sp => new PrestamoRepository(connectionString));
+builder.Services.AddScoped<IPrestamoRepositorio>(sp => new PrestamoRepository());
 builder.Services.AddScoped<IPrestamoServicio, PrestamoServicio>();
 builder.Services.AddScoped<gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada, gestion_bibliotecaria.Aplicacion.Fachadas.PrestamoFachada>();
 builder.Services.AddScoped<IUserCredentialProvisioningService, UserCredentialProvisioningService>();
