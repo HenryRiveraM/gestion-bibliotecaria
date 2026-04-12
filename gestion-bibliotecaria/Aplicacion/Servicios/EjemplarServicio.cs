@@ -18,7 +18,40 @@ public class EjemplarServicio : IEjemplarServicio
         _ejemplarRepositorio = ejemplarRepositorio;
     }
 
-    public DataTable Select() => _ejemplarRepositorio.GetAll();
+    public DataTable Select()
+    {
+        var dt = new DataTable();
+        dt.Columns.Add("EjemplarId", typeof(int));
+        dt.Columns.Add("UsuarioSesionId", typeof(int));
+        dt.Columns.Add("LibroId", typeof(int));
+        dt.Columns.Add("LibroTitulo", typeof(string));
+        dt.Columns.Add("CodigoInventario", typeof(string));
+        dt.Columns.Add("EstadoConservacion", typeof(string));
+        dt.Columns.Add("Disponible", typeof(bool));
+        dt.Columns.Add("DadoDeBaja", typeof(bool));
+        dt.Columns.Add("MotivoBaja", typeof(string));
+        dt.Columns.Add("Ubicacion", typeof(string));
+        dt.Columns.Add("Estado", typeof(bool));
+
+        var ejemplares = _ejemplarRepositorio.GetAll();
+        foreach (var e in ejemplares)
+        {
+            dt.Rows.Add(
+                e.EjemplarId,
+                e.UsuarioSesionId ?? (object)DBNull.Value,
+                e.LibroId,
+                e.LibroTitulo ?? (object)DBNull.Value,
+                e.CodigoInventario,
+                e.EstadoConservacion ?? (object)DBNull.Value,
+                e.Disponible,
+                e.DadoDeBaja,
+                e.MotivoBaja ?? (object)DBNull.Value,
+                e.Ubicacion ?? (object)DBNull.Value,
+                e.Estado
+            );
+        }
+        return dt;
+    }
 
     public void Create(Ejemplar ejemplar) => _ejemplarRepositorio.Insert(ejemplar);
 
@@ -30,7 +63,24 @@ public class EjemplarServicio : IEjemplarServicio
 
     public Dictionary<int, string> ObtenerTitulosLibros() => _ejemplarRepositorio.ObtenerTitulosLibros();
 
-    public DataTable ObtenerLibrosActivos() => _ejemplarRepositorio.ObtenerLibrosActivos();
+    public DataTable ObtenerLibrosActivos()
+    {
+        var dt = new DataTable();
+        dt.Columns.Add("LibroId", typeof(int));
+        dt.Columns.Add("Titulo", typeof(string));
+        dt.Columns.Add("Editorial", typeof(string));
+        
+        var libros = _ejemplarRepositorio.ObtenerLibrosActivos();
+        foreach (var l in libros)
+        {
+            dt.Rows.Add(
+                l.LibroId,
+                l.Titulo,
+                l.Editorial ?? (object)DBNull.Value
+            );
+        }
+        return dt;
+    }
 
     public Dictionary<int, string> ObtenerEjemplaresDisponibles() => _ejemplarRepositorio.ObtenerEjemplaresDisponibles();
 

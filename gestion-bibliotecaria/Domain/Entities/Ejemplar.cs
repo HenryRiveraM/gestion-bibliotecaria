@@ -15,4 +15,5 @@ public class Ejemplar
     public bool Estado { get; set; }
     public DateTime FechaRegistro { get; set; }
     public DateTime? UltimaActualizacion { get; set; }
+    public string? LibroTitulo { get; set; }
 }
