@@ -17,6 +17,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
         var dict = new Dictionary<int, string>();
 
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
 
         const string query = @"SELECT e.EjemplarId, l.Titulo, e.CodigoInventario
                                FROM ejemplar e
@@ -43,6 +44,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
         var titulos = new Dictionary<int, string>();
 
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
 
         const string query = "SELECT LibroId, Titulo FROM libro";
 
@@ -62,6 +64,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
         var libros = new List<Libro>();
 
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
 
         const string query = "SELECT LibroId, Titulo, Editorial FROM libro WHERE Estado = 1 ORDER BY Titulo";
 
@@ -84,6 +87,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
     public bool ExisteLibroActivo(int libroId)
     {
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
 
         const string query = "SELECT COUNT(1) FROM libro WHERE LibroId = @LibroId AND Estado = 1";
 
@@ -108,6 +112,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
         var lista = new List<Ejemplar>();
 
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
 
         string query = @"SELECT 
                         e.EjemplarId,
@@ -188,6 +193,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
     public void Insert(Ejemplar e)
     {
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
 
         string query = @"INSERT INTO ejemplar
             (UsuarioSesionId, LibroId, CodigoInventario, EstadoConservacion, Disponible, DadoDeBaja, MotivoBaja, Ubicacion, Estado)
@@ -211,6 +217,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
     public void Update(Ejemplar e)
     {
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
 
         string query = @"UPDATE ejemplar
             SET UsuarioSesionId = @UsuarioSesionId,
@@ -242,6 +249,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
     public void Delete(Ejemplar e)
     {
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
 
         string query = @"UPDATE ejemplar SET Estado = 0, UsuarioSesionId = @UsuarioSesionId WHERE EjemplarId = @EjemplarId;";
 
@@ -256,6 +264,7 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
         Ejemplar? e = null;
 
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
+        connection.Open();
 
         string query = @"SELECT 
                         EjemplarId,
