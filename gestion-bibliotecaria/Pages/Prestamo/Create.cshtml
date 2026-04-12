@@ -1,0 +1,362 @@
+@page "/Prestamo/Create"
+@model gestion_bibliotecaria.Pages.Prestamo.PrestamoModel
+@{
+    ViewData["Title"] = "Nuevo Préstamo";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/ejemplar.css" />
+    <link rel="stylesheet" href="~/css/pages/prestamo.css" />
+}
+
+<div class="prestamo-create-container">
+    <h2>
+        <img src="~/assets/icons/history_edu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" style="width: 30px; filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(142deg) brightness(96%) contrast(101%);">
+            Registrar Nuevo Préstamo
+        </h2>
+
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
+    {
+        <div class="alert-custom alert-success-custom">
+            @Model.MensajeOk
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+    {
+        <div class="alert-custom alert-danger-custom">
+            @Model.MensajeError
+        </div>
+    }
+
+        <form method="post" asp-page-handler="Crear" id="formPrestamo">
+            @Html.AntiForgeryToken()
+
+            <div class="form-section">
+                <span class="form-section-title">Información del Lector</span>
+                <div class="row">
+                    <div class="col-md-7">
+                        <label class="mb-2">Documento de Identidad (CI)</label>
+                        <div style="position:relative;">
+                            <input type="text" id="LectorCi" name="LectorCi" class="input-form"
+                                   placeholder="Escriba el CI para buscar..." oninput="buscarLectores(this.value)" autocomplete="off" />
+                            <div id="sugerencias-lectores" class="sugerencias"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="mb-2">Complemento</label>
+                        <input type="text" id="LectorComp" name="LectorComp" class="input-form" placeholder="Ej: 1P" />
+                    </div>
+                </div>
+
+                <div id="lector-info" style="display:none; margin-top: 15px; padding: 12px; background: rgba(0, 168, 132, 0.1); border: 1px solid rgba(0, 168, 132, 0.3); border-radius: 6px;">
+                    <span style="color: #6ee7b7; font-weight: 500;">Lector seleccionado: </span>
+                    <span id="lector-nombre" style="color: #e3e3e3; font-weight: 600;"></span>
+                </div>
+
+                <input type="hidden" id="LectorId" name="LectorId" />
+            </div>
+
+            <div class="form-section">
+                <span class="form-section-title">Libros a Prestar (Máx 3)</span>
+            
+                <div class="custom-select-wrapper mb-3">
+                    <div class="custom-select" id="custom-select-ejemplar">
+                        <div class="select-trigger d-flex align-items-center">
+                            <input type="text" id="input-busqueda-ejemplar"
+                                   style="border:none; background:transparent; color:white; width:100%; outline:none;"
+                                   placeholder="Escriba título o código de inventario..."
+                                   autocomplete="off" onfocus="mostrarDropdown()" />
+                            <svg class="select-arrow" viewBox="0 0 24 24" style="width:20px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                        <div class="select-dropdown">
+                            <div class="select-options" id="lista-opciones-ejemplares">
+                                <div class="option-loading">Cargando ejemplares...</div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-nuevo mt-2" onclick="confirmarSeleccionEjemplar()">
+                        <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18"> Añadir Ejemplar
+                        </button>
+                    </div>
+
+                    <table id="tabla-ejemplares" class="tabla-ejemplar">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Título / Ejemplar</th>
+                                <th>Estado Conservación</th>
+                                <th>Observaciones de Salida</th>
+                                <th style="width:80px;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <input type="hidden" id="EjemplarData" name="EjemplarData" value="[]" />
+                    <input type="hidden" id="ejemplar-temp-id" />
+                    <input type="hidden" id="ejemplar-temp-texto" />
+                </div>
+
+                <div class="form-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="mb-2">Fecha de Prestamo</label>
+                            <div>
+                                <span class="dato-estatico">
+                                    @Model.FechaPrestamoDisplay.ToString("dd-MM-yyyy")
+                                    </span>
+                                </div>
+                            </div>
+                        <div class="col-md-6">
+                            <label class="mb-2">Fecha de Devolución Esperada</label>
+                            <input type="date" id="FechaDevolucionEsperada" name="FechaDevolucionEsperada"
+                                   class="input-form" value="@Model.FechaDevolucionDefault.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions d-flex justify-content-end gap-3 mt-4">
+                    <a class="btn-secondary text-decoration-none d-flex align-items-center" href="/Prestamo">Cancelar</a>
+                    <button type="submit" class="btn-nuevo" style="padding: 10px 30px;">
+                        <img src="~/assets/icons/check_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20"> Finalizar Préstamo
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            @section Scripts {
+                <script>
+                    let ejemplaresSeleccionados = [];
+                    let catalogoEjemplares = []; // Aquí guardaremos todos los disponibles
+
+                    // FUNCIÓN: Mostrar mensaje de error sin usar alert()
+                    function mostrarMensajeError(mensaje) {
+                        // Scroll al top para que vea el mensaje
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                        // Crear el div del error
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = 'alert-custom alert-danger-custom';
+                        alertDiv.textContent = mensaje;
+                        alertDiv.style.marginTop = '10px';
+
+                        // Insertar después del título
+                        const container = document.querySelector('.prestamo-create-container');
+                        const title = container.querySelector('h2');
+                        title.insertAdjacentElement('afterend', alertDiv);
+
+                        // Auto-remover después de 5 segundos
+                        setTimeout(() => {
+                            alertDiv.remove();
+                        }, 5000);
+                    }
+
+                    // 1. CARGA INICIAL
+                    document.addEventListener('DOMContentLoaded', async () => {
+                        const base = window.location.pathname.replace(/\/Create$/,'') || window.location.pathname;
+                        const res = await fetch(`${base}?handler=AutocompleteEjemplares&q=`);
+                        catalogoEjemplares = await res.json();
+                        renderizarOpcionesEjemplares(catalogoEjemplares);
+                    });
+
+                    // 2. LÓGICA DE BÚSQUEDA LECTORES (CI)
+                    async function buscarLectores(q) {
+                        if (!q || q.length < 1) return;
+                        const base = window.location.pathname.replace(/\/Create$/,'') || window.location.pathname;
+                        const res = await fetch(`${base}?handler=AutocompleteLectores&q=${encodeURIComponent(q)}`);
+                        const data = await res.json();
+                        renderSugerenciasLectores(data);
+                    }
+
+                    function renderSugerenciasLectores(items) {
+                        const cont = document.getElementById('sugerencias-lectores');
+                        cont.innerHTML = '';
+
+                        if (items.length === 0) {
+                            cont.innerHTML = '<div style="padding: 10px; color: #888; text-align: center;">No hay resultados</div>';
+                            return;
+                        }
+
+                        items.forEach(i => {
+                            const div = document.createElement('div');
+                            div.className = 'sugerencia-item';
+                            div.textContent = i.label; // Solo el CI
+                            div.onclick = async () => {
+                                // Llenar el CI y buscar automáticamente
+                                document.getElementById('LectorCi').value = i.label;
+                                document.getElementById('LectorComp').value = ''; // Limpiar complemento
+                                cont.innerHTML = '';
+
+                                // Buscar automáticamente
+                                const ci = i.label.trim();
+                                const complemento = document.getElementById('LectorComp').value.trim();
+
+                                const base = window.location.pathname.replace(/\/Create$/, '') || window.location.pathname;
+                                const params = new URLSearchParams();
+                                params.append('handler', 'BuscarLectorPorCi');
+                                params.append('ci', ci);
+                                if (complemento) {
+                                    params.append('complemento', complemento);
+                                }
+
+                                try {
+                                    const res = await fetch(`${base}?${params.toString()}`);
+                                    const data = await res.json();
+
+                                    if (data.success) {
+                                        document.getElementById('LectorId').value = data.id;
+                                        document.getElementById('lector-nombre').textContent = data.nombreCompleto;
+                                        document.getElementById('lector-info').style.display = 'block';
+                                    } else {
+                                        mostrarMensajeError(data.message || 'No se encontró el lector.');
+                                        document.getElementById('lector-info').style.display = 'none';
+                                        document.getElementById('LectorId').value = '';
+                                    }
+                                } catch (error) {
+                                    mostrarMensajeError('Error al buscar el lector: ' + error.message);
+                                    document.getElementById('lector-info').style.display = 'none';
+                                }
+                            };
+                            cont.appendChild(div);
+                        });
+                    }
+
+                    // 3. LÓGICA BUSCADOR EJEMPLARES (Igual que en Ejemplar.cshtml)
+                    function normalizar(s) {
+                        return (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+                    }
+
+                    function mostrarDropdown() {
+                        document.getElementById('custom-select-ejemplar').classList.add('active');
+                    }
+
+                    document.getElementById('input-busqueda-ejemplar').addEventListener('input', function(e) {
+                        const termino = normalizar(e.target.value);
+                        const filtrados = catalogoEjemplares.filter(item => normalizar(item.label).includes(termino));
+                        renderizarOpcionesEjemplares(filtrados);
+                    });
+
+                    function renderizarOpcionesEjemplares(items) {
+                        const contenedor = document.getElementById('lista-opciones-ejemplares');
+                        contenedor.innerHTML = '';
+                        items.forEach(item => {
+                            const div = document.createElement('div');
+                            div.className = 'option';
+                            div.textContent = item.label;
+                            div.onclick = () => {
+                                document.getElementById('input-busqueda-ejemplar').value = item.label;
+                                document.getElementById('ejemplar-temp-id').value = item.id;
+                                document.getElementById('ejemplar-temp-texto').value = item.label;
+                                document.getElementById('custom-select-ejemplar').classList.remove('active');
+                            };
+                            contenedor.appendChild(div);
+                        });
+                    }
+
+                    async function confirmarSeleccionEjemplar() {
+                        const id = document.getElementById('ejemplar-temp-id').value;
+                        const texto = document.getElementById('ejemplar-temp-texto').value;
+
+                        if (!id) return;
+
+                        if (ejemplaresSeleccionados.some(e => e.id == id)) { 
+                            mostrarMensajeError('Este ejemplar ya ha sido agregado.'); 
+                            return; 
+                        }
+
+                        if (ejemplaresSeleccionados.length >= 3) { 
+                            mostrarMensajeError('No se pueden prestar más de 3 ejemplares a la vez.'); 
+                            return; 
+                        }
+
+                        const base = window.location.pathname.replace(/\/Create$/,'') || window.location.pathname;
+                        const res = await fetch(`${base}?handler=EjemplarDetalle&id=${id}`);
+                        const detalle = await res.json();
+
+                        ejemplaresSeleccionados.push({
+                            id: id,
+                            label: texto,
+                            estadoConservacion: detalle.estadoConservacion,
+                            observaciones: ''
+                        });
+
+                        renderTablaEjemplares();
+                        document.getElementById('input-busqueda-ejemplar').value = '';
+                        document.getElementById('ejemplar-temp-id').value = '';
+                    }
+
+                    // 4. TABLA Y DATOS
+                    function renderTablaEjemplares() {
+                        const tbody = document.querySelector('#tabla-ejemplares tbody');
+                        tbody.innerHTML = '';
+                        ejemplaresSeleccionados.forEach((e, idx) => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td><span class="badge" style="background:#333;">${e.id}</span></td>
+                                <td><strong>${e.label}</strong></td>
+                                <td><span class="estado activo">${e.estadoConservacion || 'Excelente'}</span></td>
+                                <td><input type='text' oninput='updateObs(${idx}, this.value)' class='input-form' value='${e.observaciones}' placeholder='Nota de salida...' /></td>
+                                <td><button type='button' class="btn-quitar" onclick='quitarEjemplar(${idx})'>Quitar</button></td>`;
+                            tbody.appendChild(tr);
+                        });
+
+                        // Serialize to JSON and set the hidden field
+                        const jsonData = JSON.stringify(ejemplaresSeleccionados.map(x => ({ id: parseInt(x.id), observaciones: x.observaciones || '' })));
+                        const campo = document.getElementById('EjemplarData');
+                        campo.value = jsonData;
+                        console.log('EjemplarData actualizado:', jsonData);
+                    }
+
+                    function updateObs(idx, val) {
+                        ejemplaresSeleccionados[idx].observaciones = val;
+                        renderTablaEjemplares();
+                    }
+
+                    function quitarEjemplar(idx) {
+                        ejemplaresSeleccionados.splice(idx, 1);
+                        renderTablaEjemplares();
+                    }
+
+                    // Click outside to close
+                    document.addEventListener('click', (e) => {
+                        if (!document.getElementById('custom-select-ejemplar').contains(e.target)) {
+                            document.getElementById('custom-select-ejemplar').classList.remove('active');
+                        }
+                    });
+
+                    // Ensure EjemplarData is populated before form submission
+                    document.getElementById('formPrestamo').addEventListener('submit', (e) => {
+                        const ejemplarData = document.getElementById('EjemplarData').value;
+                        console.log('Form submit - EjemplarData:', ejemplarData);
+                        console.log('Form submit - ejemplaresSeleccionados:', ejemplaresSeleccionados);
+
+                        if (!ejemplarData || ejemplarData === '[]') {
+                            e.preventDefault();
+                            mostrarMensajeError('Debe seleccionar al menos un ejemplar.');
+                            return false;
+                        }
+
+                        // Final validation: ensure it's valid JSON
+                        try {
+                            const parsed = JSON.parse(ejemplarData);
+                            if (!Array.isArray(parsed) || parsed.length === 0) {
+                                e.preventDefault();
+                                mostrarMensajeError('Debe seleccionar al menos un ejemplar.');
+                                return false;
+                            }
+                        } catch (err) {
+                            console.error('JSON Parse Error:', err);
+                            e.preventDefault();
+                            mostrarMensajeError('Error en formato de datos.');
+                            return false;
+                        }
+
+                        // Re-set the value to ensure the latest data is sent
+                        document.getElementById('EjemplarData').value = JSON.stringify(
+                            ejemplaresSeleccionados.map(x => ({ id: parseInt(x.id), observaciones: x.observaciones || '' }))
+                        );
+                        console.log('Final EjemplarData being sent:', document.getElementById('EjemplarData').value);
+                    });
+                </script>
+            }

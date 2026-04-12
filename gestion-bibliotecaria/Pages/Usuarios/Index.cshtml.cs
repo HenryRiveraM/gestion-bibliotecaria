@@ -19,6 +19,9 @@ public class IndexModel : PageModel
     public Usuario NuevoUsuario { get; set; } = new();
 
     [BindProperty]
+    public string? Complemento { get; set; }
+
+    [BindProperty]
     public string RolNuevoUsuario { get; set; } = Usuario.RolBibliotecario;
 
     public string? MensajeError { get; set; }
@@ -55,6 +58,12 @@ public class IndexModel : PageModel
         }
 
         NuevoUsuario.Rol = RolNuevoUsuario;
+
+        // unir CI y complemento si viene
+        if (!string.IsNullOrWhiteSpace(Complemento))
+        {
+            NuevoUsuario.CI = _usuarioServicio.JoinCiComp(NuevoUsuario.CI ?? string.Empty, Complemento);
+        }
 
         var resultado = await _usuarioServicio.CrearUsuarioAsync(NuevoUsuario, usuarioSesionId.Value, cancellationToken);
 
