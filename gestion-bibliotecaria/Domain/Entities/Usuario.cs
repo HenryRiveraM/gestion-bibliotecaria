@@ -4,12 +4,14 @@ public class Usuario
 {
     public const string RolAdmin = "Admin";
     public const string RolBibliotecario = "Bibliotecario";
+    public const string RolLector = "Lector";
 
     public int UsuarioId { get; set; }
+    public string? CI { get; set; }
     public int? UsuarioSesionId { get; set; }
     public string Nombres { get; set; } = string.Empty;
     public string PrimerApellido { get; set; } = string.Empty;
-    public string SegundoApellido { get; set; } = string.Empty;
+    public string? SegundoApellido { get; set; }
     public string Email { get; set; } = string.Empty;
     public string NombreUsuario { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;

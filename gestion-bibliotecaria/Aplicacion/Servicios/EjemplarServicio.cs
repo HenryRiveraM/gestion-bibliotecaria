@@ -32,6 +32,8 @@ public class EjemplarServicio : IEjemplarServicio
 
     public DataTable ObtenerLibrosActivos() => _ejemplarRepositorio.ObtenerLibrosActivos();
 
+    public Dictionary<int, string> ObtenerEjemplaresDisponibles() => _ejemplarRepositorio.ObtenerEjemplaresDisponibles();
+
     public bool ExisteLibroActivo(int libroId) => _ejemplarRepositorio.ExisteLibroActivo(libroId);
 
     public Result ValidarEjemplar(Ejemplar ejemplar)

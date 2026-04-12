@@ -14,6 +14,33 @@ public class EjemplarRepository : IEjemplarRepositorio, IRepository<Ejemplar, in
         _connectionString = connectionString;
     }
 
+    public Dictionary<int, string> ObtenerEjemplaresDisponibles()
+    {
+        var dict = new Dictionary<int, string>();
+
+        using var connection = new MySqlConnection(ConnectionString);
+        connection.Open();
+
+        const string query = @"SELECT e.EjemplarId, l.Titulo, e.CodigoInventario
+                               FROM ejemplar e
+                               INNER JOIN libro l ON e.LibroId = l.LibroId
+                               WHERE e.Disponible = 1 AND e.DadoDeBaja = 0 AND e.Estado = 1
+                               ORDER BY l.Titulo;";
+
+        using var command = new MySqlCommand(query, connection);
+        using var reader = command.ExecuteReader();
+
+        while (reader.Read())
+        {
+            var id = reader.GetInt32("EjemplarId");
+            var titulo = reader.GetString("Titulo");
+            var codigo = reader.GetString("CodigoInventario");
+            dict[id] = $"{titulo} ({codigo})";
+        }
+
+        return dict;
+    }
+
     public EjemplarRepository(IConfiguration configuration)
         : this(configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))

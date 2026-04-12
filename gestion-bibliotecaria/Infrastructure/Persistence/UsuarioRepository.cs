@@ -14,6 +14,55 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
         _connectionString = connectionString;
     }
 
+    public Usuario? GetByCi(string ci)
+    {
+        Usuario? usuario = null;
+
+        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        {
+            connection.Open();
+
+            string query = "SELECT * FROM usuario WHERE CI = @CI LIMIT 1;";
+
+            using (MySqlCommand command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@CI", ci);
+
+                using (MySqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        usuario = new Usuario
+                        {
+                            UsuarioId = reader.GetInt32("UsuarioId"),
+                            UsuarioSesionId = reader.IsDBNull("UsuarioSesionId") ? null : reader.GetInt32("UsuarioSesionId"),
+                            Nombres = reader.GetString("Nombres"),
+                            PrimerApellido = reader.GetString("PrimerApellido"),
+                            SegundoApellido = reader.IsDBNull("SegundoApellido") ? null : reader.GetString("SegundoApellido"),
+                            Email = reader.GetString("Email"),
+                            NombreUsuario = reader.GetString("NombreUsuario"),
+                            PasswordHash = reader.GetString("PasswordHash"),
+                            Salt = reader.IsDBNull("Salt") ? null : reader.GetString("Salt"),
+                            Rol = reader.GetString("Rol"),
+                            Estado = reader.GetBoolean("Estado"),
+                            FechaRegistro = reader.GetDateTime("FechaRegistro"),
+                            UltimaActualizacion = reader.IsDBNull("UltimaActualizacion") ? null : reader.GetDateTime("UltimaActualizacion"),
+                            CI = reader.IsDBNull("CI") ? null : reader.GetString("CI")
+                        };
+                    }
+                }
+            }
+        }
+
+        return usuario;
+    }
+
+    public string JoinCiComp(string ci, string complemento)
+    {
+        if (string.IsNullOrWhiteSpace(complemento)) return ci; 
+        return $"{ci}-{complemento}";
+    }
+
     public UsuarioRepository(IConfiguration configuration)
         : this(configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))

@@ -1,0 +1,52 @@
+@page "/Prestamo"
+@model gestion_bibliotecaria.Pages.Prestamo.PrestamoModel
+@{
+    ViewData["Title"] = "Gestión de Préstamos";
+}
+
+<link rel="stylesheet" href="~/css/pages/ejemplar.css" />
+<link rel="stylesheet" href="~/css/pages/prestamo.css" />
+
+<div class="page-header">
+    <h1>Préstamos</h1>
+    <a class="btn-nuevo" href="/Prestamo/Create">Nuevo Préstamo</a>
+</div>
+
+<div class="filtros-barra">
+    <div class="filtro-item filtro-buscar">
+        <input id="buscador-prestamo" type="text" class="input-filtro" placeholder="Buscar..." />
+    </div>
+</div>
+
+@if (!Model.Prestamos.Any())
+{
+    <div class="alert alert-info">No hay préstamos registrados.</div>
+}
+else
+{
+    <table class="tabla-ejemplar">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Ejemplar</th>
+                <th>Lector</th>
+                <th>Fecha Prestamo</th>
+                <th>Fecha Devolución Esperada</th>
+                <th>Fecha Devolución Real</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var p in Model.Prestamos)
+        {
+            <tr>
+                <td>@p.PrestamoId</td>
+                <td>@(Model.LibrosTitulos.ContainsKey(p.EjemplarId) ? Model.LibrosTitulos[p.EjemplarId] : $"Ejemplar #{p.EjemplarId}")</td>
+                <td>@p.LectorId</td>
+                <td>@p.FechaPrestamo</td>
+                <td>@p.FechaDevolucionEsperada</td>
+                <td>@(p.FechaDevolucionReal?.ToString() ?? "-")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

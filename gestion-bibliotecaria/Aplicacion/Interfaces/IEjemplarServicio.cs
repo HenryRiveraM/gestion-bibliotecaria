@@ -15,6 +15,7 @@ public interface IEjemplarServicio
     Dictionary<int, string> ObtenerTitulosLibros();
     DataTable ObtenerLibrosActivos();
     bool ExisteLibroActivo(int libroId);
+    Dictionary<int, string> ObtenerEjemplaresDisponibles();
 
     Result ValidarEjemplar(Ejemplar ejemplar);
 }

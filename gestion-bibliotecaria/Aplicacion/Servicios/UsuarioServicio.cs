@@ -29,6 +29,13 @@ public class UsuarioServicio : IUsuarioServicio
         _credentialProvisioningService = credentialProvisioningService;
     }
 
+    public string JoinCiComp(string ci, string complemento)
+    {
+        if (string.IsNullOrWhiteSpace(ci)) return string.Empty;
+        if (string.IsNullOrWhiteSpace(complemento)) return ci.Trim();
+        return $"{ci.Trim()}-{complemento.Trim()}";
+    }
+
     public DataTable Select() => _usuarioRepositorio.GetAll();
 
     public Result<Usuario> Login(string nombreUsuario, string passwordPlano)

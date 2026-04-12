@@ -1,0 +1,240 @@
+@page "/Prestamo/Create"
+@model gestion_bibliotecaria.Pages.Prestamo.PrestamoModel
+@{
+    ViewData["Title"] = "Nuevo Préstamo";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/pages/ejemplar.css" />
+    <link rel="stylesheet" href="~/css/pages/prestamo.css" />
+}
+
+<div class="prestamo-create-container">
+    <h2>
+        <img src="~/assets/icons/history_edu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" style="width: 30px; filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(142deg) brightness(96%) contrast(101%);">
+            Registrar Nuevo Préstamo
+        </h2>
+
+        <form method="post" asp-page-handler="Crear">
+        
+            <div class="form-section">
+                <span class="form-section-title">Información del Lector</span>
+                <div class="row">
+                    <div class="col-md-8">
+                        <label class="mb-2">Documento de Identidad (CI)</label>
+                        <div style="position:relative;">
+                            <input type="text" id="LectorCi" name="LectorCi" class="input-form"
+                                   placeholder="Escriba el CI para buscar..." oninput="buscarLectores(this.value)" autocomplete="off" />
+                            <div id="sugerencias-lectores" class="sugerencias"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="mb-2">Complemento</label>
+                        <input type="text" id="LectorComp" name="LectorComp" class="input-form" placeholder="Ej: 1P" />
+                    </div>
+                </div>
+                <input type="hidden" id="LectorId" name="LectorId" />
+            </div>
+
+            <div class="form-section">
+                <span class="form-section-title">Libros a Prestar</span>
+                <div class="d-flex gap-2 mb-3">
+                    <div style="position:relative; flex-grow: 1;">
+                        <input type="text" id="BuscarEjemplar" class="input-form"
+                               placeholder="Buscar libro por título o código..." oninput="buscarEjemplares(this.value)" autocomplete="off" />
+                        <div id="sugerencias-ejemplares" class="sugerencias"></div>
+                    </div>
+                    <button type="button" class="btn-nuevo" onclick="agregarEjemplarSeleccionado()" style="white-space:nowrap;">
+                        <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18"> Agregar
+                        </button>
+                    </div>
+
+                    <table id="tabla-ejemplares" class="tabla-ejemplar">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Título / Ejemplar</th>
+                                <th>Estado</th>
+                                <th>Observaciones de Salida</th>
+                                <th style="width:80px;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <input type="hidden" id="EjemplarData" name="EjemplarData" />
+                </div>
+
+                <div class="form-section">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="mb-2">Fecha de Salida</label>
+                            <input class="input-form" readonly value="@Model.FechaPrestamoDisplay.ToString("dd/MM/yyyy")" style="opacity: 0.7;" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="mb-2">Fecha de Devolución Esperada</label>
+                            <input type="date" id="FechaDevolucionEsperada" name="FechaDevolucionEsperada"
+                                   class="input-form" value="@Model.FechaDevolucionDefault.ToString("yyyy-MM-dd")" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions d-flex justify-content-end gap-3 mt-4">
+                    <a class="btn-secondary" href="/Prestamo" style="text-decoration:none; display:flex; align-items:center; padding: 10px 20px;">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="btn-nuevo" style="padding: 10px 30px;">
+                        <img src="~/assets/icons/check_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20"> Finalizar Préstamo
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+@section Scripts {
+    <script>
+        let ejemplaresSeleccionados = [];
+
+        async function buscarEjemplares(q) {
+            if (!q) return;
+            const base = window.location.pathname.replace(/\/Create$/,'') || window.location.pathname;
+            const res = await fetch(`${base}?handler=AutocompleteEjemplares&q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            window._ultimosEjemplares = data;
+            renderSugerenciasEjemplares(data);
+        }
+
+        async function fetchEjemplaresAll() {
+            const base = window.location.pathname.replace(/\/Create$/,'') || window.location.pathname;
+            const res = await fetch(`${base}?handler=AutocompleteEjemplares&q=`);
+            const data = await res.json();
+            window._ultimosEjemplares = data;
+            renderSugerenciasEjemplares(data);
+        }
+
+        async function buscarLectores(q) {
+            if (!q) return;
+            const base = window.location.pathname.replace(/\/Create$/,'') || window.location.pathname;
+            const res = await fetch(`${base}?handler=AutocompleteLectores&q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            window._ultimosLectores = data;
+            renderSugerenciasLectores(data);
+        }
+
+        function selectPrimerLector() {
+            const lista = window._ultimosLectores || [];
+            if (lista.length > 0) {
+                const first = lista[0];
+                document.getElementById('LectorCi').value = first.label.split(' - ')[0];
+                document.getElementById('LectorId').value = first.id;
+                document.getElementById('sugerencias-lectores').innerHTML = '';
+            }
+        }
+
+        async function agregarEjemplarSeleccionado() {
+            const input = document.getElementById('BuscarEjemplar');
+            const texto = input.value;
+            if (!texto) return;
+
+            // intentar tomar del ultimo resultado
+            const lista = window._ultimosEjemplares || [];
+            const encontrado = lista.find(x => x.label.toLowerCase() === texto.toLowerCase()) || lista.find(x => x.label.toLowerCase().includes(texto.toLowerCase()));
+            const id = encontrado ? encontrado.id : null;
+            if (!id) {
+                alert('Seleccione un ejemplar válido de las sugerencias.');
+                return;
+            }
+
+            if (ejemplaresSeleccionados.some(e => e.id === id)) {
+                alert('Ejemplar ya agregado.');
+                return;
+            }
+
+        function renderSugerenciasEjemplares(items) {
+            const cont = document.getElementById('sugerencias-ejemplares');
+            cont.innerHTML = '';
+            items.forEach(i => {
+                const div = document.createElement('div');
+                div.className = 'sugerencia-item';
+                div.textContent = i.label;
+                div.onclick = () => {
+                    document.getElementById('BuscarEjemplar').value = i.label;
+                    window._ultimosEjemplares = [i];
+                    cont.innerHTML = '';
+                };
+                cont.appendChild(div);
+            });
+        }
+
+        function renderSugerenciasLectores(items) {
+            const cont = document.getElementById('sugerencias-lectores');
+            cont.innerHTML = '';
+            items.forEach(i => {
+                const div = document.createElement('div');
+                div.className = 'sugerencia-item';
+                div.textContent = i.label;
+                div.onclick = () => {
+                    document.getElementById('LectorCi').value = i.label.split(' - ')[0];
+                    document.getElementById('LectorId').value = i.id;
+                    cont.innerHTML = '';
+                };
+                cont.appendChild(div);
+            });
+        }
+ }
+        }
+
+        // close suggestion lists when clicking outside
+        document.addEventListener('click', function (e) {
+            const se = document.getElementById('sugerencias-ejemplares');
+            const sl = document.getElementById('sugerencias-lectores');
+            if (se && !se.contains(e.target) && e.target !== document.getElementById('BuscarEjemplar')) se.innerHTML = '';
+            if (sl && !sl.contains(e.target) && e.target !== document.getElementById('LectorCi')) sl.innerHTML = '';
+        });
+
+            if (ejemplaresSeleccionados.length >= 3) {
+                alert('No puede agregar más de 3 ejemplares.');
+                return;
+            }
+
+            // obtener detalle del ejemplar
+            const res = await fetch(`/Prestamo?handler=EjemplarDetalle&id=${id}`);
+            const detalle = await res.json();
+
+            ejemplaresSeleccionados.push({ id, label: detalle?.label || texto, observaciones: '', estadoConservacion: detalle?.estadoConservacion });
+            renderTablaEjemplares();
+            input.value = '';
+        }
+
+        function renderTablaEjemplares() {
+            const tbody = document.querySelector('#tabla-ejemplares tbody');
+            tbody.innerHTML = '';
+            ejemplaresSeleccionados.forEach((e, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${e.id}</td><td>${e.label}</td><td>${e.estadoConservacion || ''}</td><td><input type='text' data-idx='${idx}' class='obs-input' value='${e.observaciones || ''}' /></td><td><button type='button' onclick='quitarEjemplar(${idx})'>Quitar</button></td>`;
+                tbody.appendChild(tr);
+            });
+
+            // actualizar hidden EjemplarData
+            updateHiddenEjemplarData();
+        }
+
+        function quitarEjemplar(idx) {
+            ejemplaresSeleccionados.splice(idx, 1);
+            renderTablaEjemplares();
+        }
+
+        function updateHiddenEjemplarData() {
+            const data = ejemplaresSeleccionados.map(e => ({ id: e.id, observaciones: e.observaciones }));
+            document.getElementById('EjemplarData').value = JSON.stringify(data);
+        }
+
+        // delegación para capturar cambios en observaciones
+        document.addEventListener('input', function (e) {
+            if (e.target && e.target.classList && e.target.classList.contains('obs-input')) {
+                const idx = parseInt(e.target.getAttribute('data-idx'));
+                ejemplaresSeleccionados[idx].observaciones = e.target.value;
+                updateHiddenEjemplarData();
+            }
+        });
+    </script>
+}

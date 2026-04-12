@@ -13,4 +13,6 @@ public interface IUsuarioRepositorio
     Usuario? GetByNombreUsuario(string nombreUsuario);
     bool ExisteNombreUsuario(string nombreUsuario);
     bool ExisteEmail(string email);
+    Usuario? GetByCi(string ci);
+    string JoinCiComp(string ci, string complemento);
 }

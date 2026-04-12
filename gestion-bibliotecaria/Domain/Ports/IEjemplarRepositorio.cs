@@ -14,4 +14,5 @@ public interface IEjemplarRepositorio
     Dictionary<int, string> ObtenerTitulosLibros();
     DataTable ObtenerLibrosActivos();
     bool ExisteLibroActivo(int libroId);
+    Dictionary<int, string> ObtenerEjemplaresDisponibles();
 }
