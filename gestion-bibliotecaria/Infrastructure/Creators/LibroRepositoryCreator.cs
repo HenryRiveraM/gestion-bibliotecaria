@@ -16,6 +16,6 @@ public class LibroRepositoryCreator : RepositoryFactory<Libro, int>
 
     public override IRepository<Libro, int> CreateRepository()
     {
-        return new LibroRepository(_configuration);
+        return new LibroRepository();
     }
 }

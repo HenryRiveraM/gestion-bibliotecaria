@@ -1,18 +1,17 @@
-using System.Data;
 using gestion_bibliotecaria.Domain.Entities;
 
 namespace gestion_bibliotecaria.Domain.Ports;
 
 public interface ILibroRepositorio
 {
-    DataTable Select();
+    IEnumerable<Libro> Select();
     Libro? GetById(int id);
     void Create(Libro libro);
     void Update(Libro libro);
     void Delete(Libro libro);
 
-    Dictionary<int, string> ObtenerNombresAutores();
-    DataTable ObtenerAutoresActivos();
+    IEnumerable<Autor> ObtenerNombresAutores();
+    IEnumerable<Autor> ObtenerAutoresActivos();
     bool ExisteAutorActivo(int autorId);
     int InsertarAutorYObtenerID(string nombreCompleto, int? usuarioSesionId);
 }

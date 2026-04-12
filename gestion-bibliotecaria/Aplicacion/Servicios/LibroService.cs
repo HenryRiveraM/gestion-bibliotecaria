@@ -17,7 +17,47 @@ public class LibroServicio : ILibroServicio
         _libroRepositorio = libroRepositorio;
     }
 
-    public DataTable Select() => _libroRepositorio.Select();
+    public DataTable Select()
+    {
+        var libros = _libroRepositorio.Select();
+        var dt = new DataTable();
+        dt.Columns.Add("LibroId", typeof(int));
+        dt.Columns.Add("UsuarioSesionId", typeof(int));
+        dt.Columns.Add("AutorId", typeof(int));
+        dt.Columns.Add("Titulo", typeof(string));
+        dt.Columns.Add("ISBN", typeof(string));
+        dt.Columns.Add("Editorial", typeof(string));
+        dt.Columns.Add("Genero", typeof(string));
+        dt.Columns.Add("Edicion", typeof(string));
+        dt.Columns.Add("AñoPublicacion", typeof(int));
+        dt.Columns.Add("NumeroPaginas", typeof(int));
+        dt.Columns.Add("Idioma", typeof(string));
+        dt.Columns.Add("PaisPublicacion", typeof(string));
+        dt.Columns.Add("Descripcion", typeof(string));
+        dt.Columns.Add("Estado", typeof(bool));
+
+        foreach (var l in libros)
+        {
+            dt.Rows.Add(
+                l.LibroId,
+                l.UsuarioSesionId.HasValue ? (object)l.UsuarioSesionId.Value : DBNull.Value,
+                l.AutorId,
+                l.Titulo,
+                string.IsNullOrEmpty(l.ISBN) ? DBNull.Value : l.ISBN,
+                string.IsNullOrEmpty(l.Editorial) ? DBNull.Value : l.Editorial,
+                string.IsNullOrEmpty(l.Genero) ? DBNull.Value : l.Genero,
+                string.IsNullOrEmpty(l.Edicion) ? DBNull.Value : l.Edicion,
+                l.AñoPublicacion.HasValue ? (object)l.AñoPublicacion.Value : DBNull.Value,
+                l.NumeroPaginas.HasValue ? (object)l.NumeroPaginas.Value : DBNull.Value,
+                string.IsNullOrEmpty(l.Idioma) ? DBNull.Value : l.Idioma,
+                string.IsNullOrEmpty(l.PaisPublicacion) ? DBNull.Value : l.PaisPublicacion,
+                string.IsNullOrEmpty(l.Descripcion) ? DBNull.Value : l.Descripcion,
+                l.Estado
+            );
+        }
+
+        return dt;
+    }
 
     public Libro? GetById(int id) => _libroRepositorio.GetById(id);
 
@@ -27,9 +67,33 @@ public class LibroServicio : ILibroServicio
 
     public void Delete(Libro libro) => _libroRepositorio.Delete(libro);
 
-    public Dictionary<int, string> ObtenerNombresAutores() => _libroRepositorio.ObtenerNombresAutores();
+    public Dictionary<int, string> ObtenerNombresAutores()
+    {
+        var autores = _libroRepositorio.ObtenerNombresAutores();
+        return autores.ToDictionary(a => a.AutorId, a => $"{a.Nombres} {(a.Apellidos ?? "")}".Trim());
+    }
 
-    public DataTable ObtenerAutoresActivos() => _libroRepositorio.ObtenerAutoresActivos();
+    public DataTable ObtenerAutoresActivos()
+    {
+        var autores = _libroRepositorio.ObtenerAutoresActivos();
+        var dt = new DataTable();
+        dt.Columns.Add("AutorId", typeof(int));
+        dt.Columns.Add("Nombres", typeof(string));
+        dt.Columns.Add("Apellidos", typeof(string));
+        dt.Columns.Add("Nacionalidad", typeof(string));
+
+        foreach (var a in autores)
+        {
+            dt.Rows.Add(
+                a.AutorId,
+                a.Nombres,
+                string.IsNullOrEmpty(a.Apellidos) ? DBNull.Value : a.Apellidos,
+                string.IsNullOrEmpty(a.Nacionalidad) ? DBNull.Value : a.Nacionalidad
+            );
+        }
+
+        return dt;
+    }
 
     public bool ExisteAutorActivo(int autorId) => _libroRepositorio.ExisteAutorActivo(autorId);
 
