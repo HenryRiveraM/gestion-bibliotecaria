@@ -12,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+// Inicializamos el Singleton Gestor de Base de Datos
+ConfigurationSingleton.Initialize(builder.Configuration);
+
 builder.Services.AddScoped<RouteTokenService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(EmailSettings.SectionName));
 builder.Services.AddHttpClient();
