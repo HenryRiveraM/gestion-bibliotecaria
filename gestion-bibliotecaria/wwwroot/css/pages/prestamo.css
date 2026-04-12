@@ -1,5 +1,27 @@
 ﻿body {
 }
+
+/* Alert Styles - Unified Error/Success Display */
+.alert-custom {
+    padding: 14px 18px;
+    border-radius: 12px;
+    margin-bottom: 18px;
+    font-weight: 500;
+    border: 1px solid transparent;
+}
+
+.alert-success-custom {
+    background: rgba(16, 163, 127, 0.12);
+    border-color: rgba(16, 163, 127, 0.35);
+    color: #6ee7b7;
+}
+
+.alert-danger-custom {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+}
+
 /* Contenedor Principal similar a ejemplar-container */
 .prestamo-create-container {
     background-color: #121212;
@@ -115,3 +137,36 @@
         background: #ff5252;
         color: white;
     }
+
+/* Forzamos el color gris oscuro en el buscador de ejemplares */
+.custom-select .select-trigger {
+    background-color: #2a2a2a !important; /* Mismo gris que el resto */
+    border: 1px solid #333 !important;
+    color: #e3e3e3 !important;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+    /* Quitamos el resplandor azul al hacer foco */
+    .custom-select .select-trigger:focus-within,
+    #input-busqueda-ejemplar:focus {
+        border-color: #00a884 !important; /* Verde esmeralda */
+        box-shadow: 0 0 0 2px rgba(0, 168, 132, 0.2) !important;
+        outline: none !important;
+    }
+
+/* El input de búsqueda dentro del trigger */
+#input-busqueda-ejemplar {
+    background: transparent !important;
+    border: none !important;
+    color: #fff !important;
+}
+
+/* Estilo para el dato de la fecha (No input) */
+.dato-estatico {
+    display: inline-block;
+    padding: 10px 0;
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #00a884; /* Resaltamos la fecha en verde */
+    letter-spacing: 0.5px;
+}

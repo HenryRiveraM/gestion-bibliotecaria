@@ -96,6 +96,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
                                 SegundoApellido,
                                 Email,
                                 NombreUsuario,
+                                CI,
                                 Rol,
                                 Estado,
                                 FechaRegistro,

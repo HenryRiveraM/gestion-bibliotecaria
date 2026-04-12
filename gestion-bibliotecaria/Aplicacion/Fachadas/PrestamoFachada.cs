@@ -69,18 +69,96 @@ public class PrestamoFachada : IPrestamoFachada
     {
         var lista = new List<KeyValuePair<int, string>>();
         var tabla = _usuarioServicio.Select();
+
         foreach (System.Data.DataRow row in tabla.Rows)
         {
-            var estado = Convert.ToBoolean(row["Estado"]);
-            if (!estado) continue;
-
-            var rol = row.Table.Columns.Contains("Rol") && row["Rol"] != DBNull.Value ? row["Rol"].ToString()! : string.Empty;
-            if (!string.Equals(rol, Usuario.RolLector, StringComparison.Ordinal)) continue;
-
-            var ci = row.Table.Columns.Contains("CI") && row["CI"] != DBNull.Value ? row["CI"].ToString()! : string.Empty;
-            if (ci.Contains(q, StringComparison.OrdinalIgnoreCase))
+            try
             {
-                lista.Add(new KeyValuePair<int, string>(Convert.ToInt32(row["UsuarioId"]), ci + " - " + row["Nombres"].ToString()));
+                // Check if Estado is true
+                var estado = row.Table.Columns.Contains("Estado") && row["Estado"] != DBNull.Value 
+                    ? Convert.ToBoolean(row["Estado"]) 
+                    : false;
+                if (!estado) continue;
+
+                // Get Rol value
+                var rol = row.Table.Columns.Contains("Rol") && row["Rol"] != DBNull.Value 
+                    ? row["Rol"].ToString()!.Trim() 
+                    : string.Empty;
+
+                // Only include "Lector" role
+                if (!rol.Equals("Lector", StringComparison.OrdinalIgnoreCase)) continue;
+
+                // Get CI value
+                var ci = row.Table.Columns.Contains("CI") && row["CI"] != DBNull.Value 
+                    ? row["CI"].ToString()!.Trim() 
+                    : string.Empty;
+
+                // Skip if CI is empty
+                if (string.IsNullOrWhiteSpace(ci)) continue;
+
+                var nombres = row.Table.Columns.Contains("Nombres") && row["Nombres"] != DBNull.Value 
+                    ? row["Nombres"].ToString()! 
+                    : string.Empty;
+
+                // Search by CI - if q is empty, return all; otherwise filter by StartsWith (not Contains)
+                if (string.IsNullOrWhiteSpace(q) || ci.StartsWith(q, StringComparison.OrdinalIgnoreCase))
+                {
+                    lista.Add(new KeyValuePair<int, string>(
+                        Convert.ToInt32(row["UsuarioId"]), 
+                        ci + " - " + nombres
+                    ));
+                }
+            }
+            catch
+            {
+                // Skip rows with errors
+                continue;
+            }
+        }
+
+        return lista;
+    }
+
+    // DEBUG: Get all readers (for debugging purposes)
+    public List<object> ObtenerTodosLosLectores()
+    {
+        var lista = new List<object>();
+        var tabla = _usuarioServicio.Select();
+
+        foreach (System.Data.DataRow row in tabla.Rows)
+        {
+            try
+            {
+                var estado = row.Table.Columns.Contains("Estado") && row["Estado"] != DBNull.Value 
+                    ? Convert.ToBoolean(row["Estado"]) 
+                    : false;
+
+                var rol = row.Table.Columns.Contains("Rol") && row["Rol"] != DBNull.Value 
+                    ? row["Rol"].ToString()!.Trim() 
+                    : "NO_ROL";
+
+                var ci = row.Table.Columns.Contains("CI") && row["CI"] != DBNull.Value 
+                    ? row["CI"].ToString()!.Trim() 
+                    : "NULL_CI";
+
+                var nombres = row.Table.Columns.Contains("Nombres") && row["Nombres"] != DBNull.Value 
+                    ? row["Nombres"].ToString() 
+                    : "NO_NOMBRES";
+
+                lista.Add(new
+                {
+                    usuarioId = Convert.ToInt32(row["UsuarioId"]),
+                    ci = ci,
+                    nombres = nombres,
+                    rol = rol,
+                    estado = estado,
+                    esLector = rol.Equals("Lector", StringComparison.OrdinalIgnoreCase),
+                    ciNoVacio = !string.IsNullOrWhiteSpace(ci) && ci != "NULL_CI"
+                });
+            }
+            catch (Exception ex)
+            {
+                lista.Add(new { error = ex.Message });
             }
         }
 

@@ -74,29 +74,49 @@ public class PrestamoModel : PageModel
 
     public JsonResult OnGetAutocompleteLectores(string q)
     {
+        // Retorna solo CIs para el autocomplete
         var items = _prestamoFachada.BuscarLectoresPorCi(q ?? string.Empty)
-            .Select(kv => new { id = kv.Key, label = kv.Value });
+            .Select(kv => new { id = kv.Key, label = kv.Value.Split(" - ")[0] }); // Solo el CI
 
         return new JsonResult(items);
     }
 
-    // Handler para creación desde la página Create. Recibe una lista de ids de ejemplar como cadena separada por comas.
+    public JsonResult OnGetBuscarLectorPorCi(string ci, string? complemento)
+    {
+        if (string.IsNullOrWhiteSpace(ci))
+            return new JsonResult(new { success = false, message = "CI requerido" });
+
+        var ciFull = string.IsNullOrWhiteSpace(complemento) ? ci : $"{ci}-{complemento}";
+        var usuario = _prestamoFachada.ObtenerUsuarioPorCi(ciFull);
+
+        if (usuario == null)
+            return new JsonResult(new { success = false, message = "Lector no encontrado" });
+
+        return new JsonResult(new
+        {
+            success = true,
+            id = usuario.UsuarioId,
+            nombreCompleto = $"{usuario.Nombres} {usuario.PrimerApellido} {usuario.SegundoApellido ?? ""}".Trim()
+        });
+    }
+
+    // DEBUG: Ver todos los lectores en la BD
+    public JsonResult OnGetDebugLectores()
+    {
+        var tabla = _prestamoFachada.ObtenerTodosLosLectores(); // Will implement this method
+        return new JsonResult(tabla);
+    }
+
+    // Handler para creación desde la página Create. Recibe una lista de ids de ejemplar como cadena JSON.
     public IActionResult OnPostCrear(string EjemplarData, int LectorId, DateTime FechaDevolucionEsperada, string? LectorCi, string? LectorComp)
     {
-        // Sólo bibliotecarios pueden realizar esta acción
-        var rol = HttpContext.Session.GetString(SessionKeys.Rol);
-        if (!string.Equals(rol, Domain.Entities.Usuario.RolBibliotecario, StringComparison.Ordinal))
-        {
-            return Forbid();
-        }
-
         // Resolver lector: si LectorId no provisto, intentar buscar por CI+complemento
         if (LectorId <= 0)
         {
             var ciFull = string.IsNullOrWhiteSpace(LectorComp) ? (LectorCi ?? string.Empty) : $"{LectorCi}-{LectorComp}";
             if (string.IsNullOrWhiteSpace(ciFull))
             {
-                ModelState.AddModelError(string.Empty, "Debe indicar el CI del lector.");
+                MensajeError = "Debe indicar el CI del lector.";
                 CargarPrestamos();
                 SetFechaDefaults();
                 return Page();
@@ -105,7 +125,7 @@ public class PrestamoModel : PageModel
             var usuario = _prestamoFachada.ObtenerUsuarioPorCi(ciFull);
             if (usuario == null)
             {
-                ModelState.AddModelError(string.Empty, "Lector no encontrado.");
+                MensajeError = "Lector no encontrado.";
                 CargarPrestamos();
                 SetFechaDefaults();
                 return Page();
@@ -118,7 +138,7 @@ public class PrestamoModel : PageModel
         List<(int Id, string? Observaciones)> items = new();
         if (string.IsNullOrWhiteSpace(EjemplarData))
         {
-            ModelState.AddModelError(string.Empty, "Debe seleccionar al menos un ejemplar.");
+            MensajeError = "Debe seleccionar al menos un ejemplar.";
             CargarPrestamos();
             SetFechaDefaults();
             return Page();
@@ -126,26 +146,69 @@ public class PrestamoModel : PageModel
 
         try
         {
-            var arr = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonElement[]>(EjemplarData);
-            if (arr == null || arr.Length == 0)
+            // Try to parse the JSON - handle both JsonElement[] and simpler formats
+            var trimmedData = EjemplarData.Trim();
+            if (trimmedData == "[]")
             {
-                ModelState.AddModelError(string.Empty, "Debe seleccionar al menos un ejemplar.");
+                MensajeError = "Debe seleccionar al menos un ejemplar.";
                 CargarPrestamos();
+                SetFechaDefaults();
                 return Page();
             }
 
-            foreach (var el in arr)
+            // Use JsonDocument for more reliable parsing
+            using (var doc = System.Text.Json.JsonDocument.Parse(trimmedData))
             {
-                if (el.TryGetProperty("id", out var idEl) && idEl.TryGetInt32(out var idVal))
+                var root = doc.RootElement;
+                if (root.ValueKind != System.Text.Json.JsonValueKind.Array)
                 {
-                    var obs = el.TryGetProperty("observaciones", out var obsEl) ? obsEl.GetString() : null;
-                    items.Add((idVal, obs));
+                    MensajeError = "Formato de ejemplares inválido.";
+                    CargarPrestamos();
+                    SetFechaDefaults();
+                    return Page();
+                }
+
+                foreach (var el in root.EnumerateArray())
+                {
+                    if (el.TryGetProperty("id", out var idEl))
+                    {
+                        int idVal = 0;
+                        if (idEl.ValueKind == System.Text.Json.JsonValueKind.Number)
+                        {
+                            idEl.TryGetInt32(out idVal);
+                        }
+                        else if (idEl.ValueKind == System.Text.Json.JsonValueKind.String && int.TryParse(idEl.GetString(), out var parsedId))
+                        {
+                            idVal = parsedId;
+                        }
+
+                        if (idVal > 0)
+                        {
+                            var obs = el.TryGetProperty("observaciones", out var obsEl) ? obsEl.GetString() : null;
+                            items.Add((idVal, obs));
+                        }
+                    }
                 }
             }
+
+            if (items.Count == 0)
+            {
+                MensajeError = "No se encontraron ejemplares válidos.";
+                CargarPrestamos();
+                SetFechaDefaults();
+                return Page();
+            }
         }
-        catch
+        catch (System.Text.Json.JsonException ex)
         {
-            ModelState.AddModelError(string.Empty, "Datos de ejemplares inválidos.");
+            MensajeError = $"Error al procesar los datos: {ex.Message}";
+            CargarPrestamos();
+            SetFechaDefaults();
+            return Page();
+        }
+        catch (Exception ex)
+        {
+            MensajeError = $"Datos de ejemplares inválidos: {ex.Message}";
             CargarPrestamos();
             SetFechaDefaults();
             return Page();
@@ -153,7 +216,7 @@ public class PrestamoModel : PageModel
 
         if (items.Count > 3)
         {
-            ModelState.AddModelError(string.Empty, "No se pueden prestar más de 3 ejemplares a la vez.");
+            MensajeError = "No se pueden prestar más de 3 ejemplares a la vez.";
             CargarPrestamos();
             SetFechaDefaults();
             return Page();
@@ -174,15 +237,17 @@ public class PrestamoModel : PageModel
             var resultado = _prestamoFachada.CrearPrestamo(prestamo);
             if (resultado.IsFailure)
             {
-                ModelState.AddModelError(string.Empty, resultado.Error.Message);
+                MensajeError = resultado.Error.Message;
                 CargarPrestamos();
                 SetFechaDefaults();
                 return Page();
             }
         }
 
-        TempData["MensajeOk"] = "Préstamo(s) registrado(s) correctamente.";
-        return RedirectToPage("/Prestamo");
+        MensajeOk = "Préstamo(s) registrado(s) correctamente.";
+        CargarPrestamos();
+        SetFechaDefaults();
+        return Page();
     }
 
     private void CargarPrestamos()

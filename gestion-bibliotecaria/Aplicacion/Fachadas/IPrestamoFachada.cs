@@ -15,4 +15,5 @@ public interface IPrestamoFachada
     Result CrearPrestamos(IEnumerable<Prestamo> prestamos);
     gestion_bibliotecaria.Domain.Entities.Usuario? ObtenerUsuarioPorCi(string ci);
     string? ObtenerLabelEjemplar(int ejemplarId);
+    List<object> ObtenerTodosLosLectores();
 }
