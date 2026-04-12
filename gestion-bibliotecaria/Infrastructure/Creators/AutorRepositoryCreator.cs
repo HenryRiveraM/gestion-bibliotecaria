@@ -16,6 +16,6 @@ public class AutorRepositoryCreator : RepositoryFactory<Autor,int>
 
     public override IRepository<Autor,int> CreateRepository()
     {
-        return new AutorRepository(_configuration);
+        return new AutorRepository();
     }
 }

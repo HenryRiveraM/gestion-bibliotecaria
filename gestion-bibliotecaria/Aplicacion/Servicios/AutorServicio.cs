@@ -18,7 +18,36 @@ public class AutorServicio : IAutorServicio
         _autorRepositorio = autorRepositorio;
     }
 
-    public DataTable Select() => _autorRepositorio.GetAll();
+    public DataTable Select() 
+    {
+        var autores = _autorRepositorio.GetAll();
+        var dt = new DataTable();
+        dt.Columns.Add("AutorId", typeof(int));
+        dt.Columns.Add("UsuarioSesionId", typeof(int));
+        dt.Columns.Add("Nombres", typeof(string));
+        dt.Columns.Add("Apellidos", typeof(string));
+        dt.Columns.Add("Nacionalidad", typeof(string));
+        dt.Columns.Add("FechaNacimiento", typeof(DateTime));
+        dt.Columns.Add("Estado", typeof(bool));
+        dt.Columns.Add("FechaRegistro", typeof(DateTime));
+        dt.Columns.Add("UltimaActualizacion", typeof(DateTime));
+
+        foreach(var a in autores)
+        {
+            dt.Rows.Add(
+                a.AutorId,
+                a.UsuarioSesionId.HasValue ? a.UsuarioSesionId.Value : DBNull.Value,
+                a.Nombres,
+                a.Apellidos ?? (object)DBNull.Value,
+                a.Nacionalidad ?? (object)DBNull.Value,
+                a.FechaNacimiento.HasValue ? a.FechaNacimiento.Value : DBNull.Value,
+                a.Estado,
+                a.FechaRegistro,
+                a.UltimaActualizacion.HasValue ? a.UltimaActualizacion.Value : DBNull.Value
+            );
+        }
+        return dt;
+    }
 
     public void Create(Autor autor) => _autorRepositorio.Insert(autor);
 
@@ -28,9 +57,35 @@ public class AutorServicio : IAutorServicio
 
     public Autor? GetById(int id) => _autorRepositorio.GetById(id);
 
-    public Dictionary<int, string> ObtenerAutoresActivos() => _autorRepositorio.ObtenerAutoresActivos();
+    public Dictionary<int, string> ObtenerAutoresActivos() 
+    {
+        var dict = new Dictionary<int, string>();
+        var autores = _autorRepositorio.ObtenerAutoresActivos();
+        foreach(var a in autores)
+        {
+            dict[a.AutorId] = a.Nombres;
+        }
+        return dict;
+    }
 
-    public DataTable ObtenerAutoresActivosTabla() => _autorRepositorio.ObtenerAutoresActivosTabla();
+    public DataTable ObtenerAutoresActivosTabla() 
+    {
+        var autores = _autorRepositorio.ObtenerAutoresActivosTabla();
+        var dt = new DataTable();
+        dt.Columns.Add("AutorId", typeof(int));
+        dt.Columns.Add("Nombres", typeof(string));
+        dt.Columns.Add("Apellidos", typeof(string));
+
+        foreach(var a in autores)
+        {
+            dt.Rows.Add(
+                a.AutorId,
+                a.Nombres,
+                a.Apellidos ?? (object)DBNull.Value
+            );
+        }
+        return dt;
+    }
 
     public bool ExisteAutorActivo(int autorId) => _autorRepositorio.ExisteAutorActivo(autorId);
 

@@ -26,7 +26,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository(connectionString));
+builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository());
 builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository(connectionString));
 builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository(connectionString));
 builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository(connectionString));

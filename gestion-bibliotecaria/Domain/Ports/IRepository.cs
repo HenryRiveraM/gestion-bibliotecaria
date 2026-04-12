@@ -9,3 +9,4 @@ public interface IRepository<T,TId>
     void Delete(T t);
     T? GetById(TId id); 
 }
+
