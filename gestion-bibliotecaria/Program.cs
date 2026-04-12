@@ -29,7 +29,7 @@ builder.Services.AddSession(options =>
 builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository());
 builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository());
 builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository());
-builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository(connectionString));
+builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository());
 builder.Services.AddScoped<IEmailSender>(EmailSenderFactory.Create);
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
 builder.Services.AddScoped<ILibroServicio, LibroServicio>();

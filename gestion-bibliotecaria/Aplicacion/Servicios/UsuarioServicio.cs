@@ -36,7 +36,46 @@ public class UsuarioServicio : IUsuarioServicio
         return $"{ci.Trim()}-{complemento.Trim()}";
     }
 
-    public DataTable Select() => _usuarioRepositorio.GetAll();
+    public DataTable Select()
+    {
+        var usuarios = _usuarioRepositorio.GetAll();
+        var dt = new DataTable();
+        dt.Columns.Add("UsuarioId", typeof(int));
+        dt.Columns.Add("UsuarioSesionId", typeof(int));
+        dt.Columns.Add("Nombres", typeof(string));
+        dt.Columns.Add("PrimerApellido", typeof(string));
+        dt.Columns.Add("SegundoApellido", typeof(string));
+        dt.Columns.Add("Email", typeof(string));
+        dt.Columns.Add("NombreUsuario", typeof(string));
+        dt.Columns.Add("PasswordHash", typeof(string));
+        dt.Columns.Add("Salt", typeof(string));
+        dt.Columns.Add("Rol", typeof(string));
+        dt.Columns.Add("Estado", typeof(bool));
+        dt.Columns.Add("FechaRegistro", typeof(DateTime));
+        dt.Columns.Add("UltimaActualizacion", typeof(DateTime));
+        dt.Columns.Add("CI", typeof(string));
+
+        foreach (var u in usuarios)
+        {
+            dt.Rows.Add(
+                u.UsuarioId,
+                u.UsuarioSesionId.HasValue ? (object)u.UsuarioSesionId.Value : DBNull.Value,
+                u.Nombres,
+                u.PrimerApellido,
+                u.SegundoApellido ?? (object)DBNull.Value,
+                u.Email,
+                u.NombreUsuario,
+                u.PasswordHash,
+                u.Salt ?? (object)DBNull.Value,
+                u.Rol,
+                u.Estado,
+                u.FechaRegistro,
+                u.UltimaActualizacion.HasValue ? (object)u.UltimaActualizacion.Value : DBNull.Value,
+                u.CI ?? (object)DBNull.Value
+            );
+        }
+        return dt;
+    }
 
     public Result<Usuario> Login(string nombreUsuario, string passwordPlano)
     {
