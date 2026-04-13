@@ -208,9 +208,11 @@ public class UsuarioServicio : IUsuarioServicio
             return Result.Failure(UsuarioErrors.DatosObligatorios);
         }
 
+        var ciCompleto = JoinCiComp(dto.CI, dto.Complemento);
+
         var usuario = new Usuario
         {
-            CI = dto.CI,
+            CI = ciCompleto,
             Nombres = ValidadorEntrada.NormalizarAMayusculas(dto.Nombres),
             PrimerApellido = ValidadorEntrada.NormalizarAMayusculas(dto.PrimerApellido),
             SegundoApellido = ValidadorEntrada.NormalizarAMayusculas(dto.SegundoApellido),

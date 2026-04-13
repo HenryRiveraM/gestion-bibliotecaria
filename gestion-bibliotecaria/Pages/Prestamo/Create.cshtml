@@ -144,9 +144,15 @@
                   </div>
                   <form method="post" asp-page-handler="CrearLector">
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="form-label">CI</label>
-                            <input type="text" asp-for="NuevoLector.CI" class="form-control input-form" required />
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">CI</label>
+                                <input type="text" asp-for="NuevoLector.CI" class="form-control input-form" required />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">Complemento</label>
+                                <input type="text" asp-for="NuevoLector.Complemento" class="form-control input-form" placeholder="Ej: 1P" />
+                            </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Nombres</label>
@@ -232,21 +238,28 @@
                             div.className = 'sugerencia-item';
                             div.textContent = i.label; // Solo el CI
                             div.onclick = async () => {
-                                // Llenar el CI y buscar automáticamente
-                                document.getElementById('LectorCi').value = i.label;
-                                document.getElementById('LectorComp').value = ''; // Limpiar complemento
-                                cont.innerHTML = '';
+                                const fullCi = i.label.trim();
+                                let ciValue = fullCi;
+                                let compValue = '';
 
-                                // Buscar automáticamente
-                                const ci = i.label.trim();
-                                const complemento = document.getElementById('LectorComp').value.trim();
+                                // Separar el CI del Complemento si viene con guion
+                                const parts = fullCi.split('-');
+                                if (parts.length > 1) {
+                                    ciValue = parts[0].trim();
+                                    compValue = parts.slice(1).join('-').trim();
+                                }
+
+                                // Llenar el CI y Complemento en los inputs
+                                document.getElementById('LectorCi').value = ciValue;
+                                document.getElementById('LectorComp').value = compValue;
+                                cont.innerHTML = '';
 
                                 const base = window.location.pathname.replace(/\/Create$/, '') || window.location.pathname;
                                 const params = new URLSearchParams();
                                 params.append('handler', 'BuscarLectorPorCi');
-                                params.append('ci', ci);
-                                if (complemento) {
-                                    params.append('complemento', complemento);
+                                params.append('ci', ciValue);
+                                if (compValue) {
+                                    params.append('complemento', compValue);
                                 }
 
                                 try {
