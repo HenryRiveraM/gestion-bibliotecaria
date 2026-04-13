@@ -1,11 +1,12 @@
-﻿using System.Data;
+using System.Collections.Generic;
+using System.Linq;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Domain.Ports;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
-using gestion_bibliotecaria.Domain.Validations;
-using System.Text.RegularExpressions;
+using gestion_bibliotecaria.Aplicacion.Dtos;
+using gestion_bibliotecaria.Domain.Factories;
 
 namespace gestion_bibliotecaria.Aplicacion.Servicios;
 
@@ -18,44 +19,103 @@ public class AutorServicio : IAutorServicio
         _autorRepositorio = autorRepositorio;
     }
 
-    public DataTable Select() 
+    public IEnumerable<AutorDto> Select() 
     {
         var autores = _autorRepositorio.GetAll();
-        var dt = new DataTable();
-        dt.Columns.Add("AutorId", typeof(int));
-        dt.Columns.Add("UsuarioSesionId", typeof(int));
-        dt.Columns.Add("Nombres", typeof(string));
-        dt.Columns.Add("Apellidos", typeof(string));
-        dt.Columns.Add("Nacionalidad", typeof(string));
-        dt.Columns.Add("FechaNacimiento", typeof(DateTime));
-        dt.Columns.Add("Estado", typeof(bool));
-        dt.Columns.Add("FechaRegistro", typeof(DateTime));
-        dt.Columns.Add("UltimaActualizacion", typeof(DateTime));
-
-        foreach(var a in autores)
+        return autores.Select(a => new AutorDto
         {
-            dt.Rows.Add(
-                a.AutorId,
-                a.UsuarioSesionId.HasValue ? a.UsuarioSesionId.Value : DBNull.Value,
-                a.Nombres,
-                a.Apellidos ?? (object)DBNull.Value,
-                a.Nacionalidad ?? (object)DBNull.Value,
-                a.FechaNacimiento.HasValue ? a.FechaNacimiento.Value : DBNull.Value,
-                a.Estado,
-                a.FechaRegistro,
-                a.UltimaActualizacion.HasValue ? a.UltimaActualizacion.Value : DBNull.Value
-            );
-        }
-        return dt;
+            AutorId = a.AutorId,
+            Nombres = a.Nombres,
+            Apellidos = a.Apellidos,
+            Nacionalidad = a.Nacionalidad,
+            FechaNacimiento = a.FechaNacimiento,
+            Estado = a.Estado,
+            RouteToken = a.RouteToken
+        });
     }
 
-    public void Create(Autor autor) => _autorRepositorio.Insert(autor);
+    public Result<AutorDto> Create(AutorDto autorDto)
+    {
+        var result = AutorFactory.Crear(
+            0,
+            null, // UsuarioSesionId will be handled if needed, or we just pass null for now
+            autorDto.Nombres,
+            autorDto.Apellidos,
+            autorDto.Nacionalidad,
+            autorDto.FechaNacimiento,
+            autorDto.Estado
+        );
 
-    public void Update(Autor autor) => _autorRepositorio.Update(autor);
+        if (result.IsFailure)
+        {
+            return Result<AutorDto>.Failure(result.Error);
+        }
 
-    public void Delete(Autor autor) => _autorRepositorio.Delete(autor);
+        var autor = result.Value;
+        _autorRepositorio.Insert(autor);
+        
+        autorDto.AutorId = autor.AutorId;
+        return Result<AutorDto>.Success(autorDto);
+    }
 
-    public Autor? GetById(int id) => _autorRepositorio.GetById(id);
+    public Result<AutorDto> Update(AutorDto autorDto)
+    {
+        var autorExistente = _autorRepositorio.GetById(autorDto.AutorId);
+        if (autorExistente == null)
+        {
+            return Result<AutorDto>.Failure(AutorErrors.AutorNoEncontrado);
+        }
+
+        var result = AutorFactory.Crear(
+            autorDto.AutorId,
+            autorExistente.UsuarioSesionId,
+            autorDto.Nombres,
+            autorDto.Apellidos,
+            autorDto.Nacionalidad,
+            autorDto.FechaNacimiento,
+            autorDto.Estado
+        );
+
+        if (result.IsFailure)
+        {
+            return Result<AutorDto>.Failure(result.Error);
+        }
+
+        var autor = result.Value;
+        // Keep the old token and dates as they are managed by repo or DB usually, but let's copy needed stuff
+        autor.RouteToken = autorExistente.RouteToken;
+        autor.FechaRegistro = autorExistente.FechaRegistro;
+
+        _autorRepositorio.Update(autor);
+        return Result<AutorDto>.Success(autorDto);
+    }
+
+    public Result Delete(int autorId)
+    {
+        var autor = _autorRepositorio.GetById(autorId);
+        if (autor == null)
+            return Result.Failure(AutorErrors.AutorNoEncontrado);
+            
+        _autorRepositorio.Delete(autor);
+        return Result.Success();
+    }
+
+    public AutorDto? GetById(int id)
+    {
+        var a = _autorRepositorio.GetById(id);
+        if (a == null) return null;
+
+        return new AutorDto
+        {
+            AutorId = a.AutorId,
+            Nombres = a.Nombres,
+            Apellidos = a.Apellidos,
+            Nacionalidad = a.Nacionalidad,
+            FechaNacimiento = a.FechaNacimiento,
+            Estado = a.Estado,
+            RouteToken = a.RouteToken
+        };
+    }
 
     public Dictionary<int, string> ObtenerAutoresActivos() 
     {
@@ -68,71 +128,5 @@ public class AutorServicio : IAutorServicio
         return dict;
     }
 
-    public DataTable ObtenerAutoresActivosTabla() 
-    {
-        var autores = _autorRepositorio.ObtenerAutoresActivosTabla();
-        var dt = new DataTable();
-        dt.Columns.Add("AutorId", typeof(int));
-        dt.Columns.Add("Nombres", typeof(string));
-        dt.Columns.Add("Apellidos", typeof(string));
-
-        foreach(var a in autores)
-        {
-            dt.Rows.Add(
-                a.AutorId,
-                a.Nombres,
-                a.Apellidos ?? (object)DBNull.Value
-            );
-        }
-        return dt;
-    }
-
     public bool ExisteAutorActivo(int autorId) => _autorRepositorio.ExisteAutorActivo(autorId);
-
-    public Result ValidarAutor(Autor autor)
-    {
-        // 🔹 Normalizar
-        autor.Nombres = ValidadorEntrada.NormalizarAMayusculas(autor.Nombres);
-        autor.Apellidos = ValidadorEntrada.NormalizarAMayusculas(autor.Apellidos);
-        autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(autor.Nacionalidad);
-
-        // 🔹 NOMBRES OBLIGATORIOS
-        if (ValidadorEntrada.EstaVacio(autor.Nombres))
-            return Result.Failure(AutorErrors.NombresObligatorios);
-
-        // 🔹 SOLO LETRAS Y ESPACIOS
-        if (!Regex.IsMatch(autor.Nombres, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
-            return Result.Failure(AutorErrors.NombresFormato);
-
-        // 🔹 LONGITUD
-        if (ValidadorEntrada.ExcedeLongitud(autor.Nombres, 100))
-            return Result.Failure(AutorErrors.NombresLongitud);
-
-        // 🔹 APELLIDOS (OPCIONAL)
-        if (!string.IsNullOrEmpty(autor.Apellidos))
-        {
-            if (!Regex.IsMatch(autor.Apellidos, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
-                return Result.Failure(AutorErrors.ApellidosFormato);
-
-            if (ValidadorEntrada.ExcedeLongitud(autor.Apellidos, 100))
-                return Result.Failure(AutorErrors.ApellidosLongitud);
-        }
-
-        // 🔹 NACIONALIDAD (OPCIONAL)
-        if (!string.IsNullOrEmpty(autor.Nacionalidad))
-        {
-            if (!Regex.IsMatch(autor.Nacionalidad, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
-                return Result.Failure(AutorErrors.NacionalidadFormato);
-
-            if (ValidadorEntrada.ExcedeLongitud(autor.Nacionalidad, 100))
-                return Result.Failure(AutorErrors.NacionalidadLongitud);
-        }
-
-        // 🔹 FECHA
-        if (autor.FechaNacimiento.HasValue &&
-            autor.FechaNacimiento > DateTime.Now)
-            return Result.Failure(AutorErrors.FechaFutura);
-
-        return Result.Success();
-    }
 }
