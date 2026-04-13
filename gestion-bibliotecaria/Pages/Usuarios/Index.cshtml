@@ -139,12 +139,16 @@
                    placeholder="Correo electrónico"
                    required />
 
-            <select asp-for="RolNuevoUsuario"
-                    class="input-form"
-                    id="RolNuevoUsuario">
-                <option value="@Usuario.RolBibliotecario">Bibliotecario</option>
-                <option value="@Usuario.RolAdmin">Admin</option>
-            </select>
+            @if (Model.IsAdmin)
+            {
+                <select asp-for="RolNuevoUsuario"
+                        class="input-form"
+                        id="RolNuevoUsuario">
+                    <option value="@Usuario.RolBibliotecario">Bibliotecario</option>
+                    <option value="@Usuario.RolAdmin">Admin</option>
+                    <option value="@Usuario.RolLector">Lector</option>
+                </select>
+            }
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-success">
