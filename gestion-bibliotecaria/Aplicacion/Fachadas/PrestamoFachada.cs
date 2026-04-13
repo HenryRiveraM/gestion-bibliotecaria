@@ -41,7 +41,19 @@ public class PrestamoFachada : IPrestamoFachada
             {
                 // fallback: create one by one
                 foreach (var p in prestamos)
-                    _prestamoServicio.Create(p);
+                {
+                    var dto = new gestion_bibliotecaria.Aplicacion.Dtos.PrestamoDto
+                    {
+                        EjemplarId = p.EjemplarId,
+                        LectorId = p.LectorId,
+                        FechaPrestamo = p.FechaPrestamo,
+                        FechaDevolucionEsperada = p.FechaDevolucionEsperada,
+                        ObservacionesSalida = p.ObservacionesSalida,
+                        UsuarioSesionId = p.UsuarioSesionId,
+                        Estado = p.Estado
+                    };
+                    _prestamoServicio.Create(dto);
+                }
             }
 
             return Result.Success();
@@ -213,7 +225,17 @@ public class PrestamoFachada : IPrestamoFachada
             }
             else
             {
-                _prestamoServicio.Create(prestamo);
+                var dto = new gestion_bibliotecaria.Aplicacion.Dtos.PrestamoDto
+                {
+                    EjemplarId = prestamo.EjemplarId,
+                    LectorId = prestamo.LectorId,
+                    FechaPrestamo = prestamo.FechaPrestamo,
+                    FechaDevolucionEsperada = prestamo.FechaDevolucionEsperada,
+                    ObservacionesSalida = prestamo.ObservacionesSalida,
+                    UsuarioSesionId = prestamo.UsuarioSesionId,
+                    Estado = prestamo.Estado
+                };
+                _prestamoServicio.Create(dto);
             }
             return Result.Success();
         }

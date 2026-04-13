@@ -1,4 +1,7 @@
-using System.Data;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
@@ -21,45 +24,55 @@ public class PrestamoServicio : IPrestamoServicio
         _usuarioRepositorio = usuarioRepositorio;
     }
 
-    public DataTable Select()
+    public IEnumerable<PrestamoDto> Select()
     {
         var prestamos = _prestamoRepositorio.GetAll();
-        var dt = new DataTable();
-        dt.Columns.Add("PrestamoId", typeof(int));
-        dt.Columns.Add("EjemplarId", typeof(int));
-        dt.Columns.Add("LectorId", typeof(int));
-        dt.Columns.Add("FechaPrestamo", typeof(DateTime));
-        dt.Columns.Add("FechaDevolucionEsperada", typeof(DateTime));
-        dt.Columns.Add("FechaDevolucionReal", typeof(DateTime));
-        dt.Columns.Add("ObservacionesSalida", typeof(string));
-        dt.Columns.Add("ObservacionesEntrada", typeof(string));
-        dt.Columns.Add("Estado", typeof(int));
-        dt.Columns.Add("UsuarioSesionId", typeof(int));
-        dt.Columns.Add("FechaRegistro", typeof(DateTime));
-        dt.Columns.Add("UltimaActualizacion", typeof(DateTime));
+        var dtos = new List<PrestamoDto>();
 
         foreach (var p in prestamos)
         {
-            dt.Rows.Add(
-                p.PrestamoId,
-                p.EjemplarId,
-                p.LectorId,
-                p.FechaPrestamo,
-                p.FechaDevolucionEsperada,
-                p.FechaDevolucionReal.HasValue ? (object)p.FechaDevolucionReal.Value : DBNull.Value,
-                p.ObservacionesSalida ?? (object)DBNull.Value,
-                p.ObservacionesEntrada ?? (object)DBNull.Value,
-                p.Estado,
-                p.UsuarioSesionId.HasValue ? (object)p.UsuarioSesionId.Value : DBNull.Value,
-                p.FechaRegistro,
-                p.UltimaActualizacion.HasValue ? (object)p.UltimaActualizacion.Value : DBNull.Value
-            );
+            dtos.Add(new PrestamoDto
+            {
+                PrestamoId = p.PrestamoId,
+                EjemplarId = p.EjemplarId,
+                LectorId = p.LectorId,
+                FechaPrestamo = p.FechaPrestamo,
+                FechaDevolucionEsperada = p.FechaDevolucionEsperada,
+                FechaDevolucionReal = p.FechaDevolucionReal,
+                ObservacionesSalida = p.ObservacionesSalida,
+                ObservacionesEntrada = p.ObservacionesEntrada,
+                Estado = p.Estado,
+                UsuarioSesionId = p.UsuarioSesionId
+            });
         }
 
-        return dt;
+        return dtos;
     }
 
-    public void Create(Prestamo prestamo) => _prestamoRepositorio.Insert(prestamo);
+    public Result<PrestamoDto> Create(PrestamoDto dto)
+    {
+        var prestamo = new Prestamo
+        {
+            EjemplarId = dto.EjemplarId,
+            LectorId = dto.LectorId,
+            FechaPrestamo = dto.FechaPrestamo,
+            FechaDevolucionEsperada = dto.FechaDevolucionEsperada,
+            FechaDevolucionReal = dto.FechaDevolucionReal,
+            ObservacionesSalida = dto.ObservacionesSalida,
+            ObservacionesEntrada = dto.ObservacionesEntrada,
+            Estado = dto.Estado,
+            UsuarioSesionId = dto.UsuarioSesionId
+        };
+
+        var validacion = ValidarPrestamo(prestamo);
+        if (validacion.IsFailure)
+            return Result<PrestamoDto>.Failure(validacion.Error);
+
+        _prestamoRepositorio.Insert(prestamo);
+
+        dto.PrestamoId = prestamo.PrestamoId;
+        return Result<PrestamoDto>.Success(dto);
+    }
 
     // Create and mark ejemplar as not available
     public void CreateAndMarkEjemplar(Prestamo prestamo)
@@ -82,9 +95,41 @@ public class PrestamoServicio : IPrestamoServicio
         _prestamoRepositorio.InsertManyWithTransaction(prestamos);
     }
 
-    public void Update(Prestamo prestamo) => _prestamoRepositorio.Update(prestamo);
+    public Result<PrestamoDto> Update(PrestamoDto dto)
+    {
+        var prestamo = _prestamoRepositorio.GetById(dto.PrestamoId);
+        if (prestamo == null)
+            return Result<PrestamoDto>.Failure(new Error("Prestamo.NotFound", "Prestamo no encontrado"));
 
-    public void Delete(Prestamo prestamo) => _prestamoRepositorio.Delete(prestamo);
+        prestamo.EjemplarId = dto.EjemplarId;
+        prestamo.LectorId = dto.LectorId;
+        prestamo.FechaPrestamo = dto.FechaPrestamo;
+        prestamo.FechaDevolucionEsperada = dto.FechaDevolucionEsperada;
+        prestamo.FechaDevolucionReal = dto.FechaDevolucionReal;
+        prestamo.ObservacionesSalida = dto.ObservacionesSalida;
+        prestamo.ObservacionesEntrada = dto.ObservacionesEntrada;
+        prestamo.Estado = dto.Estado;
+        prestamo.UsuarioSesionId = dto.UsuarioSesionId;
+
+        // No validamos en update igual que en create, porque el ejemplar puede estar ya no disponible (está prestado)
+        // Pero podríamos validar las fechas
+        if (prestamo.FechaDevolucionEsperada < prestamo.FechaPrestamo)
+            return Result<PrestamoDto>.Failure(PrestamoErrors.FechaDevolucionInvalida);
+
+        _prestamoRepositorio.Update(prestamo);
+
+        return Result<PrestamoDto>.Success(dto);
+    }
+
+    public Result Delete(PrestamoDto dto)
+    {
+        var prestamo = _prestamoRepositorio.GetById(dto.PrestamoId);
+        if (prestamo == null)
+            return Result.Failure(new Error("Prestamo.NotFound", "Prestamo no encontrado"));
+
+        _prestamoRepositorio.Delete(prestamo);
+        return Result.Success();
+    }
 
     public Prestamo? GetById(int id) => _prestamoRepositorio.GetById(id);
 
