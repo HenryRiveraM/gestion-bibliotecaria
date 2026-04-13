@@ -6,7 +6,6 @@ using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Domain.Ports;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Aplicacion.Dtos;
-using gestion_bibliotecaria.Domain.Factories;
 
 namespace gestion_bibliotecaria.Aplicacion.Servicios;
 
@@ -36,22 +35,22 @@ public class AutorServicio : IAutorServicio
 
     public Result<AutorDto> Create(AutorDto autorDto)
     {
-        var result = AutorFactory.Crear(
-            0,
-            null, // UsuarioSesionId will be handled if needed, or we just pass null for now
-            autorDto.Nombres,
-            autorDto.Apellidos,
-            autorDto.Nacionalidad,
-            autorDto.FechaNacimiento,
-            autorDto.Estado
-        );
-
-        if (result.IsFailure)
+        if (string.IsNullOrWhiteSpace(autorDto.Nombres))
         {
-            return Result<AutorDto>.Failure(result.Error);
+            return Result<AutorDto>.Failure(AutorErrors.NombresObligatorios);
         }
 
-        var autor = result.Value;
+        var autor = new Autor
+        {
+            Nombres = autorDto.Nombres,
+            Apellidos = autorDto.Apellidos,
+            Nacionalidad = autorDto.Nacionalidad,
+            FechaNacimiento = autorDto.FechaNacimiento,
+            Estado = autorDto.Estado,
+            RouteToken = Guid.NewGuid().ToString("N"),
+            FechaRegistro = DateTime.UtcNow
+        };
+
         _autorRepositorio.Insert(autor);
         
         autorDto.AutorId = autor.AutorId;
@@ -66,27 +65,19 @@ public class AutorServicio : IAutorServicio
             return Result<AutorDto>.Failure(AutorErrors.AutorNoEncontrado);
         }
 
-        var result = AutorFactory.Crear(
-            autorDto.AutorId,
-            autorExistente.UsuarioSesionId,
-            autorDto.Nombres,
-            autorDto.Apellidos,
-            autorDto.Nacionalidad,
-            autorDto.FechaNacimiento,
-            autorDto.Estado
-        );
-
-        if (result.IsFailure)
+        if (string.IsNullOrWhiteSpace(autorDto.Nombres))
         {
-            return Result<AutorDto>.Failure(result.Error);
+            return Result<AutorDto>.Failure(AutorErrors.NombresObligatorios);
         }
 
-        var autor = result.Value;
-        // Keep the old token and dates as they are managed by repo or DB usually, but let's copy needed stuff
-        autor.RouteToken = autorExistente.RouteToken;
-        autor.FechaRegistro = autorExistente.FechaRegistro;
+        autorExistente.Nombres = autorDto.Nombres;
+        autorExistente.Apellidos = autorDto.Apellidos;
+        autorExistente.Nacionalidad = autorDto.Nacionalidad;
+        autorExistente.FechaNacimiento = autorDto.FechaNacimiento;
+        autorExistente.Estado = autorDto.Estado;
+        autorExistente.UltimaActualizacion = DateTime.UtcNow;
 
-        _autorRepositorio.Update(autor);
+        _autorRepositorio.Update(autorExistente);
         return Result<AutorDto>.Success(autorDto);
     }
 
