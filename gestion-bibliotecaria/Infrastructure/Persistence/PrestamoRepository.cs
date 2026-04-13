@@ -19,7 +19,7 @@ public class PrestamoRepository : IPrestamoRepositorio
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
-        string query = @"SELECT p.PrestamoId, p.EjemplarId, p.LectorId, p.FechaPrestamo, p.FechaDevolucionEsperada, p.FechaDevolucionReal, p.ObservacionesSalida, p.ObservacionesEntrada, p.Estado, p.UsuarioSesionId, p.UltimaActualizacion
+        string query = @"SELECT p.PrestamoId, p.EjemplarId, p.LectorId, p.FechaPrestamo, p.FechaDevolucionEsperada, p.FechaDevolucionReal, p.ObservacionesSalida, p.ObservacionesEntrada, p.Estado, p.UsuarioSesionId, p.FechaRegistro, p.UltimaActualizacion
                          FROM prestamo p
                          ORDER BY p.FechaPrestamo DESC;";
 
@@ -39,6 +39,7 @@ public class PrestamoRepository : IPrestamoRepositorio
                 ObservacionesEntrada = reader.IsDBNull("ObservacionesEntrada") ? null : reader.GetString("ObservacionesEntrada"),
                 Estado = reader.GetInt32("Estado"),
                 UsuarioSesionId = reader.IsDBNull("UsuarioSesionId") ? null : reader.GetInt32("UsuarioSesionId"),
+                FechaRegistro = reader.GetDateTime("FechaRegistro"),
                 UltimaActualizacion = reader.IsDBNull("UltimaActualizacion") ? null : reader.GetDateTime("UltimaActualizacion")
             });
         }
@@ -52,9 +53,9 @@ public class PrestamoRepository : IPrestamoRepositorio
         connection.Open();
 
         string query = @"INSERT INTO prestamo
-            (EjemplarId, LectorId, FechaPrestamo, FechaDevolucionEsperada, FechaDevolucionReal, ObservacionesSalida, ObservacionesEntrada, Estado, UsuarioSesionId)
+            (EjemplarId, LectorId, FechaPrestamo, FechaDevolucionEsperada, FechaDevolucionReal, ObservacionesSalida, ObservacionesEntrada, Estado, UsuarioSesionId, FechaRegistro)
             VALUES
-            (@EjemplarId, @LectorId, @FechaPrestamo, @FechaDevolucionEsperada, @FechaDevolucionReal, @ObservacionesSalida, @ObservacionesEntrada, @Estado, @UsuarioSesionId);";
+            (@EjemplarId, @LectorId, @FechaPrestamo, @FechaDevolucionEsperada, @FechaDevolucionReal, @ObservacionesSalida, @ObservacionesEntrada, @Estado, @UsuarioSesionId, NOW());";
 
         using MySqlCommand command = new MySqlCommand(query, connection);
         command.Parameters.AddWithValue("@EjemplarId", p.EjemplarId);
@@ -141,6 +142,7 @@ public class PrestamoRepository : IPrestamoRepositorio
                 ObservacionesEntrada = reader.IsDBNull("ObservacionesEntrada") ? null : reader.GetString("ObservacionesEntrada"),
                 Estado = reader.GetInt32("Estado"),
                 UsuarioSesionId = reader.IsDBNull("UsuarioSesionId") ? null : reader.GetInt32("UsuarioSesionId"),
+                FechaRegistro = reader.GetDateTime("FechaRegistro"),
                 UltimaActualizacion = reader.IsDBNull("UltimaActualizacion") ? null : reader.GetDateTime("UltimaActualizacion")
             };
         }
@@ -159,9 +161,9 @@ public class PrestamoRepository : IPrestamoRepositorio
             foreach (var p in prestamos)
             {
                 string query = @"INSERT INTO prestamo
-        (EjemplarId, LectorId, FechaPrestamo, FechaDevolucionEsperada, FechaDevolucionReal, ObservacionesSalida, ObservacionesEntrada, Estado, UsuarioSesionId)
+        (EjemplarId, LectorId, FechaPrestamo, FechaDevolucionEsperada, FechaDevolucionReal, ObservacionesSalida, ObservacionesEntrada, Estado, UsuarioSesionId, FechaRegistro)
         VALUES
-        (@EjemplarId, @LectorId, @FechaPrestamo, @FechaDevolucionEsperada, @FechaDevolucionReal, @ObservacionesSalida, @ObservacionesEntrada, @Estado, @UsuarioSesionId);";
+        (@EjemplarId, @LectorId, @FechaPrestamo, @FechaDevolucionEsperada, @FechaDevolucionReal, @ObservacionesSalida, @ObservacionesEntrada, @Estado, @UsuarioSesionId, NOW());";
 
                 using MySqlCommand cmd = new MySqlCommand(query, connection, transaction);
                 cmd.Parameters.AddWithValue("@EjemplarId", p.EjemplarId);
