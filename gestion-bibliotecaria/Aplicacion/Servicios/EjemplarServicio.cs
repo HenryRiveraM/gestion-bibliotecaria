@@ -1,10 +1,10 @@
-using System.Data;
 using System.Text.RegularExpressions;
+using gestion_bibliotecaria.Aplicacion.Dtos;
+using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Domain.Ports;
-using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Validations;
 
 namespace gestion_bibliotecaria.Aplicacion.Servicios;
@@ -18,68 +18,127 @@ public class EjemplarServicio : IEjemplarServicio
         _ejemplarRepositorio = ejemplarRepositorio;
     }
 
-    public DataTable Select()
+    public IEnumerable<EjemplarDto> Select()
     {
-        var dt = new DataTable();
-        dt.Columns.Add("EjemplarId", typeof(int));
-        dt.Columns.Add("UsuarioSesionId", typeof(int));
-        dt.Columns.Add("LibroId", typeof(int));
-        dt.Columns.Add("LibroTitulo", typeof(string));
-        dt.Columns.Add("CodigoInventario", typeof(string));
-        dt.Columns.Add("EstadoConservacion", typeof(string));
-        dt.Columns.Add("Disponible", typeof(bool));
-        dt.Columns.Add("DadoDeBaja", typeof(bool));
-        dt.Columns.Add("MotivoBaja", typeof(string));
-        dt.Columns.Add("Ubicacion", typeof(string));
-        dt.Columns.Add("Estado", typeof(bool));
-
         var ejemplares = _ejemplarRepositorio.GetAll();
-        foreach (var e in ejemplares)
+        return ejemplares.Select(e => new EjemplarDto
         {
-            dt.Rows.Add(
-                e.EjemplarId,
-                e.UsuarioSesionId ?? (object)DBNull.Value,
-                e.LibroId,
-                e.LibroTitulo ?? (object)DBNull.Value,
-                e.CodigoInventario,
-                e.EstadoConservacion ?? (object)DBNull.Value,
-                e.Disponible,
-                e.DadoDeBaja,
-                e.MotivoBaja ?? (object)DBNull.Value,
-                e.Ubicacion ?? (object)DBNull.Value,
-                e.Estado
-            );
-        }
-        return dt;
+            EjemplarId = e.EjemplarId,
+            UsuarioSesionId = e.UsuarioSesionId,
+            LibroId = e.LibroId,
+            LibroTitulo = e.LibroTitulo,
+            CodigoInventario = e.CodigoInventario,
+            EstadoConservacion = e.EstadoConservacion,
+            Disponible = e.Disponible,
+            DadoDeBaja = e.DadoDeBaja,
+            MotivoBaja = e.MotivoBaja,
+            Ubicacion = e.Ubicacion,
+            Estado = e.Estado
+        }).ToList();
     }
 
-    public void Create(Ejemplar ejemplar) => _ejemplarRepositorio.Insert(ejemplar);
+    public Result<EjemplarDto> Create(EjemplarDto dto)
+    {
+        var ejemplar = new Ejemplar
+        {
+            UsuarioSesionId = dto.UsuarioSesionId,
+            LibroId = dto.LibroId,
+            CodigoInventario = dto.CodigoInventario,
+            EstadoConservacion = dto.EstadoConservacion,
+            Disponible = dto.Disponible,
+            DadoDeBaja = dto.DadoDeBaja,
+            MotivoBaja = dto.MotivoBaja,
+            Ubicacion = dto.Ubicacion,
+            Estado = dto.Estado,
+            FechaRegistro = DateTime.Now
+        };
 
-    public void Update(Ejemplar ejemplar) => _ejemplarRepositorio.Update(ejemplar);
+        var validacion = ValidarEjemplar(ejemplar);
+        if (!validacion.IsSuccess)
+            return Result<EjemplarDto>.Failure(validacion.Error);
 
-    public void Delete(Ejemplar ejemplar) => _ejemplarRepositorio.Delete(ejemplar);
+        if (!ExisteLibroActivo(ejemplar.LibroId))
+            return Result<EjemplarDto>.Failure(EjemplarErrors.LibroInvalido);
 
-    public Ejemplar? GetById(int id) => _ejemplarRepositorio.GetById(id);
+        _ejemplarRepositorio.Insert(ejemplar);
+
+        dto.EjemplarId = ejemplar.EjemplarId;
+        dto.CodigoInventario = ejemplar.CodigoInventario;
+        return Result<EjemplarDto>.Success(dto);
+    }
+
+    public Result<EjemplarDto> Update(EjemplarDto dto)
+    {
+        var ejemplarExistente = _ejemplarRepositorio.GetById(dto.EjemplarId);
+        if (ejemplarExistente == null)
+            return Result<EjemplarDto>.Failure(EjemplarErrors.ErrorProcesado);
+
+        ejemplarExistente.UsuarioSesionId = dto.UsuarioSesionId;
+        ejemplarExistente.LibroId = dto.LibroId;
+        ejemplarExistente.CodigoInventario = dto.CodigoInventario;
+        ejemplarExistente.EstadoConservacion = dto.EstadoConservacion;
+        ejemplarExistente.Disponible = dto.Disponible;
+        ejemplarExistente.DadoDeBaja = dto.DadoDeBaja;
+        ejemplarExistente.MotivoBaja = dto.MotivoBaja;
+        ejemplarExistente.Ubicacion = dto.Ubicacion;
+        ejemplarExistente.Estado = dto.Estado;
+        ejemplarExistente.UltimaActualizacion = DateTime.Now;
+
+        var validacion = ValidarEjemplar(ejemplarExistente);
+        if (!validacion.IsSuccess)
+            return Result<EjemplarDto>.Failure(validacion.Error);
+
+        if (!ExisteLibroActivo(ejemplarExistente.LibroId))
+            return Result<EjemplarDto>.Failure(EjemplarErrors.LibroInvalido);
+
+        _ejemplarRepositorio.Update(ejemplarExistente);
+
+        dto.CodigoInventario = ejemplarExistente.CodigoInventario;
+        return Result<EjemplarDto>.Success(dto);
+    }
+
+    public Result Delete(EjemplarDto dto)
+    {
+        var ejemplar = _ejemplarRepositorio.GetById(dto.EjemplarId);
+        if (ejemplar == null)
+            return Result.Failure(EjemplarErrors.ErrorProcesado);
+
+        _ejemplarRepositorio.Delete(ejemplar);
+        return Result.Success();
+    }
+
+    public EjemplarDto? GetById(int id)
+    {
+        var e = _ejemplarRepositorio.GetById(id);
+        if (e == null) return null;
+
+        return new EjemplarDto
+        {
+            EjemplarId = e.EjemplarId,
+            UsuarioSesionId = e.UsuarioSesionId,
+            LibroId = e.LibroId,
+            LibroTitulo = e.LibroTitulo,
+            CodigoInventario = e.CodigoInventario,
+            EstadoConservacion = e.EstadoConservacion,
+            Disponible = e.Disponible,
+            DadoDeBaja = e.DadoDeBaja,
+            MotivoBaja = e.MotivoBaja,
+            Ubicacion = e.Ubicacion,
+            Estado = e.Estado
+        };
+    }
 
     public Dictionary<int, string> ObtenerTitulosLibros() => _ejemplarRepositorio.ObtenerTitulosLibros();
 
-    public DataTable ObtenerLibrosActivos()
+    public IEnumerable<LibroDto> ObtenerLibrosActivos()
     {
-        var dt = new DataTable();
-        dt.Columns.Add("LibroId", typeof(int));
-        dt.Columns.Add("Titulo", typeof(string));
-        dt.Columns.Add("Editorial", typeof(string));
-        
         var libros = _ejemplarRepositorio.ObtenerLibrosActivos();
-        foreach (var l in libros)
+        return libros.Select(l => new LibroDto
         {
-            dt.Rows.Add(
-                l.LibroId,
-                l.Titulo,
-                l.Editorial ?? (object)DBNull.Value
-            );
-        }
-        return dt;
+            LibroId = l.LibroId,
+            Titulo = l.Titulo,
+            Editorial = l.Editorial
+        }).ToList();
     }
 
     public Dictionary<int, string> ObtenerEjemplaresDisponibles() => _ejemplarRepositorio.ObtenerEjemplaresDisponibles();

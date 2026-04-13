@@ -175,7 +175,7 @@ public class PrestamoFachada : IPrestamoFachada
         return _prestamoServicio.GetById(id);
     }
 
-    public gestion_bibliotecaria.Domain.Entities.Ejemplar? ObtenerEjemplarPorId(int id)
+    public gestion_bibliotecaria.Aplicacion.Dtos.EjemplarDto? ObtenerEjemplarPorId(int id)
     {
         return _ejemplarServicio.GetById(id);
     }
