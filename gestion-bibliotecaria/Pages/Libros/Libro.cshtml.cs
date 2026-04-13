@@ -1,5 +1,5 @@
+using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
-using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Validations;
 using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Mvc;
@@ -14,9 +14,10 @@ public class LibroModel : PageModel
     private readonly RouteTokenService _routeTokenService;
     private readonly ILibroServicio _libroServicio;
 
-    public DataTable Libros { get; set; } = new DataTable();
+    public IEnumerable<LibroDto> Libros { get; set; } = new List<LibroDto>();
     public Dictionary<int, string> AutoresNombres { get; set; } = new();
-    public DataTable Autores { get; set; } = new();
+    public IEnumerable<AutorDto> Autores { get; set; } = new List<AutorDto>();
+    public Dictionary<int, string> LibroTokens { get; set; } = new();
 
     public LibroModel(
         RouteTokenService routeTokenService,
@@ -30,15 +31,9 @@ public class LibroModel : PageModel
     {
         Libros = _libroServicio.Select();
 
-        if (!Libros.Columns.Contains("LibroToken"))
+        foreach (var l in Libros)
         {
-            Libros.Columns.Add("LibroToken", typeof(string));
-        }
-
-        foreach (DataRow row in Libros.Rows)
-        {
-            var libroId = row.Field<int>("LibroId");
-            row["LibroToken"] = _routeTokenService.CrearToken(libroId);
+            LibroTokens[l.LibroId] = _routeTokenService.CrearToken(l.LibroId);
         }
 
         AutoresNombres = _libroServicio.ObtenerNombresAutores();
@@ -52,12 +47,12 @@ public class LibroModel : PageModel
             return NotFound();
         }
 
-        var libro = new Libro 
-        { 
-            LibroId = libroId, 
-            UsuarioSesionId = ObtenerUsuarioSesionId() 
-        };
-        _libroServicio.Delete(libro);
+        var result = _libroServicio.Delete(libroId, ObtenerUsuarioSesionId());
+
+        if (result.IsFailure)
+        {
+            // Opcional: mostrar mensaje de error
+        }
 
         return RedirectToPage();
     }
@@ -84,22 +79,12 @@ public class LibroModel : PageModel
             return NotFound();
         }
 
-        var libroActual = _libroServicio.GetById(id);
-        if (libroActual == null)
-        {
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                return new JsonResult(new { success = false, errors = new Dictionary<string, string> { { "", "El libro no existe o fue eliminado." } } });
-            return NotFound();
-        }
-
-        var usuarioSesionId = ObtenerUsuarioSesionId();
-
-        var libro = new Libro
+        var dto = new LibroDto
         {
             LibroId = id,
-            UsuarioSesionId = usuarioSesionId ?? libroActual.UsuarioSesionId,
+            UsuarioSesionId = ObtenerUsuarioSesionId(),
             AutorId = AutorId ?? 0,
-            Titulo = Titulo,
+            Titulo = Titulo ?? string.Empty,
             ISBN = ISBN,
             Editorial = Editorial,
             Genero = Genero,
@@ -109,19 +94,14 @@ public class LibroModel : PageModel
             Idioma = Idioma,
             PaisPublicacion = PaisPublicacion,
             Descripcion = Descripcion,
-            Estado = Estado,
-            UltimaActualizacion = DateTime.Now
+            Estado = Estado
         };
 
-        var resultado = _libroServicio.ValidarLibro(libro, null);
+        var resultado = _libroServicio.Update(dto);
 
         if (resultado.IsFailure)
         {
-            ModelState.AddModelError(resultado.Error.Code.Split('.')[1], resultado.Error.Message);
-        }
-        else if (libro.AutorId != 0 && !EsAutorActivo(libro.AutorId))
-        {
-            ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
+            ModelState.AddModelError(resultado.Error.Code.Split('.').LastOrDefault() ?? "Error", resultado.Error.Message);
         }
 
         if (!ModelState.IsValid)
@@ -132,8 +112,6 @@ public class LibroModel : PageModel
             );
             return new JsonResult(new { success = false, errors = listaErrores });
         }
-
-        _libroServicio.Update(libro);
 
         return new JsonResult(new { success = true });
     }
@@ -157,11 +135,11 @@ public class LibroModel : PageModel
         int? AutorId = null;
         if (int.TryParse(Request.Form["AutorId"], out var parsedId)) AutorId = parsedId;
 
-        var libro = new Libro
+        var dto = new LibroDto
         {
             UsuarioSesionId = ObtenerUsuarioSesionId(),
             AutorId = AutorId ?? 0,
-            Titulo = Titulo,
+            Titulo = Titulo ?? string.Empty,
             ISBN = ISBN,
             Editorial = Editorial,
             Genero = Genero,
@@ -171,20 +149,14 @@ public class LibroModel : PageModel
             Idioma = Idioma,
             PaisPublicacion = PaisPublicacion,
             Descripcion = Descripcion,
-            Estado = Estado,
-            FechaRegistro = DateTime.Now
+            Estado = Estado
         };
 
-        var nombreAutorNormalizado = ValidadorEntrada.NormalizarEspacios(NombreAutorNuevo);
-        var resultado = _libroServicio.ValidarLibro(libro, nombreAutorNormalizado);
+        var resultado = _libroServicio.Create(dto, NombreAutorNuevo);
 
         if (resultado.IsFailure)
         {
-            ModelState.AddModelError(resultado.Error.Code.Split('.')[1], resultado.Error.Message);
-        }
-        else if (libro.AutorId != 0 && !EsAutorActivo(libro.AutorId))
-        {
-            ModelState.AddModelError("AutorId", "El autor seleccionado está inactivo o no existe.");
+            ModelState.AddModelError(resultado.Error.Code.Split('.').LastOrDefault() ?? "Error", resultado.Error.Message);
         }
 
         if (!ModelState.IsValid)
@@ -196,19 +168,7 @@ public class LibroModel : PageModel
             return new JsonResult(new { success = false, errors = listaErrores });
         }
 
-        if (libro.AutorId == 0 && !string.IsNullOrWhiteSpace(nombreAutorNormalizado))
-        {
-            libro.AutorId = _libroServicio.InsertarAutorYObtenerID(nombreAutorNormalizado, libro.UsuarioSesionId);
-        }
-
-        _libroServicio.Create(libro);
-
         return new JsonResult(new { success = true });
-    }
-
-    private bool EsAutorActivo(int autorId)
-    {
-        return _libroServicio.ExisteAutorActivo(autorId);
     }
 
     private int? ObtenerUsuarioSesionId()

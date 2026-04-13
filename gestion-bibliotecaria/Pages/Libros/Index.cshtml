@@ -21,13 +21,13 @@
         </tr>
     </thead>
     <tbody>
-    @foreach (DataRow row in Model.Libros.Rows)
+    @foreach (var row in Model.Libros)
     {
         <tr>
-            <td>@row["LibroId"]</td>
-            <td>@row["Titulo"]</td>
-            <td>@row["AutorId"]</td>
-            <td>@(((bool)row["Estado"]) ? "Activo" : "Inactivo")</td>
+            <td>@row.LibroId</td>
+            <td>@row.Titulo</td>
+            <td>@row.AutorId</td>
+            <td>@(row.Estado ? "Activo" : "Inactivo")</td>
         </tr>
     }
     </tbody>
