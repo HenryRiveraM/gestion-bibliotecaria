@@ -28,6 +28,9 @@ public class PrestamoModel : PageModel
     [BindProperty]
     public PrestamoEntity NuevoPrestamo { get; set; } = new();
 
+    [BindProperty]
+    public gestion_bibliotecaria.Aplicacion.Dtos.LectorDto NuevoLector { get; set; } = new();
+
     public string? MensajeError { get; set; }
     public string? MensajeOk { get; set; }
 
@@ -252,6 +255,28 @@ public class PrestamoModel : PageModel
         }
 
         MensajeOk = "Préstamo(s) registrado(s) correctamente.";
+        CargarPrestamosDetallados();
+        SetFechaDefaults();
+        return Page();
+    }
+
+    public IActionResult OnPostCrearLector()
+    {
+        var usuarioSesionId = ObtenerUsuarioSesionId() ?? 1;
+
+        var resultado = _usuarioServicio.CrearLector(NuevoLector, usuarioSesionId);
+        if (resultado.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, resultado.Error.Message);
+            MensajeError = resultado.Error.Message;
+            CargarPrestamosDetallados();
+            SetFechaDefaults();
+            return Page();
+        }
+
+        MensajeOk = "Lector creado correctamente.";
+        ModelState.Clear();
+        NuevoLector = new();
         CargarPrestamosDetallados();
         SetFechaDefaults();
         return Page();

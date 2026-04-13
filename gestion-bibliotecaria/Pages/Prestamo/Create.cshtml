@@ -45,7 +45,12 @@
                     </div>
                     <div class="col-md-3">
                         <label class="mb-2">Complemento</label>
-                        <input type="text" id="LectorComp" name="LectorComp" class="input-form" placeholder="Ej: 1P" />
+                        <div class="input-group">
+                            <input type="text" id="LectorComp" name="LectorComp" class="form-control input-form" placeholder="Ej: 1P" />
+                            <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#modalNuevoLector" style="background: #333; border-color: #444; color: #e3e3e3;">
+                                <i class="bi bi-plus-lg">+</i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -123,6 +128,46 @@
                         </button>
                     </div>
                 </form>
+            </div>
+
+            <!-- Modal Nuevo Lector -->
+            <div class="modal fade" id="modalNuevoLector" tabindex="-1" aria-labelledby="modalNuevoLectorLabel" aria-hidden="true">
+              <div class="modal-dialog">
+                <div class="modal-content" style="background-color: #2b2b2b; color: #e3e3e3; border: 1px solid #444;">
+                  <div class="modal-header" style="border-bottom: 1px solid #444;">
+                    <h5 class="modal-title" id="modalNuevoLectorLabel">Nuevo Lector</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <form method="post" asp-page-handler="CrearLector">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">CI</label>
+                            <input type="text" asp-for="NuevoLector.CI" class="form-control input-form" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Nombres</label>
+                            <input type="text" asp-for="NuevoLector.Nombres" class="form-control input-form" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Primer Apellido</label>
+                            <input type="text" asp-for="NuevoLector.PrimerApellido" class="form-control input-form" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Segundo Apellido</label>
+                            <input type="text" asp-for="NuevoLector.SegundoApellido" class="form-control input-form" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" asp-for="NuevoLector.Email" class="form-control input-form" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #444;">
+                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-primary btn-nuevo">Guardar Lector</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
             </div>
 
             @section Scripts {
