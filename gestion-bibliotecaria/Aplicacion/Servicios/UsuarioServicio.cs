@@ -99,6 +99,16 @@ public class UsuarioServicio : IUsuarioServicio
             Rol = usuarioDto.Rol
         };
 
+        if (usuario.Rol != Usuario.RolLector)
+        {
+            if (string.IsNullOrWhiteSpace(usuarioDto.NombreUsuario) || string.IsNullOrWhiteSpace(usuarioDto.PasswordHash))
+            {
+                return Result.Failure(UsuarioErrors.CredencialesInvalidas);
+            }
+            usuario.NombreUsuario = usuarioDto.NombreUsuario;
+            usuario.PasswordHash = ComputeSha256(usuarioDto.PasswordHash);
+        }
+
         // SegundoApellido ya no es obligatorio; validar solo los campos requeridos
         if (string.IsNullOrWhiteSpace(usuario.Nombres)
             || string.IsNullOrWhiteSpace(usuario.PrimerApellido)
@@ -133,7 +143,10 @@ public class UsuarioServicio : IUsuarioServicio
 
         try
         {
-            await _credentialProvisioningService.PrepareAndNotifyAsync(usuario, cancellationToken);
+            if (usuario.Rol != Usuario.RolLector)
+            {
+                await _credentialProvisioningService.PrepareAndNotifyAsync(usuario, cancellationToken);
+            }
             _usuarioRepositorio.Insert(usuario);
         }
         catch (InvalidOperationException)
@@ -173,10 +186,86 @@ public class UsuarioServicio : IUsuarioServicio
         return Result.Success();
     }
 
+    public IEnumerable<LectorDto> ObtenerLectores()
+    {
+        return _usuarioRepositorio.GetAll()
+            .Where(u => u.Rol == Usuario.RolLector)
+            .Select(u => new LectorDto
+            {
+                UsuarioId = u.UsuarioId,
+                CI = u.CI,
+                Nombres = u.Nombres,
+                PrimerApellido = u.PrimerApellido,
+                SegundoApellido = u.SegundoApellido,
+                Email = u.Email
+            }).ToList();
+    }
+
+    public Result CrearLector(LectorDto dto, int usuarioSesionId)
+    {
+        if (dto is null)
+        {
+            return Result.Failure(UsuarioErrors.DatosObligatorios);
+        }
+
+        var usuario = new Usuario
+        {
+            CI = dto.CI,
+            Nombres = ValidadorEntrada.NormalizarAMayusculas(dto.Nombres),
+            PrimerApellido = ValidadorEntrada.NormalizarAMayusculas(dto.PrimerApellido),
+            SegundoApellido = ValidadorEntrada.NormalizarAMayusculas(dto.SegundoApellido),
+            Email = ValidadorEntrada.NormalizarEspacios(dto.Email).ToLowerInvariant(),
+            Rol = Usuario.RolLector,
+            UsuarioSesionId = usuarioSesionId,
+            Estado = true,
+            FechaRegistro = DateTime.Now,
+            NombreUsuario = null,
+            PasswordHash = null
+        };
+
+        if (string.IsNullOrWhiteSpace(usuario.Nombres)
+            || string.IsNullOrWhiteSpace(usuario.PrimerApellido)
+            || string.IsNullOrWhiteSpace(usuario.Email))
+        {
+            return Result.Failure(UsuarioErrors.DatosObligatorios);
+        }
+
+        if (!string.IsNullOrWhiteSpace(usuario.CI) && _usuarioRepositorio.ExisteCi(usuario.CI))
+        {
+            return Result.Failure(UsuarioErrors.CiDuplicado);
+        }
+
+        if (!EmailRegex.IsMatch(usuario.Email))
+        {
+            return Result.Failure(UsuarioErrors.EmailInvalido);
+        }
+
+        if (_usuarioRepositorio.ExisteEmail(usuario.Email))
+        {
+            return Result.Failure(UsuarioErrors.EmailDuplicado);
+        }
+
+        try
+        {
+            _usuarioRepositorio.Insert(usuario);
+        }
+        catch (InvalidOperationException)
+        {
+            return Result.Failure(UsuarioErrors.NombreUsuarioDuplicado);
+        }
+        catch (MySqlException ex) when (ex.Number == 1062)
+        {
+            return Result.Failure(UsuarioErrors.NombreUsuarioDuplicado);
+        }
+
+        return Result.Success();
+    }
+
     private static bool EsRolValido(string rol)
     {
         return string.Equals(rol, Usuario.RolAdmin, StringComparison.Ordinal)
-               || string.Equals(rol, Usuario.RolBibliotecario, StringComparison.Ordinal);
+               || string.Equals(rol, Usuario.RolBibliotecario, StringComparison.Ordinal)
+               || string.Equals(rol, Usuario.RolLector, StringComparison.Ordinal);
     }
 
     private static string ComputeSha256(string password)
