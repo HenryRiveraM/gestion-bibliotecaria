@@ -13,9 +13,8 @@ public class Usuario
     public string PrimerApellido { get; set; } = string.Empty;
     public string? SegundoApellido { get; set; }
     public string Email { get; set; } = string.Empty;
-    public string NombreUsuario { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
-    public string? Salt { get; set; }
+    public string? NombreUsuario { get; set; }
+    public string? PasswordHash { get; set; }
     public string Rol { get; set; } = RolBibliotecario;
     public bool Estado { get; set; } = true;
     public DateTime FechaRegistro { get; set; }

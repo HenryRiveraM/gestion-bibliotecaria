@@ -9,7 +9,7 @@ public class UsuarioDto
     public string PrimerApellido { get; set; } = string.Empty;
     public string? SegundoApellido { get; set; }
     public string Email { get; set; } = string.Empty;
-    public string NombreUsuario { get; set; } = string.Empty;
+    public string? NombreUsuario { get; set; }
     public string Rol { get; set; } = string.Empty;
     public bool Estado { get; set; }
 }
