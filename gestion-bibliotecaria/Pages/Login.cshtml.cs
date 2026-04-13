@@ -41,7 +41,7 @@ public class LoginModel : PageModel
         var usuario = resultado.Value;
 
         HttpContext.Session.SetString(SessionKeys.UsuarioId, usuario.UsuarioId.ToString());
-        HttpContext.Session.SetString(SessionKeys.NombreUsuario, usuario.NombreUsuario);
+        HttpContext.Session.SetString(SessionKeys.NombreUsuario, usuario.NombreUsuario ?? string.Empty);
         HttpContext.Session.SetString(SessionKeys.Rol, usuario.Rol);
 
         return Redirect("/");

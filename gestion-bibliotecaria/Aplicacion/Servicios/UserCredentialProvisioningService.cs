@@ -42,7 +42,6 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
 
         usuario.NombreUsuario = nombreUsuario;
         usuario.PasswordHash = hashPassword;
-        usuario.Salt = null;
 
         var message = new EmailMessage
         {
@@ -81,7 +80,7 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
         };
     }
 
-    private string GenerarNombreUsuarioUnico(string nombres, string primerApellido, string segundoApellido)
+    private string GenerarNombreUsuarioUnico(string nombres, string primerApellido, string? segundoApellido)
     {
         var baseName = BuildBaseUserName(nombres, primerApellido, segundoApellido);
 
@@ -123,7 +122,7 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
         }
     }
 
-    private static string BuildBaseUserName(string nombres, string primerApellido, string segundoApellido)
+    private static string BuildBaseUserName(string nombres, string primerApellido, string? segundoApellido)
     {
         var nombre = FormatToken(TakeFirstToken(nombres));
         var apellido1 = FormatToken(TakeFirstToken(primerApellido));
@@ -142,7 +141,7 @@ public class UserCredentialProvisioningService : IUserCredentialProvisioningServ
         return char.ToUpperInvariant(truncated[0]) + truncated[1..].ToLowerInvariant();
     }
 
-    private static string TakeFirstToken(string value)
+    private static string TakeFirstToken(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {

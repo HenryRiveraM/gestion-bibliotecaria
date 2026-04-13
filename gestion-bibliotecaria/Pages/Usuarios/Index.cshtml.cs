@@ -28,6 +28,8 @@ public class IndexModel : PageModel
     public string? MensajeError { get; set; }
     public string? MensajeOk { get; set; }
 
+    public bool IsAdmin { get; set; }
+
     public IndexModel(IUsuarioServicio usuarioServicio, RouteTokenService routeTokenService)
     {
         _usuarioServicio = usuarioServicio;
@@ -36,10 +38,13 @@ public class IndexModel : PageModel
 
     public IActionResult OnGet()
     {
-        if (!EsAdmin())
+        var rol = HttpContext.Session.GetString(SessionKeys.Rol);
+        if (rol != Usuario.RolAdmin && rol != Usuario.RolBibliotecario)
         {
-            return RedirectToPage("/Pages/Index");
+            return RedirectToPage("/Index");
         }
+
+        IsAdmin = rol == Usuario.RolAdmin;
 
         CargarUsuarios();
         return Page();
@@ -47,15 +52,23 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostCrearAsync(CancellationToken cancellationToken)
     {
-        if (!EsAdmin())
+        var rolSesion = HttpContext.Session.GetString(SessionKeys.Rol);
+        if (rolSesion != Usuario.RolAdmin && rolSesion != Usuario.RolBibliotecario)
         {
-            return RedirectToPage("/Pages/Index");
+            return RedirectToPage("/Index");
         }
+
+        IsAdmin = rolSesion == Usuario.RolAdmin;
 
         var usuarioSesionId = ObtenerUsuarioSesionId();
         if (!usuarioSesionId.HasValue)
         {
-            return RedirectToPage("/Pages/Login");
+            return RedirectToPage("/Login");
+        }
+
+        if (!IsAdmin)
+        {
+            RolNuevoUsuario = Usuario.RolLector;
         }
 
         NuevoUsuario.Rol = RolNuevoUsuario;
@@ -64,6 +77,30 @@ public class IndexModel : PageModel
         if (!string.IsNullOrWhiteSpace(Complemento))
         {
             NuevoUsuario.CI = _usuarioServicio.JoinCiComp(NuevoUsuario.CI ?? string.Empty, Complemento);
+        }
+
+        if (NuevoUsuario.Rol == Usuario.RolLector)
+        {
+            var lectorDto = new LectorDto
+            {
+                CI = NuevoUsuario.CI,
+                Nombres = NuevoUsuario.Nombres,
+                PrimerApellido = NuevoUsuario.PrimerApellido,
+                SegundoApellido = NuevoUsuario.SegundoApellido,
+                Email = NuevoUsuario.Email
+            };
+
+            var resultadoLector = _usuarioServicio.CrearLector(lectorDto, usuarioSesionId.Value);
+
+            if (resultadoLector.IsFailure)
+            {
+                ModelState.AddModelError(string.Empty, resultadoLector.Error.Message);
+                CargarUsuarios();
+                return Page();
+            }
+
+            TempData["MensajeOk"] = "Lector creado correctamente.";
+            return RedirectToPage();
         }
 
         var resultado = await _usuarioServicio.CrearUsuarioAsync(NuevoUsuario, usuarioSesionId.Value, cancellationToken);
@@ -81,15 +118,18 @@ public class IndexModel : PageModel
 
     public IActionResult OnPostBaja(string token)
     {
-        if (!EsAdmin())
+        var rolSesion = HttpContext.Session.GetString(SessionKeys.Rol);
+        if (rolSesion != Usuario.RolAdmin && rolSesion != Usuario.RolBibliotecario)
         {
-            return RedirectToPage("/Pages/Index");
+            return RedirectToPage("/Index");
         }
+
+        IsAdmin = rolSesion == Usuario.RolAdmin;
 
         var usuarioSesionId = ObtenerUsuarioSesionId();
         if (!usuarioSesionId.HasValue)
         {
-            return RedirectToPage("/Pages/Login");
+            return RedirectToPage("/Login");
         }
 
         if (!_routeTokenService.TryObtenerId(token, out var usuarioId))
