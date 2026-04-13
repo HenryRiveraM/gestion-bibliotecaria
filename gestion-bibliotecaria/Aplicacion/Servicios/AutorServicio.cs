@@ -1,11 +1,11 @@
-﻿using System.Data;
+using System.Collections.Generic;
+using System.Linq;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Domain.Ports;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
-using gestion_bibliotecaria.Domain.Validations;
-using System.Text.RegularExpressions;
+using gestion_bibliotecaria.Aplicacion.Dtos;
 
 namespace gestion_bibliotecaria.Aplicacion.Servicios;
 
@@ -18,66 +18,106 @@ public class AutorServicio : IAutorServicio
         _autorRepositorio = autorRepositorio;
     }
 
-    public DataTable Select() => _autorRepositorio.GetAll();
-
-    public void Create(Autor autor) => _autorRepositorio.Insert(autor);
-
-    public void Update(Autor autor) => _autorRepositorio.Update(autor);
-
-    public void Delete(Autor autor) => _autorRepositorio.Delete(autor);
-
-    public Autor? GetById(int id) => _autorRepositorio.GetById(id);
-
-    public Dictionary<int, string> ObtenerAutoresActivos() => _autorRepositorio.ObtenerAutoresActivos();
-
-    public DataTable ObtenerAutoresActivosTabla() => _autorRepositorio.ObtenerAutoresActivosTabla();
-
-    public bool ExisteAutorActivo(int autorId) => _autorRepositorio.ExisteAutorActivo(autorId);
-
-    public Result ValidarAutor(Autor autor)
+    public IEnumerable<AutorDto> Select() 
     {
-        // 🔹 Normalizar
-        autor.Nombres = ValidadorEntrada.NormalizarAMayusculas(autor.Nombres);
-        autor.Apellidos = ValidadorEntrada.NormalizarAMayusculas(autor.Apellidos);
-        autor.Nacionalidad = ValidadorEntrada.NormalizarEspacios(autor.Nacionalidad);
-
-        // 🔹 NOMBRES OBLIGATORIOS
-        if (ValidadorEntrada.EstaVacio(autor.Nombres))
-            return Result.Failure(AutorErrors.NombresObligatorios);
-
-        // 🔹 SOLO LETRAS Y ESPACIOS
-        if (!Regex.IsMatch(autor.Nombres, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
-            return Result.Failure(AutorErrors.NombresFormato);
-
-        // 🔹 LONGITUD
-        if (ValidadorEntrada.ExcedeLongitud(autor.Nombres, 100))
-            return Result.Failure(AutorErrors.NombresLongitud);
-
-        // 🔹 APELLIDOS (OPCIONAL)
-        if (!string.IsNullOrEmpty(autor.Apellidos))
+        var autores = _autorRepositorio.GetAll();
+        return autores.Select(a => new AutorDto
         {
-            if (!Regex.IsMatch(autor.Apellidos, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
-                return Result.Failure(AutorErrors.ApellidosFormato);
+            AutorId = a.AutorId,
+            Nombres = a.Nombres,
+            Apellidos = a.Apellidos,
+            Nacionalidad = a.Nacionalidad,
+            FechaNacimiento = a.FechaNacimiento,
+            Estado = a.Estado,
+            RouteToken = a.RouteToken
+        });
+    }
 
-            if (ValidadorEntrada.ExcedeLongitud(autor.Apellidos, 100))
-                return Result.Failure(AutorErrors.ApellidosLongitud);
+    public Result<AutorDto> Create(AutorDto autorDto)
+    {
+        if (string.IsNullOrWhiteSpace(autorDto.Nombres))
+        {
+            return Result<AutorDto>.Failure(AutorErrors.NombresObligatorios);
         }
 
-        // 🔹 NACIONALIDAD (OPCIONAL)
-        if (!string.IsNullOrEmpty(autor.Nacionalidad))
+        var autor = new Autor
         {
-            if (!Regex.IsMatch(autor.Nacionalidad, @"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"))
-                return Result.Failure(AutorErrors.NacionalidadFormato);
+            Nombres = autorDto.Nombres,
+            Apellidos = autorDto.Apellidos,
+            Nacionalidad = autorDto.Nacionalidad,
+            FechaNacimiento = autorDto.FechaNacimiento,
+            Estado = autorDto.Estado,
+            RouteToken = Guid.NewGuid().ToString("N"),
+            FechaRegistro = DateTime.UtcNow
+        };
 
-            if (ValidadorEntrada.ExcedeLongitud(autor.Nacionalidad, 100))
-                return Result.Failure(AutorErrors.NacionalidadLongitud);
+        _autorRepositorio.Insert(autor);
+        
+        autorDto.AutorId = autor.AutorId;
+        return Result<AutorDto>.Success(autorDto);
+    }
+
+    public Result<AutorDto> Update(AutorDto autorDto)
+    {
+        var autorExistente = _autorRepositorio.GetById(autorDto.AutorId);
+        if (autorExistente == null)
+        {
+            return Result<AutorDto>.Failure(AutorErrors.AutorNoEncontrado);
         }
 
-        // 🔹 FECHA
-        if (autor.FechaNacimiento.HasValue &&
-            autor.FechaNacimiento > DateTime.Now)
-            return Result.Failure(AutorErrors.FechaFutura);
+        if (string.IsNullOrWhiteSpace(autorDto.Nombres))
+        {
+            return Result<AutorDto>.Failure(AutorErrors.NombresObligatorios);
+        }
 
+        autorExistente.Nombres = autorDto.Nombres;
+        autorExistente.Apellidos = autorDto.Apellidos;
+        autorExistente.Nacionalidad = autorDto.Nacionalidad;
+        autorExistente.FechaNacimiento = autorDto.FechaNacimiento;
+        autorExistente.Estado = autorDto.Estado;
+        autorExistente.UltimaActualizacion = DateTime.UtcNow;
+
+        _autorRepositorio.Update(autorExistente);
+        return Result<AutorDto>.Success(autorDto);
+    }
+
+    public Result Delete(int autorId)
+    {
+        var autor = _autorRepositorio.GetById(autorId);
+        if (autor == null)
+            return Result.Failure(AutorErrors.AutorNoEncontrado);
+            
+        _autorRepositorio.Delete(autor);
         return Result.Success();
     }
+
+    public AutorDto? GetById(int id)
+    {
+        var a = _autorRepositorio.GetById(id);
+        if (a == null) return null;
+
+        return new AutorDto
+        {
+            AutorId = a.AutorId,
+            Nombres = a.Nombres,
+            Apellidos = a.Apellidos,
+            Nacionalidad = a.Nacionalidad,
+            FechaNacimiento = a.FechaNacimiento,
+            Estado = a.Estado,
+            RouteToken = a.RouteToken
+        };
+    }
+
+    public Dictionary<int, string> ObtenerAutoresActivos() 
+    {
+        var dict = new Dictionary<int, string>();
+        var autores = _autorRepositorio.ObtenerAutoresActivos();
+        foreach(var a in autores)
+        {
+            dict[a.AutorId] = a.Nombres;
+        }
+        return dict;
+    }
+
+    public bool ExisteAutorActivo(int autorId) => _autorRepositorio.ExisteAutorActivo(autorId);
 }

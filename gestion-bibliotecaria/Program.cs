@@ -12,6 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
+// Inicializamos el Singleton Gestor de Base de Datos
+ConfigurationSingleton.Initialize(builder.Configuration);
+
 builder.Services.AddScoped<RouteTokenService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(EmailSettings.SectionName));
 builder.Services.AddHttpClient();
@@ -23,15 +26,15 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository(connectionString));
-builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository(connectionString));
-builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository(connectionString));
-builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository(connectionString));
+builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository());
+builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository());
+builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository());
+builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository());
 builder.Services.AddScoped<IEmailSender>(EmailSenderFactory.Create);
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
 builder.Services.AddScoped<ILibroServicio, LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
-builder.Services.AddScoped<IPrestamoRepositorio>(sp => new PrestamoRepository(connectionString));
+builder.Services.AddScoped<IPrestamoRepositorio>(sp => new PrestamoRepository());
 builder.Services.AddScoped<IPrestamoServicio, PrestamoServicio>();
 builder.Services.AddScoped<gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada, gestion_bibliotecaria.Aplicacion.Fachadas.PrestamoFachada>();
 builder.Services.AddScoped<IUserCredentialProvisioningService, UserCredentialProvisioningService>();

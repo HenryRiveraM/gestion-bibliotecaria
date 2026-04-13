@@ -16,6 +16,6 @@ public class EjemplarRepositoryCreator : RepositoryFactory<Ejemplar,int>
 
     public override IRepository<Ejemplar,int> CreateRepository()
     {
-        return new EjemplarRepository(_configuration);
+        return new EjemplarRepository();
     }
 }

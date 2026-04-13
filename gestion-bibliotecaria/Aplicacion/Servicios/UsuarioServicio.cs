@@ -1,7 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Data;
 using System.Text;
 using System.Text.RegularExpressions;
+using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
@@ -36,7 +39,22 @@ public class UsuarioServicio : IUsuarioServicio
         return $"{ci.Trim()}-{complemento.Trim()}";
     }
 
-    public DataTable Select() => _usuarioRepositorio.GetAll();
+    public IEnumerable<UsuarioDto> Select()
+    {
+        return _usuarioRepositorio.GetAll().Select(u => new UsuarioDto
+        {
+            UsuarioId = u.UsuarioId,
+            CI = u.CI,
+            UsuarioSesionId = u.UsuarioSesionId,
+            Nombres = u.Nombres,
+            PrimerApellido = u.PrimerApellido,
+            SegundoApellido = u.SegundoApellido,
+            Email = u.Email,
+            NombreUsuario = u.NombreUsuario,
+            Rol = u.Rol,
+            Estado = u.Estado
+        }).ToList();
+    }
 
     public Result<Usuario> Login(string nombreUsuario, string passwordPlano)
     {
@@ -64,17 +82,22 @@ public class UsuarioServicio : IUsuarioServicio
         return Result<Usuario>.Success(usuario);
     }
 
-    public async Task<Result> CrearUsuarioAsync(Usuario usuario, int usuarioSesionId, CancellationToken cancellationToken = default)
+    public async Task<Result> CrearUsuarioAsync(UsuarioDto usuarioDto, int usuarioSesionId, CancellationToken cancellationToken = default)
     {
-        if (usuario is null)
+        if (usuarioDto is null)
         {
             return Result.Failure(UsuarioErrors.DatosObligatorios);
         }
 
-        usuario.Nombres = ValidadorEntrada.NormalizarAMayusculas(usuario.Nombres);
-        usuario.PrimerApellido = ValidadorEntrada.NormalizarAMayusculas(usuario.PrimerApellido);
-        usuario.SegundoApellido = ValidadorEntrada.NormalizarAMayusculas(usuario.SegundoApellido);
-        usuario.Email = ValidadorEntrada.NormalizarEspacios(usuario.Email).ToLowerInvariant();
+        var usuario = new Usuario
+        {
+            CI = usuarioDto.CI,
+            Nombres = ValidadorEntrada.NormalizarAMayusculas(usuarioDto.Nombres),
+            PrimerApellido = ValidadorEntrada.NormalizarAMayusculas(usuarioDto.PrimerApellido),
+            SegundoApellido = ValidadorEntrada.NormalizarAMayusculas(usuarioDto.SegundoApellido),
+            Email = ValidadorEntrada.NormalizarEspacios(usuarioDto.Email).ToLowerInvariant(),
+            Rol = usuarioDto.Rol
+        };
 
         // SegundoApellido ya no es obligatorio; validar solo los campos requeridos
         if (string.IsNullOrWhiteSpace(usuario.Nombres)
@@ -82,6 +105,11 @@ public class UsuarioServicio : IUsuarioServicio
             || string.IsNullOrWhiteSpace(usuario.Email))
         {
             return Result.Failure(UsuarioErrors.DatosObligatorios);
+        }
+
+        if (!string.IsNullOrWhiteSpace(usuario.CI) && _usuarioRepositorio.ExisteCi(usuario.CI))
+        {
+            return Result.Failure(UsuarioErrors.CiDuplicado);
         }
 
         if (!EmailRegex.IsMatch(usuario.Email))

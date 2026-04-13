@@ -12,4 +12,5 @@ public static class AutorErrors
     public static readonly Error NacionalidadFormato = new("Autor.Nacionalidad", "La nacionalidad solo puede contener letras y espacios.");
     public static readonly Error NacionalidadLongitud = new("Autor.Nacionalidad", "La nacionalidad excede la longitud máxima de 100 caracteres.");
     public static readonly Error FechaFutura = new("Autor.FechaNacimiento", "La fecha de nacimiento no puede ser futura.");
+    public static readonly Error AutorNoEncontrado = new("Autor.NoEncontrado", "El autor no fue encontrado.");
 }

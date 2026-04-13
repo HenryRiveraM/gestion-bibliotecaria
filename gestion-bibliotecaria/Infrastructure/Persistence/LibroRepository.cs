@@ -2,25 +2,15 @@ using System.Data;
 using MySql.Data.MySqlClient;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Ports;
+using gestion_bibliotecaria.Infrastructure.Configuration;
 
 namespace gestion_bibliotecaria.Infrastructure.Persistence;
 
 public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 {
-    private readonly string _connectionString;
-
-    public LibroRepository(string connectionString)
-    {
-        _connectionString = connectionString;
-    }
-
-    public LibroRepository(IConfiguration configuration)
-        : this(configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))
+    public LibroRepository()
     {
     }
-
-    private string ConnectionString => _connectionString;
 
     private const string QueryLibros = @"
         SELECT LibroId,
@@ -142,25 +132,50 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         VALUES (@UsuarioSesionId, @Nombres, @Apellidos, 1, @FechaRegistro);
         SELECT LAST_INSERT_ID();";
 
-    public DataTable Select()
+    public IEnumerable<Libro> Select()
     {
-        var dataTable = new DataTable();
+        var libros = new List<Libro>();
 
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryLibros, connection);
-        using var adapter = new MySqlDataAdapter(command);
-        adapter.Fill(dataTable);
+        using var reader = command.ExecuteReader();
 
-        return dataTable;
+        while (reader.Read())
+        {
+            libros.Add(new Libro
+            {
+                LibroId = reader.GetInt32("LibroId"),
+                UsuarioSesionId = reader["UsuarioSesionId"] == DBNull.Value ? null : Convert.ToInt32(reader["UsuarioSesionId"]),
+                AutorId = reader.GetInt32("AutorId"),
+                Titulo = reader.GetString("Titulo"),
+                ISBN = reader["ISBN"] == DBNull.Value ? null : reader["ISBN"].ToString(),
+                Editorial = reader["Editorial"] == DBNull.Value ? null : reader["Editorial"].ToString(),
+                Genero = reader["Genero"] == DBNull.Value ? null : reader["Genero"].ToString(),
+                Edicion = reader["Edicion"] == DBNull.Value ? null : reader["Edicion"].ToString(),
+                AñoPublicacion = reader["AñoPublicacion"] == DBNull.Value ? null : Convert.ToInt32(reader["AñoPublicacion"]),
+                NumeroPaginas = reader["NumeroPaginas"] == DBNull.Value ? null : Convert.ToInt32(reader["NumeroPaginas"]),
+                Idioma = reader["Idioma"] == DBNull.Value ? null : reader["Idioma"].ToString(),
+                PaisPublicacion = reader["PaisPublicacion"] == DBNull.Value ? null : reader["PaisPublicacion"].ToString(),
+                Descripcion = reader["Descripcion"] == DBNull.Value ? null : reader["Descripcion"].ToString(),
+                Estado = Convert.ToBoolean(reader["Estado"])
+            });
+        }
+
+        return libros;
     }
 
-    public DataTable GetAll() => Select();
+    public IEnumerable<Libro> GetAll() => Select();
+
+    DataTable IRepository<Libro, int>.GetAll()
+    {
+        throw new NotImplementedException("Use ILibroRepositorio.Select() instead.");
+    }
 
     public Libro? GetById(int id)
     {
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryLibroPorId, connection);
@@ -194,7 +209,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
     public void Create(Libro libro)
     {
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryInsertLibro, connection);
@@ -221,7 +236,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
     public void Update(Libro libro)
     {
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryUpdateLibro, connection);
@@ -247,7 +262,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
     public void Delete(Libro libro)
     {
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryDeleteLibro, connection);
@@ -259,11 +274,11 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         command.ExecuteNonQuery();
     }
 
-    public Dictionary<int, string> ObtenerNombresAutores()
+    public IEnumerable<Autor> ObtenerNombresAutores()
     {
-        var autores = new Dictionary<int, string>();
+        var autores = new List<Autor>();
 
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryAutores, connection);
@@ -271,31 +286,44 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
         while (reader.Read())
         {
-            var nombres = reader.GetString("Nombres");
-            var apellidos = reader.GetString("Apellidos");
-            autores[reader.GetInt32("AutorId")] = $"{nombres} {apellidos}";
+            autores.Add(new Autor
+            {
+                AutorId = reader.GetInt32("AutorId"),
+                Nombres = reader.GetString("Nombres"),
+                Apellidos = reader["Apellidos"] == DBNull.Value ? null : reader.GetString("Apellidos")
+            });
         }
 
         return autores;
     }
 
-    public DataTable ObtenerAutoresActivos()
+    public IEnumerable<Autor> ObtenerAutoresActivos()
     {
-        var dataTable = new DataTable();
+        var autores = new List<Autor>();
 
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryAutoresActivos, connection);
-        using var adapter = new MySqlDataAdapter(command);
-        adapter.Fill(dataTable);
+        using var reader = command.ExecuteReader();
 
-        return dataTable;
+        while (reader.Read())
+        {
+            autores.Add(new Autor
+            {
+                AutorId = reader.GetInt32("AutorId"),
+                Nombres = reader.GetString("Nombres"),
+                Apellidos = reader["Apellidos"] == DBNull.Value ? null : reader.GetString("Apellidos"),
+                Nacionalidad = reader["Nacionalidad"] == DBNull.Value ? null : reader.GetString("Nacionalidad")
+            });
+        }
+
+        return autores;
     }
 
     public string ObtenerNombreAutor(int autorId)
     {
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryNombreAutor, connection);
@@ -307,7 +335,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
     public bool ExisteAutorActivo(int autorId)
     {
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryExisteAutorActivo, connection);
@@ -323,7 +351,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         var nombres = partes[0];
         var apellidos = partes.Length > 1 ? partes[1] : "";
 
-        using var connection = new MySqlConnection(ConnectionString);
+        using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         using var command = new MySqlCommand(QueryInsertarAutor, connection);

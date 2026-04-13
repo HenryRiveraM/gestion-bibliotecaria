@@ -3,33 +3,28 @@ using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Ports;
 using MySql.Data.MySqlClient;
 using Microsoft.Extensions.Configuration;
+using gestion_bibliotecaria.Infrastructure.Configuration;
+using System.Collections.Generic;
 
 namespace gestion_bibliotecaria.Infrastructure.Persistence;
 
 public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
 {
-    private readonly string _connectionString;
-
-    public UsuarioRepository(string connectionString)
+    public UsuarioRepository()
     {
-        _connectionString = connectionString;
     }
 
     // Constructor para inyección de dependencias
     public UsuarioRepository(IConfiguration configuration)
-        : this(configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."))
     {
     }
-
-    private string ConnectionString => _connectionString;
 
     // --- MÉTODOS DE BÚSQUEDA ---
 
     public Usuario? GetByCi(string ci)
     {
         Usuario? usuario = null;
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
         {
             connection.Open();
             string query = "SELECT * FROM usuario WHERE CI = @CI LIMIT 1;";
@@ -51,7 +46,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
     public Usuario? GetById(int id)
     {
         Usuario? usuario = null;
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
         {
             connection.Open();
             string query = "SELECT * FROM usuario WHERE UsuarioId = @UsuarioId;";
@@ -73,7 +68,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
     public Usuario? GetByNombreUsuario(string nombreUsuario)
     {
         Usuario? usuario = null;
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
         {
             connection.Open();
             string query = "SELECT * FROM usuario WHERE NombreUsuario = @NombreUsuario LIMIT 1;";
@@ -119,7 +114,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
 
     public void Insert(Usuario usuario)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
         {
             connection.Open();
             string query = @"INSERT INTO usuario
@@ -148,7 +143,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
 
     public void Update(Usuario usuario)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
         {
             connection.Open();
             string query = @"UPDATE usuario
@@ -188,7 +183,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
 
     public void Delete(Usuario usuario)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
         {
             connection.Open();
             string query = @"UPDATE usuario
@@ -208,23 +203,35 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
 
     // --- MÉTODOS DE UTILIDAD Y COMPATIBILIDAD ---
 
-    public DataTable GetAll()
+    public IEnumerable<Usuario> GetAll()
     {
-        DataTable dt = new DataTable();
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        var usuarios = new List<Usuario>();
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
         {
             connection.Open();
             string query = "SELECT * FROM usuario ORDER BY Nombres ASC;";
             using (MySqlCommand command = new MySqlCommand(query, connection))
-            using (MySqlDataAdapter adapter = new MySqlDataAdapter(command))
+            using (MySqlDataReader reader = command.ExecuteReader())
             {
-                adapter.Fill(dt);
+                while (reader.Read())
+                {
+                    usuarios.Add(MapReaderToUsuario(reader));
+                }
             }
         }
-        return dt;
+        return usuarios;
     }
 
-    public DataTable Select() => GetAll();
+    DataTable IRepository<Usuario, int>.GetAll()
+    {
+        throw new NotImplementedException("Use IUsuarioRepositorio.GetAll instead");
+    }
+
+    public DataTable Select() 
+    {
+        throw new NotImplementedException("Use GetAll instead");
+    }
+
     public void Create(Usuario usuario) => Insert(usuario);
     public void DeleteById(int id) => Delete(new Usuario { UsuarioId = id });
 
@@ -236,7 +243,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
 
     public bool ExisteNombreUsuario(string nombreUsuario)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
         {
             connection.Open();
             string query = "SELECT COUNT(1) FROM usuario WHERE NombreUsuario = @NombreUsuario;";
@@ -250,13 +257,27 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
 
     public bool ExisteEmail(string email)
     {
-        using (MySqlConnection connection = new MySqlConnection(ConnectionString))
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
         {
             connection.Open();
             string query = "SELECT COUNT(1) FROM usuario WHERE Email = @Email;";
             using (MySqlCommand command = new MySqlCommand(query, connection))
             {
                 command.Parameters.AddWithValue("@Email", email);
+                return Convert.ToInt32(command.ExecuteScalar()) > 0;
+            }
+        }
+    }
+
+    public bool ExisteCi(string ci)
+    {
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
+        {
+            connection.Open();
+            string query = "SELECT COUNT(1) FROM usuario WHERE CI = @CI;";
+            using (MySqlCommand command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@CI", ci);
                 return Convert.ToInt32(command.ExecuteScalar()) > 0;
             }
         }

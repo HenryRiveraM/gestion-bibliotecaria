@@ -8,10 +8,10 @@
     var titulosSugeridos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     var generosSugeridos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-    foreach (DataRow row in Model.Libros.Rows)
+    foreach (var row in Model.Libros)
     {
-        var tituloTemp = row["Titulo"]?.ToString();
-        var generoTemp = row.Table.Columns.Contains("Genero") ? row["Genero"]?.ToString() : null;
+        var tituloTemp = row.Titulo;
+        var generoTemp = row.Genero;
 
         if (!string.IsNullOrWhiteSpace(tituloTemp))
             titulosSugeridos.Add(tituloTemp);
@@ -43,7 +43,7 @@
         </button>
     </div>
 
-@if (Model.Libros.Rows.Count == 0)
+@if (!Model.Libros.Any())
 {
     <div class="alert alert-info">
         No hay libros registrados en el sistema.
@@ -51,13 +51,8 @@
 }
 else
 {
-    var total = Model.Libros.Rows.Count;
-    var activos = 0;
-
-    foreach (DataRow row in Model.Libros.Rows)
-    {
-        if (row.Field<bool>("Estado")) activos++;
-    }
+    var total = Model.Libros.Count();
+    var activos = Model.Libros.Count(l => l.Estado);
 
     var inactivos = total - activos;
 
@@ -83,22 +78,21 @@ else
         </thead>
 
         <tbody>
-        @foreach (DataRow row in Model.Libros.Rows)
+        @foreach (var row in Model.Libros)
         {
-            var libroToken = row.Field<string>("LibroToken") ?? string.Empty;
-            var autorId = row.Field<int>("AutorId");
-            var titulo = row.Field<string>("Titulo");
-            var isbn = row.Table.Columns.Contains("ISBN") ? row["ISBN"]?.ToString() : "";
-            var editorial = row.Field<string>("Editorial");
-            var genero = row.Table.Columns.Contains("Genero") ? row["Genero"]?.ToString() : "";
-            var edicion = row.Field<string>("Edicion");
-            var añoPublicacion = row.Field<int?>("AñoPublicacion");
-            var numeroPaginas = row.Table.Columns.Contains("NumeroPaginas") && row["NumeroPaginas"] != DBNull.Value
-                ? Convert.ToInt32(row["NumeroPaginas"]) : (int?)null;
-            var idioma = row.Table.Columns.Contains("Idioma") ? row["Idioma"]?.ToString() : "";
-            var paisPublicacion = row.Table.Columns.Contains("PaisPublicacion") ? row["PaisPublicacion"]?.ToString() : "";
-            var estado = row.Field<bool>("Estado");
-            var descripcion = row.Table.Columns.Contains("Descripcion") ? row["Descripcion"]?.ToString() : "";
+            var libroToken = Model.LibroTokens.TryGetValue(row.LibroId, out var tk) ? tk : "";
+            var autorId = row.AutorId;
+            var titulo = row.Titulo;
+            var isbn = row.ISBN ?? "";
+            var editorial = row.Editorial;
+            var genero = row.Genero ?? "";
+            var edicion = row.Edicion;
+            var añoPublicacion = row.AñoPublicacion;
+            var numeroPaginas = row.NumeroPaginas;
+            var idioma = row.Idioma ?? "";
+            var paisPublicacion = row.PaisPublicacion ?? "";
+            var estado = row.Estado;
+            var descripcion = row.Descripcion ?? "";
 
             <tr class="@(!estado ? "fila-inactiva" : "")">
 
@@ -232,12 +226,12 @@ else
                     <div class="select-dropdown">
                         <input type="text" class="select-search" id="autor-search-edit" placeholder="Buscar autor..." />
                         <div class="select-options">
-                            @foreach (DataRow autorRow in Model.Autores.Rows)
+                            @foreach (var autorRow in Model.Autores)
                             {
-                                var aId = (int)autorRow["AutorId"];
-                                var nombres = autorRow["Nombres"]?.ToString() ?? "";
-                                var apellidos = autorRow["Apellidos"]?.ToString() ?? "";
-                                var nacionalidad = autorRow["Nacionalidad"] as string;
+                                var aId = autorRow.AutorId;
+                                var nombres = autorRow.Nombres ?? "";
+                                var apellidos = autorRow.Apellidos ?? "";
+                                var nacionalidad = autorRow.Nacionalidad;
                                 var textoAutor = $"{apellidos} {nombres}" + (!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "");
                                 <div class="option" data-value="@aId">@textoAutor</div>
                             }
@@ -407,12 +401,12 @@ else
                     <div class="select-dropdown">
                         <input type="text" class="select-search" id="autor-search-create" placeholder="Buscar o escribir autor..." />
                         <div class="select-options">
-                            @foreach (DataRow autorRow in Model.Autores.Rows)
+                            @foreach (var autorRow in Model.Autores)
                             {
-                                var aId = (int)autorRow["AutorId"];
-                                var nombres = autorRow["Nombres"]?.ToString() ?? "";
-                                var apellidos = autorRow["Apellidos"]?.ToString() ?? "";
-                                var nacionalidad = autorRow["Nacionalidad"] as string;
+                                var aId = autorRow.AutorId;
+                                var nombres = autorRow.Nombres ?? "";
+                                var apellidos = autorRow.Apellidos ?? "";
+                                var nacionalidad = autorRow.Nacionalidad;
                                 var displayText = $"{apellidos} {nombres}{(!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "")}";
                                 <div class="option" data-value="@aId">@displayText</div>
                             }

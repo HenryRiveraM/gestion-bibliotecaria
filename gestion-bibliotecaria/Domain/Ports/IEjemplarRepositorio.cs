@@ -1,18 +1,17 @@
-using System.Data;
 using gestion_bibliotecaria.Domain.Entities;
 
 namespace gestion_bibliotecaria.Domain.Ports;
 
 public interface IEjemplarRepositorio
 {
-    DataTable GetAll();
+    IEnumerable<Ejemplar> GetAll();
     void Insert(Ejemplar ejemplar);
     void Update(Ejemplar ejemplar);
     void Delete(Ejemplar ejemplar);
     Ejemplar? GetById(int id);
 
     Dictionary<int, string> ObtenerTitulosLibros();
-    DataTable ObtenerLibrosActivos();
+    IEnumerable<Libro> ObtenerLibrosActivos();
     bool ExisteLibroActivo(int libroId);
     Dictionary<int, string> ObtenerEjemplaresDisponibles();
 }

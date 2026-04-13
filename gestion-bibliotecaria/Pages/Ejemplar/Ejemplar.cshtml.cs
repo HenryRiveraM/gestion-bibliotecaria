@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
-using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Infrastructure.Security;
 using MySql.Data.MySqlClient;
-using System.Data;
 using Microsoft.AspNetCore.Http;
 
 namespace gestion_bibliotecaria.Pages;
@@ -16,9 +15,9 @@ public class EjemplarModel : PageModel
     private readonly IEjemplarServicio _ejemplarServicio;
     private readonly RouteTokenService _routeTokenService;
 
-    public List<Ejemplar> Ejemplares { get; set; } = new();
+    public List<EjemplarDto> Ejemplares { get; set; } = new();
     public Dictionary<int, string> LibrosTitulos { get; set; } = new();
-    public List<Libro> Libros { get; set; } = new();
+    public List<LibroDto> Libros { get; set; } = new();
 
     public string ErrorMessage { get; set; } = string.Empty;
 
@@ -57,7 +56,13 @@ public class EjemplarModel : PageModel
             }
 
             ejemplar.UsuarioSesionId = ObtenerUsuarioSesionId() ?? ejemplar.UsuarioSesionId;
-            _ejemplarServicio.Delete(ejemplar);
+            var result = _ejemplarServicio.Delete(ejemplar);
+            if (!result.IsSuccess)
+            {
+                ModelState.AddModelError(string.Empty, result.Error.Message);
+                CargarPagina();
+                return Page();
+            }
 
             return RedirectToPage();
         }
@@ -84,30 +89,19 @@ public class EjemplarModel : PageModel
             return NotFound();
         }
 
-        var ejemplar = _ejemplarServicio.GetById(ejemplarId);
-
-        if (ejemplar == null)
+        var dto = new EjemplarDto
         {
-            return NotFound();
-        }
-
-        ejemplar.LibroId = LibroId;
-        ejemplar.CodigoInventario = CodigoInventario;
-        ejemplar.EstadoConservacion = EstadoConservacion;
-        ejemplar.Disponible = Disponible ?? false;
-        ejemplar.DadoDeBaja = DadoDeBaja ?? false;
-        ejemplar.MotivoBaja = MotivoBaja;
-        ejemplar.Ubicacion = Ubicacion;
-        ejemplar.Estado = Estado ?? false;
-
-        var usuarioSesionId = ObtenerUsuarioSesionId();
-        ejemplar.UsuarioSesionId = usuarioSesionId ?? ejemplar.UsuarioSesionId;
-
-        var validacion = _ejemplarServicio.ValidarEjemplar(ejemplar);
-        if (validacion.IsFailure)
-        {
-            AgregarError(validacion.Error);
-        }
+            EjemplarId = ejemplarId,
+            LibroId = LibroId,
+            CodigoInventario = CodigoInventario ?? string.Empty,
+            EstadoConservacion = EstadoConservacion,
+            Disponible = Disponible ?? false,
+            DadoDeBaja = DadoDeBaja ?? false,
+            MotivoBaja = MotivoBaja,
+            Ubicacion = Ubicacion,
+            Estado = Estado ?? false,
+            UsuarioSesionId = ObtenerUsuarioSesionId()
+        };
 
         if (!ModelState.IsValid)
         {
@@ -115,16 +109,15 @@ public class EjemplarModel : PageModel
             return Page();
         }
 
-        if (!_ejemplarServicio.ExisteLibroActivo(LibroId))
-        {
-            ModelState.AddModelError("LibroId", EjemplarErrors.LibroInvalido.Message);
-            CargarPagina();
-            return Page();
-        }
-
         try
         {
-            _ejemplarServicio.Update(ejemplar);
+            var result = _ejemplarServicio.Update(dto);
+            if (!result.IsSuccess)
+            {
+                AgregarError(result.Error);
+                CargarPagina();
+                return Page();
+            }
         }
         catch (MySqlException ex) when (ex.Number == 1062)
         {
@@ -142,15 +135,9 @@ public class EjemplarModel : PageModel
         return RedirectToPage();
     }
 
-    public IActionResult OnPostCrear(Ejemplar Ejemplar)
+    public IActionResult OnPostCrear(EjemplarDto Ejemplar)
     {
         Ejemplar.UsuarioSesionId = ObtenerUsuarioSesionId();
-
-        var validacion = _ejemplarServicio.ValidarEjemplar(Ejemplar);
-        if (validacion.IsFailure)
-        {
-            AgregarError(validacion.Error);
-        }
 
         if (!ModelState.IsValid)
         {
@@ -159,18 +146,15 @@ public class EjemplarModel : PageModel
             return Page();
         }
 
-        if (!_ejemplarServicio.ExisteLibroActivo(Ejemplar.LibroId))
-        {
-            ModelState.AddModelError("Ejemplar.LibroId", EjemplarErrors.LibroInvalido.Message);
-            CargarPagina();
-            return Page();
-        }
-
-        Ejemplar.FechaRegistro = DateTime.Now;
-
         try
         {
-            _ejemplarServicio.Create(Ejemplar);
+            var result = _ejemplarServicio.Create(Ejemplar);
+            if (!result.IsSuccess)
+            {
+                AgregarError(result.Error);
+                CargarPagina();
+                return Page();
+            }
             return RedirectToPage();
         }
         catch (MySqlException ex) when (ex.Number == 1062)
@@ -189,48 +173,13 @@ public class EjemplarModel : PageModel
 
     private void CargarPagina()
     {
-        var tabla = _ejemplarServicio.Select();
-
-        Ejemplares = new List<Ejemplar>();
-
-        foreach (DataRow row in tabla.Rows)
+        Ejemplares = _ejemplarServicio.Select().ToList();
+        foreach (var ejemplar in Ejemplares)
         {
-            var ejemplar = new Ejemplar
-            {
-                EjemplarId = Convert.ToInt32(row["EjemplarId"]),
-                LibroId = Convert.ToInt32(row["LibroId"]),
-                CodigoInventario = row["CodigoInventario"].ToString()!,
-                EstadoConservacion = row["EstadoConservacion"] == DBNull.Value ? null : row["EstadoConservacion"].ToString(),
-                Disponible = Convert.ToBoolean(row["Disponible"]),
-                DadoDeBaja = Convert.ToBoolean(row["DadoDeBaja"]),
-                MotivoBaja = row["MotivoBaja"] == DBNull.Value ? null : row["MotivoBaja"].ToString(),
-                Ubicacion = row["Ubicacion"] == DBNull.Value ? null : row["Ubicacion"].ToString(),
-                Estado = Convert.ToBoolean(row["Estado"]),
-                FechaRegistro = row.Table.Columns.Contains("FechaRegistro") && row["FechaRegistro"] != DBNull.Value
-                    ? Convert.ToDateTime(row["FechaRegistro"])
-                    : DateTime.MinValue,
-                UltimaActualizacion = row.Table.Columns.Contains("UltimaActualizacion") && row["UltimaActualizacion"] != DBNull.Value
-                    ? Convert.ToDateTime(row["UltimaActualizacion"])
-                    : null
-            };
-
             ejemplar.RouteToken = _routeTokenService.CrearToken(ejemplar.EjemplarId);
-            Ejemplares.Add(ejemplar);
         }
-
         LibrosTitulos = _ejemplarServicio.ObtenerTitulosLibros();
-
-        var librosActivos = _ejemplarServicio.ObtenerLibrosActivos();
-        Libros = new List<Libro>();
-        foreach (DataRow row in librosActivos.Rows)
-        {
-            Libros.Add(new Libro
-            {
-                LibroId = Convert.ToInt32(row["LibroId"]),
-                Titulo = row["Titulo"].ToString()!,
-                Editorial = row["Editorial"] == DBNull.Value ? null : row["Editorial"].ToString()
-            });
-        }
+        Libros = _ejemplarServicio.ObtenerLibrosActivos().ToList();
     }
 
     private void AgregarError(Error error)

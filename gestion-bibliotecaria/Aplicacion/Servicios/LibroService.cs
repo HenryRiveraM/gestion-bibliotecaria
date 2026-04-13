@@ -1,4 +1,4 @@
-﻿using System.Data;
+﻿using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
@@ -17,26 +17,170 @@ public class LibroServicio : ILibroServicio
         _libroRepositorio = libroRepositorio;
     }
 
-    public DataTable Select() => _libroRepositorio.Select();
+    public IEnumerable<LibroDto> Select()
+    {
+        var libros = _libroRepositorio.Select();
+        var autores = _libroRepositorio.ObtenerNombresAutores().ToDictionary(a => a.AutorId, a => $"{a.Nombres} {(a.Apellidos ?? "")}".Trim());
 
-    public Libro? GetById(int id) => _libroRepositorio.GetById(id);
+        return libros.Select(l => new LibroDto
+        {
+            LibroId = l.LibroId,
+            UsuarioSesionId = l.UsuarioSesionId,
+            AutorId = l.AutorId,
+            NombreAutor = autores.TryGetValue(l.AutorId, out var nombre) ? nombre : string.Empty,
+            Titulo = l.Titulo,
+            ISBN = l.ISBN,
+            Editorial = l.Editorial,
+            Genero = l.Genero,
+            Edicion = l.Edicion,
+            AñoPublicacion = l.AñoPublicacion,
+            NumeroPaginas = l.NumeroPaginas,
+            Idioma = l.Idioma,
+            PaisPublicacion = l.PaisPublicacion,
+            Descripcion = l.Descripcion,
+            Estado = l.Estado
+        });
+    }
 
-    public void Create(Libro libro) => _libroRepositorio.Create(libro);
+    public LibroDto? GetById(int id)
+    {
+        var l = _libroRepositorio.GetById(id);
+        if (l == null) return null;
 
-    public void Update(Libro libro) => _libroRepositorio.Update(libro);
+        var autores = _libroRepositorio.ObtenerNombresAutores().ToDictionary(a => a.AutorId, a => $"{a.Nombres} {(a.Apellidos ?? "")}".Trim());
 
-    public void Delete(Libro libro) => _libroRepositorio.Delete(libro);
+        return new LibroDto
+        {
+            LibroId = l.LibroId,
+            UsuarioSesionId = l.UsuarioSesionId,
+            AutorId = l.AutorId,
+            NombreAutor = autores.TryGetValue(l.AutorId, out var nombre) ? nombre : string.Empty,
+            Titulo = l.Titulo,
+            ISBN = l.ISBN,
+            Editorial = l.Editorial,
+            Genero = l.Genero,
+            Edicion = l.Edicion,
+            AñoPublicacion = l.AñoPublicacion,
+            NumeroPaginas = l.NumeroPaginas,
+            Idioma = l.Idioma,
+            PaisPublicacion = l.PaisPublicacion,
+            Descripcion = l.Descripcion,
+            Estado = l.Estado
+        };
+    }
 
-    public Dictionary<int, string> ObtenerNombresAutores() => _libroRepositorio.ObtenerNombresAutores();
+    public Result Create(LibroDto dto, string? nombreAutorNuevo)
+    {
+        var libro = new Libro
+        {
+            UsuarioSesionId = dto.UsuarioSesionId,
+            AutorId = dto.AutorId,
+            Titulo = dto.Titulo,
+            ISBN = dto.ISBN,
+            Editorial = dto.Editorial,
+            Genero = dto.Genero,
+            Edicion = dto.Edicion,
+            AñoPublicacion = dto.AñoPublicacion,
+            NumeroPaginas = dto.NumeroPaginas,
+            Idioma = dto.Idioma,
+            PaisPublicacion = dto.PaisPublicacion,
+            Descripcion = dto.Descripcion,
+            Estado = dto.Estado,
+            FechaRegistro = DateTime.Now
+        };
 
-    public DataTable ObtenerAutoresActivos() => _libroRepositorio.ObtenerAutoresActivos();
+        var nombreAutorNormalizado = ValidadorEntrada.NormalizarEspacios(nombreAutorNuevo);
+        var validationResult = ValidarLibro(libro, nombreAutorNormalizado);
+
+        if (validationResult.IsFailure)
+        {
+            return validationResult;
+        }
+
+        if (libro.AutorId != 0 && !ExisteAutorActivo(libro.AutorId))
+        {
+            return Result.Failure(new Error("Libro.AutorId", "El autor seleccionado está inactivo o no existe."));
+        }
+
+        if (libro.AutorId == 0 && !string.IsNullOrWhiteSpace(nombreAutorNormalizado))
+        {
+            libro.AutorId = _libroRepositorio.InsertarAutorYObtenerID(nombreAutorNormalizado, libro.UsuarioSesionId);
+        }
+
+        _libroRepositorio.Create(libro);
+        return Result.Success();
+    }
+
+    public Result Update(LibroDto dto)
+    {
+        var libroExistente = _libroRepositorio.GetById(dto.LibroId);
+        if (libroExistente == null) return Result.Failure(new Error("Libro.NoEncontrado", "El libro no existe o fue eliminado."));
+
+        var libro = new Libro
+        {
+            LibroId = dto.LibroId,
+            UsuarioSesionId = dto.UsuarioSesionId ?? libroExistente.UsuarioSesionId,
+            AutorId = dto.AutorId,
+            Titulo = dto.Titulo,
+            ISBN = dto.ISBN,
+            Editorial = dto.Editorial,
+            Genero = dto.Genero,
+            Edicion = dto.Edicion,
+            AñoPublicacion = dto.AñoPublicacion,
+            NumeroPaginas = dto.NumeroPaginas,
+            Idioma = dto.Idioma,
+            PaisPublicacion = dto.PaisPublicacion,
+            Descripcion = dto.Descripcion,
+            Estado = dto.Estado,
+            UltimaActualizacion = DateTime.Now
+        };
+
+        var validationResult = ValidarLibro(libro, null);
+        if (validationResult.IsFailure) return validationResult;
+
+        if (libro.AutorId != 0 && !ExisteAutorActivo(libro.AutorId))
+        {
+            return Result.Failure(new Error("Libro.AutorId", "El autor seleccionado está inactivo o no existe."));
+        }
+
+        _libroRepositorio.Update(libro);
+        return Result.Success();
+    }
+
+    public Result Delete(int id, int? usuarioSesionId)
+    {
+        var libro = _libroRepositorio.GetById(id);
+        if (libro == null) return Result.Failure(new Error("Libro.NoEncontrado", "El libro no existe o fue eliminado."));
+
+        libro.UsuarioSesionId = usuarioSesionId;
+        _libroRepositorio.Delete(libro);
+        return Result.Success();
+    }
+
+    public Dictionary<int, string> ObtenerNombresAutores()
+    {
+        var autores = _libroRepositorio.ObtenerNombresAutores();
+        return autores.ToDictionary(a => a.AutorId, a => $"{a.Nombres} {(a.Apellidos ?? "")}".Trim());
+    }
+
+    public IEnumerable<AutorDto> ObtenerAutoresActivos()
+    {
+        var autores = _libroRepositorio.ObtenerAutoresActivos();
+        return autores.Select(a => new AutorDto
+        {
+            AutorId = a.AutorId,
+            Nombres = a.Nombres,
+            Apellidos = a.Apellidos,
+            Nacionalidad = a.Nacionalidad
+        });
+    }
 
     public bool ExisteAutorActivo(int autorId) => _libroRepositorio.ExisteAutorActivo(autorId);
 
     public int InsertarAutorYObtenerID(string nombreCompleto, int? usuarioSesionId)
         => _libroRepositorio.InsertarAutorYObtenerID(nombreCompleto, usuarioSesionId);
 
-    public Result ValidarLibro(Libro libro, string? nombreAutorNuevo)
+    private Result ValidarLibro(Libro libro, string? nombreAutorNuevo)
     {
         libro.Titulo = ValidadorEntrada.NormalizarEspacios(libro.Titulo);
         libro.ISBN = ValidadorEntrada.NormalizarEspacios(libro.ISBN);

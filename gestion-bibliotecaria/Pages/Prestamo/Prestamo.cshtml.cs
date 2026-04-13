@@ -243,6 +243,7 @@ public class PrestamoModel : PageModel
             var resultado = _prestamoFachada.CrearPrestamo(prestamo);
             if (resultado.IsFailure)
             {
+                ModelState.AddModelError(string.Empty, resultado.Error.Message);
                 MensajeError = resultado.Error.Message;
                 CargarPrestamosDetallados();
                 SetFechaDefaults();
@@ -258,27 +259,22 @@ public class PrestamoModel : PageModel
 
     private void CargarPrestamos()
     {
-        var tabla = _prestamoServicio.Select();
+        var prestamosDto = _prestamoServicio.Select();
 
         Prestamos = new List<PrestamoEntity>();
-        foreach (DataRow row in tabla.Rows)
+        foreach (var row in prestamosDto)
         {
             Prestamos.Add(new PrestamoEntity
             {
-                PrestamoId = Convert.ToInt32(row["PrestamoId"]),
-                EjemplarId = Convert.ToInt32(row["EjemplarId"]),
-                LectorId = Convert.ToInt32(row["LectorId"]),
-                FechaPrestamo = Convert.ToDateTime(row["FechaPrestamo"]),
-                FechaDevolucionEsperada = Convert.ToDateTime(row["FechaDevolucionEsperada"]),
-                FechaDevolucionReal = row.Table.Columns.Contains("FechaDevolucionReal") && row["FechaDevolucionReal"] != DBNull.Value
-                    ? Convert.ToDateTime(row["FechaDevolucionReal"]) : null,
-                ObservacionesSalida = row.Table.Columns.Contains("ObservacionesSalida") && row["ObservacionesSalida"] != DBNull.Value
-                    ? row["ObservacionesSalida"].ToString() : null,
-                ObservacionesEntrada = row.Table.Columns.Contains("ObservacionesEntrada") && row["ObservacionesEntrada"] != DBNull.Value
-                    ? row["ObservacionesEntrada"].ToString() : null,
-                Estado = Convert.ToInt32(row["Estado"]),
-                FechaRegistro = row.Table.Columns.Contains("FechaRegistro") && row["FechaRegistro"] != DBNull.Value
-                    ? Convert.ToDateTime(row["FechaRegistro"]) : DateTime.MinValue,
+                PrestamoId = row.PrestamoId,
+                EjemplarId = row.EjemplarId,
+                LectorId = row.LectorId,
+                FechaPrestamo = row.FechaPrestamo,
+                FechaDevolucionEsperada = row.FechaDevolucionEsperada,
+                FechaDevolucionReal = row.FechaDevolucionReal,
+                ObservacionesSalida = row.ObservacionesSalida,
+                ObservacionesEntrada = row.ObservacionesEntrada,
+                Estado = row.Estado
             });
         }
 
@@ -294,26 +290,24 @@ public class PrestamoModel : PageModel
         // Cargar todos los usuarios en memoria para búsqueda rápida
         var usuariosTabla = _usuarioServicio.Select();
         var usuariosDict = new Dictionary<int, (string Nombres, string PrimerApellido, string? SegundoApellido)>();
-        foreach (DataRow row in usuariosTabla.Rows)
+        foreach (var u in usuariosTabla)
         {
             try
             {
-                int usuarioId = Convert.ToInt32(row["UsuarioId"]);
-                string nombres = row["Nombres"]?.ToString() ?? string.Empty;
-                string primerApellido = row["PrimerApellido"]?.ToString() ?? string.Empty;
-                string? segundoApellido = row.Table.Columns.Contains("SegundoApellido") && row["SegundoApellido"] != DBNull.Value
-                    ? row["SegundoApellido"].ToString()
-                    : null;
+                int usuarioId = u.UsuarioId;
+                string nombres = u.Nombres ?? string.Empty;
+                string primerApellido = u.PrimerApellido ?? string.Empty;
+                string? segundoApellido = u.SegundoApellido;
                 usuariosDict[usuarioId] = (nombres, primerApellido, segundoApellido);
             }
             catch { }
         }
 
         // Procesar cada préstamo
-        foreach (DataRow row in tabla.Rows)
+        foreach (var row in tabla)
         {
-            int ejemplarId = Convert.ToInt32(row["EjemplarId"]);
-            int lectorId = Convert.ToInt32(row["LectorId"]);
+            int ejemplarId = row.EjemplarId;
+            int lectorId = row.LectorId;
 
             // Obtener info del ejemplar
             var ejemplar = _ejemplarServicio.GetById(ejemplarId);
@@ -346,27 +340,18 @@ public class PrestamoModel : PageModel
 
             PrestamosDetallados.Add(new PrestamoDetalleDTO
             {
-                PrestamoId = Convert.ToInt32(row["PrestamoId"]),
+                PrestamoId = row.PrestamoId,
                 EjemplarId = ejemplarId,
                 LectorId = lectorId,
                 TituloLibro = tituloLibro,
                 CodigoInventario = codigoInventario,
                 NombreLector = nombreLector,
-                FechaPrestamo = Convert.ToDateTime(row["FechaPrestamo"]),
-                FechaDevolucionEsperada = Convert.ToDateTime(row["FechaDevolucionEsperada"]),
-                FechaDevolucionReal = row.Table.Columns.Contains("FechaDevolucionReal") && row["FechaDevolucionReal"] != DBNull.Value
-                    ? Convert.ToDateTime(row["FechaDevolucionReal"])
-                    : null,
-                ObservacionesSalida = row.Table.Columns.Contains("ObservacionesSalida") && row["ObservacionesSalida"] != DBNull.Value
-                    ? row["ObservacionesSalida"].ToString()
-                    : null,
-                ObservacionesEntrada = row.Table.Columns.Contains("ObservacionesEntrada") && row["ObservacionesEntrada"] != DBNull.Value
-                    ? row["ObservacionesEntrada"].ToString()
-                    : null,
-                Estado = Convert.ToInt32(row["Estado"]),
-                FechaRegistro = row.Table.Columns.Contains("FechaRegistro") && row["FechaRegistro"] != DBNull.Value
-                    ? Convert.ToDateTime(row["FechaRegistro"])
-                    : DateTime.MinValue
+                FechaPrestamo = row.FechaPrestamo,
+                FechaDevolucionEsperada = row.FechaDevolucionEsperada,
+                FechaDevolucionReal = row.FechaDevolucionReal,
+                ObservacionesSalida = row.ObservacionesSalida,
+                ObservacionesEntrada = row.ObservacionesEntrada,
+                Estado = row.Estado
             });
         }
     }
@@ -393,10 +378,10 @@ public class PrestamoModel : PageModel
         {
             // Obtener el préstamo actual
             var tabla = _prestamoServicio.Select();
-            DataRow? prestamoRow = null;
-            foreach (DataRow row in tabla.Rows)
+            gestion_bibliotecaria.Aplicacion.Dtos.PrestamoDto? prestamoRow = null;
+            foreach (var row in tabla)
             {
-                if (Convert.ToInt32(row["PrestamoId"]) == prestamoId)
+                if (row.PrestamoId == prestamoId)
                 {
                     prestamoRow = row;
                     break;
@@ -411,18 +396,23 @@ public class PrestamoModel : PageModel
             }
 
             // Marcar ejemplar como disponible nuevamente
-            int ejemplarId = Convert.ToInt32(prestamoRow["EjemplarId"]);
+            int ejemplarId = prestamoRow.EjemplarId;
             var ejemplar = _ejemplarServicio.GetById(ejemplarId);
             if (ejemplar != null)
             {
                 ejemplar.Disponible = true;
-                // Guardar cambios
-                // Nota: Aquí necesitarías un método Update en EjemplarServicio
+                _ejemplarServicio.Update(ejemplar);
             }
 
-            // Marcar préstamo como anulado (Estado = -1 o eliminar)
-            // Esto dependería de tu implementación
-            // Por ahora, mostrar mensaje
+            var deleteResult = _prestamoServicio.Delete(prestamoRow);
+            if (deleteResult.IsFailure)
+            {
+                ModelState.AddModelError(string.Empty, deleteResult.Error.Message);
+                MensajeError = deleteResult.Error.Message;
+                CargarPrestamosDetallados();
+                return Page();
+            }
+
             MensajeOk = "Préstamo anulado correctamente.";
             CargarPrestamosDetallados();
             return Page();

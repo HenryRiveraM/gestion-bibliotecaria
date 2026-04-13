@@ -11,7 +11,7 @@ public interface IPrestamoFachada
     Result CrearPrestamo(Prestamo prestamo);
     int CountPrestamosActivos(int lectorId);
     Prestamo? ObtenerPrestamoPorId(int id);
-    gestion_bibliotecaria.Domain.Entities.Ejemplar? ObtenerEjemplarPorId(int id);
+    gestion_bibliotecaria.Aplicacion.Dtos.EjemplarDto? ObtenerEjemplarPorId(int id);
     Result CrearPrestamos(IEnumerable<Prestamo> prestamos);
     gestion_bibliotecaria.Domain.Entities.Usuario? ObtenerUsuarioPorCi(string ci);
     string? ObtenerLabelEjemplar(int ejemplarId);

@@ -1,5 +1,5 @@
+using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
-using gestion_bibliotecaria.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -10,7 +10,7 @@ public class CreateModel : PageModel
     private readonly ILibroServicio _libroServicio;
 
     [BindProperty]
-    public Libro Libro { get; set; } = new();
+    public LibroDto Libro { get; set; } = new();
 
     public CreateModel(ILibroServicio libroServicio)
     {
@@ -29,15 +29,13 @@ public class CreateModel : PageModel
             return Page();
         }
 
-        var validacion = _libroServicio.ValidarLibro(Libro, null);
-        if (validacion.IsFailure)
+        var result = _libroServicio.Create(Libro, null);
+
+        if (result.IsFailure)
         {
-            ModelState.AddModelError(string.Empty, validacion.Error.Message);
+            ModelState.AddModelError(string.Empty, result.Error.Message);
             return Page();
         }
-
-        Libro.FechaRegistro = DateTime.Now;
-        _libroServicio.Create(Libro);
 
         return RedirectToPage("Index");
     }

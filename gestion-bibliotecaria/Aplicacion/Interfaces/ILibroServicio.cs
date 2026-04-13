@@ -1,4 +1,4 @@
-using System.Data;
+using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
 
@@ -6,17 +6,15 @@ namespace gestion_bibliotecaria.Aplicacion.Interfaces;
 
 public interface ILibroServicio
 {
-    DataTable Select();
-    Libro? GetById(int id);
+    IEnumerable<LibroDto> Select();
+    LibroDto? GetById(int id);
 
-    void Create(Libro libro);
-    void Update(Libro libro);
-    void Delete(Libro libro);
+    Result Create(LibroDto libroDto, string? nombreAutorNuevo);
+    Result Update(LibroDto libroDto);
+    Result Delete(int libroId, int? usuarioSesionId);
 
     Dictionary<int, string> ObtenerNombresAutores();
-    DataTable ObtenerAutoresActivos();
+    IEnumerable<AutorDto> ObtenerAutoresActivos();
     bool ExisteAutorActivo(int autorId);
     int InsertarAutorYObtenerID(string nombreCompleto, int? usuarioSesionId);
-
-    Result ValidarLibro(Libro libro, string? nombreAutorNuevo);
 }

@@ -41,7 +41,19 @@ public class PrestamoFachada : IPrestamoFachada
             {
                 // fallback: create one by one
                 foreach (var p in prestamos)
-                    _prestamoServicio.Create(p);
+                {
+                    var dto = new gestion_bibliotecaria.Aplicacion.Dtos.PrestamoDto
+                    {
+                        EjemplarId = p.EjemplarId,
+                        LectorId = p.LectorId,
+                        FechaPrestamo = p.FechaPrestamo,
+                        FechaDevolucionEsperada = p.FechaDevolucionEsperada,
+                        ObservacionesSalida = p.ObservacionesSalida,
+                        UsuarioSesionId = p.UsuarioSesionId,
+                        Estado = p.Estado
+                    };
+                    _prestamoServicio.Create(dto);
+                }
             }
 
             return Result.Success();
@@ -68,50 +80,33 @@ public class PrestamoFachada : IPrestamoFachada
     public IEnumerable<KeyValuePair<int, string>> BuscarLectoresPorCi(string q)
     {
         var lista = new List<KeyValuePair<int, string>>();
-        var tabla = _usuarioServicio.Select();
+        var usuarios = _usuarioServicio.Select();
 
-        foreach (System.Data.DataRow row in tabla.Rows)
+        foreach (var u in usuarios)
         {
             try
             {
-                // Check if Estado is true
-                var estado = row.Table.Columns.Contains("Estado") && row["Estado"] != DBNull.Value 
-                    ? Convert.ToBoolean(row["Estado"]) 
-                    : false;
+                var estado = u.Estado;
                 if (!estado) continue;
 
-                // Get Rol value
-                var rol = row.Table.Columns.Contains("Rol") && row["Rol"] != DBNull.Value 
-                    ? row["Rol"].ToString()!.Trim() 
-                    : string.Empty;
-
-                // Only include "Lector" role
+                var rol = u.Rol ?? string.Empty;
                 if (!rol.Equals("Lector", StringComparison.OrdinalIgnoreCase)) continue;
 
-                // Get CI value
-                var ci = row.Table.Columns.Contains("CI") && row["CI"] != DBNull.Value 
-                    ? row["CI"].ToString()!.Trim() 
-                    : string.Empty;
-
-                // Skip if CI is empty
+                var ci = u.CI ?? string.Empty;
                 if (string.IsNullOrWhiteSpace(ci)) continue;
 
-                var nombres = row.Table.Columns.Contains("Nombres") && row["Nombres"] != DBNull.Value 
-                    ? row["Nombres"].ToString()! 
-                    : string.Empty;
+                var nombres = u.Nombres ?? string.Empty;
 
-                // Search by CI - if q is empty, return all; otherwise filter by StartsWith (not Contains)
                 if (string.IsNullOrWhiteSpace(q) || ci.StartsWith(q, StringComparison.OrdinalIgnoreCase))
                 {
                     lista.Add(new KeyValuePair<int, string>(
-                        Convert.ToInt32(row["UsuarioId"]), 
+                        u.UsuarioId, 
                         ci + " - " + nombres
                     ));
                 }
             }
             catch
             {
-                // Skip rows with errors
                 continue;
             }
         }
@@ -119,35 +114,23 @@ public class PrestamoFachada : IPrestamoFachada
         return lista;
     }
 
-    // DEBUG: Get all readers (for debugging purposes)
     public List<object> ObtenerTodosLosLectores()
     {
         var lista = new List<object>();
-        var tabla = _usuarioServicio.Select();
+        var usuarios = _usuarioServicio.Select();
 
-        foreach (System.Data.DataRow row in tabla.Rows)
+        foreach (var u in usuarios)
         {
             try
             {
-                var estado = row.Table.Columns.Contains("Estado") && row["Estado"] != DBNull.Value 
-                    ? Convert.ToBoolean(row["Estado"]) 
-                    : false;
-
-                var rol = row.Table.Columns.Contains("Rol") && row["Rol"] != DBNull.Value 
-                    ? row["Rol"].ToString()!.Trim() 
-                    : "NO_ROL";
-
-                var ci = row.Table.Columns.Contains("CI") && row["CI"] != DBNull.Value 
-                    ? row["CI"].ToString()!.Trim() 
-                    : "NULL_CI";
-
-                var nombres = row.Table.Columns.Contains("Nombres") && row["Nombres"] != DBNull.Value 
-                    ? row["Nombres"].ToString() 
-                    : "NO_NOMBRES";
+                var estado = u.Estado;
+                var rol = u.Rol ?? "NO_ROL";
+                var ci = u.CI ?? "NULL_CI";
+                var nombres = u.Nombres ?? "NO_NOMBRES";
 
                 lista.Add(new
                 {
-                    usuarioId = Convert.ToInt32(row["UsuarioId"]),
+                    usuarioId = u.UsuarioId,
                     ci = ci,
                     nombres = nombres,
                     rol = rol,
@@ -175,7 +158,7 @@ public class PrestamoFachada : IPrestamoFachada
         return _prestamoServicio.GetById(id);
     }
 
-    public gestion_bibliotecaria.Domain.Entities.Ejemplar? ObtenerEjemplarPorId(int id)
+    public gestion_bibliotecaria.Aplicacion.Dtos.EjemplarDto? ObtenerEjemplarPorId(int id)
     {
         return _ejemplarServicio.GetById(id);
     }
@@ -199,20 +182,18 @@ public class PrestamoFachada : IPrestamoFachada
     public gestion_bibliotecaria.Domain.Entities.Usuario? ObtenerUsuarioPorCi(string ci)
     {
         // buscar en repo de usuarios (no existe método por ci, iterar tabla)
-        var tabla = _usuarioServicio.Select();
-        foreach (System.Data.DataRow row in tabla.Rows)
+        var usuarios = _usuarioServicio.Select();
+        foreach (var u in usuarios)
         {
-            var ciRow = row.Table.Columns.Contains("CI") && row["CI"] != DBNull.Value ? row["CI"].ToString()! : string.Empty;
-            var complemento = row.Table.Columns.Contains("Complemento") && row["Complemento"] != DBNull.Value ? row["Complemento"].ToString()! : string.Empty;
-            var full = string.IsNullOrWhiteSpace(complemento) ? ciRow : $"{ciRow}-{complemento}";
+            var full = u.CI ?? string.Empty; // En el DTO ya está unido el CI con el complemento
             if (string.Equals(full, ci, StringComparison.OrdinalIgnoreCase))
             {
                 return new gestion_bibliotecaria.Domain.Entities.Usuario
                 {
-                    UsuarioId = Convert.ToInt32(row["UsuarioId"]),
-                    Nombres = row["Nombres"].ToString() ?? string.Empty,
-                    PrimerApellido = row["PrimerApellido"].ToString() ?? string.Empty,
-                    SegundoApellido = row.Table.Columns.Contains("SegundoApellido") && row["SegundoApellido"] != DBNull.Value ? row["SegundoApellido"].ToString() : null,
+                    UsuarioId = u.UsuarioId,
+                    Nombres = u.Nombres ?? string.Empty,
+                    PrimerApellido = u.PrimerApellido ?? string.Empty,
+                    SegundoApellido = u.SegundoApellido,
                     CI = full
                 };
             }
@@ -244,7 +225,17 @@ public class PrestamoFachada : IPrestamoFachada
             }
             else
             {
-                _prestamoServicio.Create(prestamo);
+                var dto = new gestion_bibliotecaria.Aplicacion.Dtos.PrestamoDto
+                {
+                    EjemplarId = prestamo.EjemplarId,
+                    LectorId = prestamo.LectorId,
+                    FechaPrestamo = prestamo.FechaPrestamo,
+                    FechaDevolucionEsperada = prestamo.FechaDevolucionEsperada,
+                    ObservacionesSalida = prestamo.ObservacionesSalida,
+                    UsuarioSesionId = prestamo.UsuarioSesionId,
+                    Estado = prestamo.Estado
+                };
+                _prestamoServicio.Create(dto);
             }
             return Result.Success();
         }

@@ -1,38 +1,37 @@
 using System;
+using System.Data;
+using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 
 namespace gestion_bibliotecaria.Infrastructure.Configuration;
 
+// PATRÓN SINGLETON: GESTOR DE CONEXIONES (Connection Factory)
 public class ConfigurationSingleton
 {
-    private static ConfigurationSingleton _instancia;
+    private static ConfigurationSingleton? _instancia;
     private static readonly object _lock = new object();
-
-    private MySqlConnection _conexion;
+    
     private readonly string _connectionString;
 
-    private ConfigurationSingleton()
+    private ConfigurationSingleton(IConfiguration configuration)
     {
-        try
-        {
-            string rutaArchivo = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-            string jsonString = System.IO.File.ReadAllText(rutaArchivo);
+        // ASP.NET Core ya sabe buscar en el appsettings, no hace falta leer el archivo a mano.
+        _connectionString = configuration.GetConnectionString("DefaultConnection") 
+            ?? throw new InvalidOperationException("No se encontró la cadena de conexión 'DefaultConnection'.");
+    }
 
-            using (System.Text.Json.JsonDocument doc = System.Text.Json.JsonDocument.Parse(jsonString))
+    // Inicializamos el Singleton desde Program.cs una sola vez
+    public static void Initialize(IConfiguration configuration)
+    {
+        if (_instancia == null)
+        {
+            lock (_lock)
             {
-                System.Text.Json.JsonElement root = doc.RootElement;
-
-                _connectionString = root.GetProperty("ConnectionStrings")
-                                        .GetProperty("DefaultConnection")
-                                        .GetString();
+                if (_instancia == null)
+                {
+                    _instancia = new ConfigurationSingleton(configuration);
+                }
             }
-
-            _conexion = new MySqlConnection(_connectionString);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error al leer appsettings.json o al inicializar la conexión: " + ex.Message);
-            throw;
         }
     }
 
@@ -41,42 +40,17 @@ public class ConfigurationSingleton
         get
         {
             if (_instancia == null)
-            {
-                lock (_lock)
-                {
-                    if (_instancia == null)
-                    {
-                        _instancia = new ConfigurationSingleton();
-                    }
-                }
-            }
+                throw new InvalidOperationException("El Singleton no fue inicializado. Llamá a Initialize() en Program.cs");
+                
             return _instancia;
         }
     }
 
-    public MySqlConnection GetConnection()
+    // ACA ESTA LA MAGIA: Cada vez que alguien pide conexión, le armamos una NUEVA.
+    // Usamos IDbConnection (la interfaz pura) para no acoplar la arquitectura a MySQL en todos lados.
+    public IDbConnection GetConnection()
     {
-        try
-        {
-            if (_conexion.State == System.Data.ConnectionState.Closed ||
-                _conexion.State == System.Data.ConnectionState.Broken)
-            {
-                _conexion.Open();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error al conectar a la base de datos MySQL: " + ex.Message);
-        }
-
-        return _conexion;
-    }
-
-    public void CloseConnection()
-    {
-        if (_conexion != null && _conexion.State == System.Data.ConnectionState.Open)
-        {
-            _conexion.Close();
-        }
+        // Entregamos una conexión nueva. El que la pide es responsable de abrirla y cerrarla.
+        return new MySqlConnection(_connectionString);
     }
 }

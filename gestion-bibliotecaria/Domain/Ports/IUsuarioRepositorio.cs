@@ -1,11 +1,11 @@
-using System.Data;
 using gestion_bibliotecaria.Domain.Entities;
+using System.Collections.Generic;
 
 namespace gestion_bibliotecaria.Domain.Ports;
 
 public interface IUsuarioRepositorio
 {
-    DataTable GetAll();
+    IEnumerable<Usuario> GetAll();
     void Insert(Usuario usuario);
     void Update(Usuario usuario);
     void Delete(Usuario usuario);
@@ -13,6 +13,7 @@ public interface IUsuarioRepositorio
     Usuario? GetByNombreUsuario(string nombreUsuario);
     bool ExisteNombreUsuario(string nombreUsuario);
     bool ExisteEmail(string email);
+    bool ExisteCi(string ci);
     Usuario? GetByCi(string ci);
     string JoinCiComp(string ci, string complemento);
 }
