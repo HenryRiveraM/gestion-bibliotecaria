@@ -268,4 +268,18 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
             }
         }
     }
+
+    public bool ExisteCi(string ci)
+    {
+        using (var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection())
+        {
+            connection.Open();
+            string query = "SELECT COUNT(1) FROM usuario WHERE CI = @CI;";
+            using (MySqlCommand command = new MySqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@CI", ci);
+                return Convert.ToInt32(command.ExecuteScalar()) > 0;
+            }
+        }
+    }
 }

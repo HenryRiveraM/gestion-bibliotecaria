@@ -294,16 +294,14 @@ public class PrestamoModel : PageModel
         // Cargar todos los usuarios en memoria para búsqueda rápida
         var usuariosTabla = _usuarioServicio.Select();
         var usuariosDict = new Dictionary<int, (string Nombres, string PrimerApellido, string? SegundoApellido)>();
-        foreach (DataRow row in usuariosTabla.Rows)
+        foreach (var u in usuariosTabla)
         {
             try
             {
-                int usuarioId = Convert.ToInt32(row["UsuarioId"]);
-                string nombres = row["Nombres"]?.ToString() ?? string.Empty;
-                string primerApellido = row["PrimerApellido"]?.ToString() ?? string.Empty;
-                string? segundoApellido = row.Table.Columns.Contains("SegundoApellido") && row["SegundoApellido"] != DBNull.Value
-                    ? row["SegundoApellido"].ToString()
-                    : null;
+                int usuarioId = u.UsuarioId;
+                string nombres = u.Nombres ?? string.Empty;
+                string primerApellido = u.PrimerApellido ?? string.Empty;
+                string? segundoApellido = u.SegundoApellido;
                 usuariosDict[usuarioId] = (nombres, primerApellido, segundoApellido);
             }
             catch { }

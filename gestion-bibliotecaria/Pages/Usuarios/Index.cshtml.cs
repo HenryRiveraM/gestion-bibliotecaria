@@ -1,4 +1,5 @@
-using System.Data;
+using System.Collections.Generic;
+using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Infrastructure.Security;
@@ -16,7 +17,7 @@ public class IndexModel : PageModel
     public List<UsuarioListadoItem> Usuarios { get; set; } = new();
 
     [BindProperty]
-    public Usuario NuevoUsuario { get; set; } = new();
+    public UsuarioDto NuevoUsuario { get; set; } = new();
 
     [BindProperty]
     public string? Complemento { get; set; }
@@ -69,7 +70,7 @@ public class IndexModel : PageModel
 
         if (resultado.IsFailure)
         {
-            MensajeError = resultado.Error.Message;
+            ModelState.AddModelError(string.Empty, resultado.Error.Message);
             CargarUsuarios();
             return Page();
         }
@@ -100,7 +101,7 @@ public class IndexModel : PageModel
 
         if (resultado.IsFailure)
         {
-            MensajeError = resultado.Error.Message;
+            ModelState.AddModelError(string.Empty, resultado.Error.Message);
             CargarUsuarios();
             return Page();
         }
@@ -111,24 +112,22 @@ public class IndexModel : PageModel
 
     private void CargarUsuarios()
     {
-        var tabla = _usuarioServicio.Select();
+        var usuarios = _usuarioServicio.Select();
         Usuarios = new List<UsuarioListadoItem>();
 
-        foreach (DataRow row in tabla.Rows)
+        foreach (var u in usuarios)
         {
-            var usuarioId = Convert.ToInt32(row["UsuarioId"]);
-
             Usuarios.Add(new UsuarioListadoItem
             {
-                UsuarioId = usuarioId,
-                UsuarioIdToken = _routeTokenService.CrearToken(usuarioId),
-                Nombres = row["Nombres"].ToString() ?? string.Empty,
-                PrimerApellido = row["PrimerApellido"].ToString() ?? string.Empty,
-                SegundoApellido = row["SegundoApellido"].ToString() ?? string.Empty,
-                Email = row["Email"].ToString() ?? string.Empty,
-                NombreUsuario = row["NombreUsuario"].ToString() ?? string.Empty,
-                Rol = row["Rol"].ToString() ?? string.Empty,
-                Estado = Convert.ToBoolean(row["Estado"])
+                UsuarioId = u.UsuarioId,
+                UsuarioIdToken = _routeTokenService.CrearToken(u.UsuarioId),
+                Nombres = u.Nombres ?? string.Empty,
+                PrimerApellido = u.PrimerApellido ?? string.Empty,
+                SegundoApellido = u.SegundoApellido ?? string.Empty,
+                Email = u.Email ?? string.Empty,
+                NombreUsuario = u.NombreUsuario ?? string.Empty,
+                Rol = u.Rol ?? string.Empty,
+                Estado = u.Estado
             });
         }
 
