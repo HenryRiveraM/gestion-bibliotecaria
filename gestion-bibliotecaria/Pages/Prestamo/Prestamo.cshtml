@@ -1,185 +1,307 @@
 @page "/Prestamo"
+@using System.Linq
 @model gestion_bibliotecaria.Pages.Prestamo.PrestamoModel
 @{
-    ViewData["Title"] = "Gestión de Préstamos";
+    ViewData["Title"] = "Préstamos realizados";
+
+    var totalPrestamos = Model.PrestamosDetallados.Count;
+    var prestamosActivos = Model.PrestamosDetallados.Count(p => !p.FechaDevolucionReal.HasValue && p.Estado == 1);
+    var prestamosDevueltos = Model.PrestamosDetallados.Count(p => p.FechaDevolucionReal.HasValue);
+    var prestamosAnulados = Model.PrestamosDetallados.Count(p => p.Estado == 0);
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/pages/ejemplar.css" />
     <link rel="stylesheet" href="~/css/pages/prestamo.css" />
 }
 
-<div class="prestamo-container">
-    <div class="page-header">
-        <h1>
-            <img src="~/assets/icons/history_edu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" style="width: 35px; filter: invert(48%) sepia(79%) saturate(2476%) hue-rotate(142deg) brightness(96%) contrast(101%); margin-right: 10px;">
-                Gestión de Préstamos
-            </h1>
+<div class="prestamo-page">
+    <div class="prestamo-shell">
+        <div class="page-header">
+            <div class="titulo-logo">
+                <div class="page-icon-shell">
+                    <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header" alt="Prestamos realizados" />
+                </div>
+                <div>
+                    <h1>Préstamos realizados</h1>
+                    <p class="page-subtitle">Consulta el historial, busca por lector o ejemplar y revisa los detalles de cada operación.</p>
+                </div>
+            </div>
+
             <a class="btn-nuevo" href="/Prestamo/Create">
-                <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                    Nuevo Préstamo
-                </a>
+                <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" alt="Nuevo préstamo" />
+                Nuevo préstamo
+            </a>
+        </div>
+
+        <div class="prestamo-stats-grid">
+            <article class="prestamo-stat-card">
+                <span class="prestamo-stat-label">Total registrados</span>
+                <strong>@totalPrestamos</strong>
+                <small>Incluye préstamos activos, devueltos y anulados.</small>
+            </article>
+            <article class="prestamo-stat-card">
+                <span class="prestamo-stat-label">Activos</span>
+                <strong>@prestamosActivos</strong>
+                <small>Préstamos que aún no registran devolución real.</small>
+            </article>
+            <article class="prestamo-stat-card">
+                <span class="prestamo-stat-label">Devueltos</span>
+                <strong>@prestamosDevueltos</strong>
+                <small>Operaciones cerradas correctamente.</small>
+            </article>
+            <article class="prestamo-stat-card">
+                <span class="prestamo-stat-label">Anulados</span>
+                <strong>@prestamosAnulados</strong>
+                <small>Registros que fueron desactivados.</small>
+            </article>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
+        {
+            <div class="alert-custom alert-success-custom">@Model.MensajeOk</div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
+        {
+            <div class="alert-custom alert-danger-custom">@Model.MensajeError</div>
+        }
+
+        <div class="filtros-barra">
+            <div class="filtro-item filtro-buscar">
+                <input id="buscador-prestamo"
+                       type="text"
+                       class="input-filtro"
+                       placeholder="Buscar por lector, libro, código o estado..."
+                       autocomplete="off" />
             </div>
+        </div>
 
-            @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
-            {
-                <div class="alert-custom alert-success-custom">@Model.MensajeOk</div>
-            }
+        <form id="prestamoAntiForgeryForm" method="post" class="prestamo-hidden-token">
+            @Html.AntiForgeryToken()
+        </form>
 
-            @if (!string.IsNullOrWhiteSpace(Model.MensajeError))
-            {
-                <div class="alert-custom alert-danger-custom">@Model.MensajeError</div>
-            }
-
-            <div class="filtros-barra">
-                <div class="filtro-item filtro-buscar">
-                    <input id="buscador-prestamo" type="text" class="input-filtro"
-                           placeholder="Buscar por lector, libro o código de inventario..." autocomplete="off" />
-                </div>
+        @if (!Model.PrestamosDetallados.Any())
+        {
+            <div class="tabla-container empty-table-state">
+                <strong>No hay préstamos registrados en el sistema.</strong>
+                <span>Cuando registres uno, aparecerá aquí con su estado, lector y fechas clave.</span>
             </div>
+        }
+        else
+        {
+            <div class="tabla-container">
+                <table class="tabla-ejemplar tabla-prestamos-historial">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Libro</th>
+                            <th>Código</th>
+                            <th>Lector</th>
+                            <th>Estado</th>
+                            <th>Salida</th>
+                            <th>Esperada</th>
+                            <th>Devolución real</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-prestamos-body">
+                        @foreach (var p in Model.PrestamosDetallados)
+                        {
+                            var estadoTexto = p.Estado == 0
+                                ? "Anulado"
+                                : p.FechaDevolucionReal.HasValue
+                                    ? "Devuelto"
+                                    : "Activo";
 
-            @if (!Model.PrestamosDetallados.Any())
-            {
-                <div class="alert alert-info">No hay préstamos registrados en el sistema.</div>
-            }
-            else
-            {
-                <div class="tabla-container">
-                    <table class="tabla-ejemplar">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Libro</th>
-                                <th>Código Inventario</th>
-                                <th>Lector</th>
-                                <th>Fecha Préstamo</th>
-                                <th>Devolución Esperada</th>
-                                <th>Devolución Real</th>
-                                <th style="width:120px; text-align:center;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-prestamos-body">
-                            @foreach (var p in Model.PrestamosDetallados)
-                            {
-                                <tr class="prestamo-row"
-                                    data-lector="@p.NombreLector.ToLower()"
-                                    data-libro="@p.TituloLibro.ToLower()"
-                                    data-codigo="@p.CodigoInventario.ToLower()">
-                        
-                                    <td>@p.PrestamoId</td>
-                                    <td><strong>@p.TituloLibro</strong></td>
-                                    <td><span class="badge" style="background:#444; padding: 4px 8px;">@p.CodigoInventario</span></td>
-                                    <td>@p.NombreLector</td>
-                                    <td>@p.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td>@p.FechaDevolucionEsperada.ToString("dd/MM/yyyy")</td>
-                                    <td>
-                                        @if (p.FechaDevolucionReal.HasValue)
-                                        {
-                                            <span style="color:#00a884;">@p.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm")</span>
-                                        }
-                                        else
-                                        {
-                                            <span style="color:#9ca3af;">- Pendiente -</span>
-                                        }
-                                    </td>
-                                    <td class="td-acciones">
-                                        <button type="button" class="btn-accion btn-detalles" onclick="mostrarDetalles(@p.PrestamoId)" title="Ver detalles">
-                                            <img src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18" alt="Detalles">
-                                            </button>
-                            
-                                            @if (!p.EstaDevuelto)
-                                            {
-                                                <button type="button" class="btn-accion btn-anular" onclick="confirmarAnulacion(@p.PrestamoId)" title="Anular préstamo">
-                                                    <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18" alt="Anular">
-                                                    </button>
-                                                }
-                                            </td>
-                                        </tr>
+                            var estadoClase = p.Estado == 0
+                                ? "estado-danger"
+                                : p.FechaDevolucionReal.HasValue
+                                    ? "estado-info"
+                                    : "activo";
+
+                            <tr class="prestamo-row"
+                                data-lector="@p.NombreLector.ToLowerInvariant()"
+                                data-libro="@p.TituloLibro.ToLowerInvariant()"
+                                data-codigo="@p.CodigoInventario.ToLowerInvariant()"
+                                data-estado="@estadoTexto.ToLowerInvariant()">
+                                <td><span class="badge badge-dark">#@p.PrestamoId</span></td>
+                                <td>
+                                    <strong>@p.TituloLibro</strong>
+                                </td>
+                                <td><span class="badge badge-outline">@p.CodigoInventario</span></td>
+                                <td>@p.NombreLector</td>
+                                <td><span class="estado @estadoClase">@estadoTexto</span></td>
+                                <td>@p.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@p.FechaDevolucionEsperada.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    @if (p.FechaDevolucionReal.HasValue)
+                                    {
+                                        @p.FechaDevolucionReal.Value.ToString("dd/MM/yyyy HH:mm")
                                     }
-                                </tbody>
-                            </table>
-                        </div>
+                                    else
+                                    {
+                                        <span class="text-muted">Pendiente</span>
+                                    }
+                                </td>
+                                <td class="td-acciones">
+                                    <button type="button"
+                                            class="btn-accion btn-detalles"
+                                            onclick="mostrarDetalles(@p.PrestamoId)"
+                                            title="Ver detalles">
+                                        <img src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18" alt="Ver detalles" />
+                                    </button>
+
+                                    @if (p.Estado == 1 && !p.FechaDevolucionReal.HasValue)
+                                    {
+                                        <button type="button"
+                                                class="btn-accion btn-anular"
+                                                onclick="confirmarAnulacion(@p.PrestamoId)"
+                                                title="Anular préstamo">
+                                            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="18" alt="Anular préstamo" />
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<div id="modal-detalles" class="modal modal-details-shell">
+    <div class="modal-box modal-box-details">
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal" alt="Detalles" />
+        </div>
+        <h2>Detalles del préstamo</h2>
+        <p>Resumen del lector, el ejemplar y las fechas registradas.</p>
+        <div id="modal-body-content" class="modal-body-custom"></div>
+        <div class="modal-buttons">
+            <button type="button" class="btn-secondary" onclick="cerrarModal()">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function formatearFecha(fecha, incluirHora = false) {
+            if (!fecha) return 'No registrado';
+
+            const valor = new Date(fecha);
+            return incluirHora
+                ? valor.toLocaleString()
+                : valor.toLocaleDateString();
+        }
+
+        function mostrarDetalles(prestamoId) {
+            const base = window.location.pathname;
+            fetch(`${base}?handler=DetallesPrestamo&id=${prestamoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (!data.success || !data.data) {
+                        return;
                     }
-                </div>
 
-                <div id="modal-detalles" class="modal">
-                    <div class="modal-box" style="max-width:600px;">
-                        <div class="modal-icon editar">
-                            <img src="~/assets/icons/visibility_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal">
+                    const p = data.data;
+                    const estadoTexto = p.estado === 0
+                        ? 'Anulado'
+                        : p.fechaDevolucionReal
+                            ? 'Devuelto'
+                            : 'Activo';
+
+                    const html = `
+                        <div class="detalles-grid">
+                            <div class="detalle-item">
+                                <strong>ID</strong>
+                                <span>#${p.prestamoId}</span>
                             </div>
-                            <h2>Detalles del Préstamo</h2>
-                            <div id="modal-body-content" class="modal-body-custom">
+                            <div class="detalle-item">
+                                <strong>Estado</strong>
+                                <span>${estadoTexto}</span>
                             </div>
-                            <div class="modal-buttons">
-                                <button type="button" class="btn-secondary" onclick="cerrarModal()">Cerrar</button>
+                            <div class="detalle-item detalle-item-wide">
+                                <strong>Libro</strong>
+                                <span>${p.tituloLibro}</span>
                             </div>
-                        </div>
-                    </div>
+                            <div class="detalle-item">
+                                <strong>Código</strong>
+                                <span>${p.codigoInventario}</span>
+                            </div>
+                            <div class="detalle-item detalle-item-wide">
+                                <strong>Lector</strong>
+                                <span>${p.nombreLector}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Salida</strong>
+                                <span>${formatearFecha(p.fechaPrestamo, true)}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Esperada</strong>
+                                <span>${formatearFecha(p.fechaDevolucionEsperada, false)}</span>
+                            </div>
+                            <div class="detalle-item">
+                                <strong>Devolución real</strong>
+                                <span>${p.fechaDevolucionReal ? formatearFecha(p.fechaDevolucionReal, true) : 'Pendiente'}</span>
+                            </div>
+                            ${p.observacionesSalida ? `
+                                <div class="detalle-obs">
+                                    <strong>Observaciones de salida</strong>
+                                    <p>${p.observacionesSalida}</p>
+                                </div>` : ''}
+                            ${p.observacionesEntrada ? `
+                                <div class="detalle-obs">
+                                    <strong>Observaciones de entrada</strong>
+                                    <p>${p.observacionesEntrada}</p>
+                                </div>` : ''}
+                        </div>`;
 
-                    @section Scripts {
-                        <script>
-                            function mostrarDetalles(prestamoId) {
-                                const base = window.location.pathname;
-                                fetch(`${base}?handler=DetallesPrestamo&id=${prestamoId}`)
-                                    .then(r => r.json())
-                                    .then(data => {
-                                        if (data.success && data.data) {
-                                            const p = data.data;
-                                            const html = `
-                                                <div class="detalles-grid">
-                                                    <div class="detalle-item"><strong>ID:</strong> <span>#${p.prestamoId}</span></div>
-                                                    <div class="detalle-item"><strong>Libro:</strong> <span class="text-esmeralda">${p.tituloLibro}</span></div>
-                                                    <div class="detalle-item"><strong>Código:</strong> <span>${p.codigoInventario}</span></div>
-                                                    <div class="detalle-item"><strong>Lector:</strong> <span>${p.nombreLector}</span></div>
-                                                    <div class="detalle-item"><strong>Salida:</strong> <span>${new Date(p.fechaPrestamo).toLocaleString()}</span></div>
-                                                    <div class="detalle-item"><strong>Esperada:</strong> <span>${new Date(p.fechaDevolucionEsperada).toLocaleDateString()}</span></div>
-                                                    ${p.fechaDevolucionReal ? `<div class="detalle-item"><strong>Real:</strong> <span>${new Date(p.fechaDevolucionReal).toLocaleString()}</span></div>` : ''}
-                                                    ${p.observacionesSalida ? `<div class="detalle-obs"><strong>Observaciones Salida:</strong> <p>${p.observacionesSalida}</p></div>` : ''}
-                                                </div>
-                                            `;
-                                            document.getElementById('modal-body-content').innerHTML = html;
-                                            document.getElementById('modal-detalles').style.display = 'flex';
-                                        }
-                                    });
-                            }
+                    document.getElementById('modal-body-content').innerHTML = html;
+                    document.getElementById('modal-detalles').style.display = 'flex';
+                });
+        }
 
-                            function cerrarModal() {
-                                document.getElementById('modal-detalles').style.display = 'none';
-                            }
+        function cerrarModal() {
+            document.getElementById('modal-detalles').style.display = 'none';
+        }
 
-                            function confirmarAnulacion(prestamoId) {
-                                if (confirm('¿Estás seguro de que deseas anular este préstamo? El libro volverá a estar disponible.')) {
-                                    const form = document.createElement('form');
-                                    form.method = 'post';
-                                    form.action = window.location.pathname + '?handler=AnularPrestamo';
-                
-                                    const input = document.createElement('input');
-                                    input.type = 'hidden';
-                                    input.name = 'prestamoId';
-                                    input.value = prestamoId;
-                
-                                    // Anti-forgery token (necesario en Razor Pages)
-                                    const token = document.querySelector('input[name="__RequestVerificationToken"]');
-                                    if (token) form.appendChild(token.cloneNode());
+        function confirmarAnulacion(prestamoId) {
+            if (!confirm('¿Deseas anular este préstamo? El ejemplar volverá a estar disponible.')) {
+                return;
+            }
 
-                                    form.appendChild(input);
-                                    document.body.appendChild(form);
-                                    form.submit();
-                                }
-                            }
+            const form = document.createElement('form');
+            form.method = 'post';
+            form.action = window.location.pathname + '?handler=AnularPrestamo';
 
-                            // Buscador Instantáneo
-                            document.getElementById('buscador-prestamo')?.addEventListener('input', function(e) {
-                                const termino = e.target.value.toLowerCase();
-                                document.querySelectorAll('#tabla-prestamos-body tr').forEach(row => {
-                                    const texto = row.innerText.toLowerCase();
-                                    row.style.display = texto.includes(termino) ? '' : 'none';
-                                });
-                            });
+            const idInput = document.createElement('input');
+            idInput.type = 'hidden';
+            idInput.name = 'prestamoId';
+            idInput.value = prestamoId;
 
-                            // Cerrar modal al hacer clic fuera
-                            window.onclick = function(e) {
-                                if (e.target === document.getElementById('modal-detalles')) cerrarModal();
-                            }
-                        </script>
-                    }
+            const token = document.querySelector('#prestamoAntiForgeryForm input[name="__RequestVerificationToken"]');
+            if (token) {
+                form.appendChild(token.cloneNode());
+            }
+
+            form.appendChild(idInput);
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        document.getElementById('buscador-prestamo')?.addEventListener('input', function (e) {
+            const termino = (e.target.value || '').toLowerCase().trim();
+            document.querySelectorAll('#tabla-prestamos-body tr').forEach(row => {
+                const texto = row.innerText.toLowerCase();
+                row.style.display = texto.includes(termino) ? '' : 'none';
+            });
+        });
+
+        window.addEventListener('click', function (e) {
+            if (e.target === document.getElementById('modal-detalles')) {
+                cerrarModal();
+            }
+        });
+    </script>
+}
