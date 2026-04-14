@@ -178,14 +178,20 @@
         <h2>Detalles del préstamo</h2>
         <p>Resumen del lector, el ejemplar y las fechas registradas.</p>
         <div id="modal-body-content" class="modal-body-custom"></div>
+        <div id="comprobante-preview" class="comprobante-preview" style="display:none;"></div>
         <div class="modal-buttons">
+            <button type="button" class="btn-ghost-action" onclick="toggleComprobantePreview()">Ver comprobante</button>
+            <button type="button" class="btn-nuevo" onclick="descargarComprobantePdf()">Descargar PDF</button>
             <button type="button" class="btn-secondary" onclick="cerrarModal()">Cerrar</button>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
+        let comprobanteActual = null;
+
         function formatearFecha(fecha, incluirHora = false) {
             if (!fecha) return 'No registrado';
 
@@ -193,6 +199,210 @@
             return incluirHora
                 ? valor.toLocaleString()
                 : valor.toLocaleDateString();
+        }
+
+        function escapeHtml(texto) {
+            return (texto ?? '')
+                .toString()
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function renderComprobantePreview(comprobante) {
+            const contenedor = document.getElementById('comprobante-preview');
+            if (!contenedor || !comprobante) {
+                return;
+            }
+
+            const librosRows = (comprobante.libros || [])
+                .map((libro, idx) => `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${escapeHtml(libro.titulo || 'Sin título')}</td>
+                        <td>${escapeHtml(libro.codigo || 'S/C')}</td>
+                    </tr>`)
+                .join('');
+
+            contenedor.innerHTML = `
+                <article class="comprobante-sheet">
+                    <header class="comprobante-header">
+                        <img src="/assets/images/logo.png" class="comprobante-logo" alt="Logo biblioteca" />
+                        <div class="comprobante-heading">
+                            <h3>COMPROBANTE DE PRÉSTAMO</h3>
+                            <p>Biblioteca ISEG</p>
+                            <small>Folio: ${escapeHtml(comprobante.folio || '')}</small>
+                        </div>
+                    </header>
+
+                    <section class="comprobante-grid">
+                        <div><strong>Fecha:</strong> ${formatearFecha(comprobante.fechaEmision, true)}</div>
+                        <div><strong>Nombre:</strong> ${escapeHtml(comprobante.nombreLector || 'No registrado')}</div>
+                        <div><strong>Clave:</strong> ${escapeHtml(comprobante.clave || 'No registrado')}</div>
+                        <div><strong>Grupo:</strong> ${escapeHtml(comprobante.grupo || 'No registrado')}</div>
+                        <div><strong>Días:</strong> ${escapeHtml((comprobante.dias || 0).toString())}</div>
+                        <div><strong>Fecha préstamo:</strong> ${formatearFecha(comprobante.fechaPrestamo, true)}</div>
+                        <div><strong>Fecha entrega:</strong> ${formatearFecha(comprobante.fechaEntrega, false)}</div>
+                    </section>
+
+                    <section class="comprobante-libros">
+                        <h4>Libros prestados</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Título</th>
+                                    <th>Código</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${librosRows || '<tr><td colspan="3">Sin libros registrados.</td></tr>'}
+                            </tbody>
+                        </table>
+                    </section>
+                </article>`;
+        }
+
+        function toggleComprobantePreview() {
+            const preview = document.getElementById('comprobante-preview');
+            if (!preview || !comprobanteActual) {
+                return;
+            }
+
+            const estaVisible = preview.style.display !== 'none';
+            preview.style.display = estaVisible ? 'none' : 'block';
+        }
+
+        async function obtenerComprobante(prestamoId) {
+            const base = window.location.pathname;
+            const response = await fetch(`${base}?handler=ComprobantePrestamo&id=${prestamoId}`);
+            const data = await response.json();
+
+            if (!data.success || !data.data) {
+                throw new Error('No se pudo generar el comprobante.');
+            }
+
+            comprobanteActual = data.data;
+            renderComprobantePreview(comprobanteActual);
+        }
+
+        async function logoToDataUrl(url) {
+            const imagen = new Image();
+            imagen.crossOrigin = 'anonymous';
+            imagen.src = url;
+
+            await new Promise((resolve, reject) => {
+                imagen.onload = resolve;
+                imagen.onerror = reject;
+            });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = imagen.width;
+            canvas.height = imagen.height;
+            canvas.getContext('2d')?.drawImage(imagen, 0, 0);
+            return canvas.toDataURL('image/png');
+        }
+
+        async function descargarComprobantePdf() {
+            if (!comprobanteActual) {
+                alert('Primero abre un préstamo para generar el comprobante.');
+                return;
+            }
+
+            const jsPdfNamespace = window.jspdf;
+            if (!jsPdfNamespace || !jsPdfNamespace.jsPDF) {
+                alert('No se pudo cargar el generador de PDF.');
+                return;
+            }
+
+            const { jsPDF } = jsPdfNamespace;
+            const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+
+            const margen = 12;
+            const ancho = 210 - (margen * 2);
+
+            doc.setDrawColor(60);
+            doc.rect(margen, margen, ancho, 273);
+
+            try {
+                const logoDataUrl = await logoToDataUrl('/assets/images/logo.png');
+                doc.addImage(logoDataUrl, 'PNG', margen + 4, margen + 4, 44, 20);
+            } catch {
+                // Si el logo no carga, el comprobante igual se genera.
+            }
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(15);
+            doc.text('PRESTAMO DE LIBROS BIBLIOTECA ISEG', margen + 60, margen + 10);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`Folio: ${comprobanteActual.folio || ''}`, margen + 60, margen + 16);
+
+            let y = margen + 30;
+
+            const drawRow = (labelLeft, valueLeft, labelRight, valueRight) => {
+                const h = 11;
+                const colA = 120;
+                const colB = ancho - colA;
+                doc.rect(margen, y, colA, h);
+                doc.rect(margen + colA, y, colB, h);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${labelLeft}:`, margen + 2, y + 4);
+                doc.text(`${labelRight}:`, margen + colA + 2, y + 4);
+                doc.setFont('helvetica', 'normal');
+                doc.text(String(valueLeft || 'No registrado'), margen + 2, y + 8.5);
+                doc.text(String(valueRight || 'No registrado'), margen + colA + 2, y + 8.5);
+                y += h;
+            };
+
+            drawRow('FECHA', formatearFecha(comprobanteActual.fechaEmision, true), 'CLAVE', comprobanteActual.clave || 'No registrado');
+            drawRow('NOMBRE', comprobanteActual.nombreLector || 'No registrado', 'GRUPO', comprobanteActual.grupo || 'No registrado');
+            drawRow('DIAS', String(comprobanteActual.dias || 0), 'ENTREGA', formatearFecha(comprobanteActual.fechaEntrega, false));
+            drawRow('FECHA PRESTAMO', formatearFecha(comprobanteActual.fechaPrestamo, true), 'TOTAL LIBROS', String((comprobanteActual.libros || []).length));
+
+            y += 4;
+            doc.setFont('helvetica', 'bold');
+            doc.text('LIBROS PRESTADOS', margen + 1, y);
+            y += 3;
+
+            doc.rect(margen, y, 12, 8);
+            doc.rect(margen + 12, y, 120, 8);
+            doc.rect(margen + 132, y, ancho - 132, 8);
+            doc.text('#', margen + 4, y + 5);
+            doc.text('TITULO', margen + 14, y + 5);
+            doc.text('CODIGO', margen + 134, y + 5);
+            y += 8;
+
+            const libros = comprobanteActual.libros || [];
+            if (!libros.length) {
+                doc.rect(margen, y, ancho, 8);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Sin libros registrados.', margen + 3, y + 5);
+                y += 8;
+            } else {
+                libros.forEach((libro, index) => {
+                    const titulo = String(libro.titulo || 'Sin título');
+                    const codigo = String(libro.codigo || 'S/C');
+                    const lineasTitulo = doc.splitTextToSize(titulo, 116);
+                    const lineasCodigo = doc.splitTextToSize(codigo, ancho - 136);
+                    const maxLineas = Math.max(lineasTitulo.length, lineasCodigo.length);
+                    const alto = Math.max(8, 4 + maxLineas * 4);
+
+                    doc.rect(margen, y, 12, alto);
+                    doc.rect(margen + 12, y, 120, alto);
+                    doc.rect(margen + 132, y, ancho - 132, alto);
+
+                    doc.text(String(index + 1), margen + 4, y + 5);
+                    doc.text(lineasTitulo, margen + 14, y + 5);
+                    doc.text(lineasCodigo, margen + 134, y + 5);
+                    y += alto;
+                });
+            }
+
+            const nombreArchivo = `comprobante-prestamo-${comprobanteActual.prestamoId || 'biblioteca'}.pdf`;
+            doc.save(nombreArchivo);
         }
 
         function mostrarDetalles(prestamoId) {
@@ -258,12 +468,26 @@
                         </div>`;
 
                     document.getElementById('modal-body-content').innerHTML = html;
+                    const preview = document.getElementById('comprobante-preview');
+                    if (preview) {
+                        preview.style.display = 'none';
+                        preview.innerHTML = '';
+                    }
+                    obtenerComprobante(prestamoId).catch(() => {
+                        comprobanteActual = null;
+                    });
                     document.getElementById('modal-detalles').style.display = 'flex';
                 });
         }
 
         function cerrarModal() {
             document.getElementById('modal-detalles').style.display = 'none';
+            comprobanteActual = null;
+            const preview = document.getElementById('comprobante-preview');
+            if (preview) {
+                preview.style.display = 'none';
+                preview.innerHTML = '';
+            }
         }
 
         function confirmarAnulacion(prestamoId) {
