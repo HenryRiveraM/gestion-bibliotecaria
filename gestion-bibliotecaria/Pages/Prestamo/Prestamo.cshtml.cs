@@ -397,6 +397,71 @@ public class PrestamoModel : PageModel
         return new JsonResult(new { success = true, data = prestamo });
     }
 
+    public JsonResult OnGetComprobantePrestamo(int id)
+    {
+        if (!PrestamosDetallados.Any())
+        {
+            CargarPrestamosDetallados();
+        }
+
+        var prestamoBase = PrestamosDetallados.FirstOrDefault(p => p.PrestamoId == id);
+        if (prestamoBase == null)
+        {
+            return new JsonResult(new { success = false, message = "Préstamo no encontrado." });
+        }
+
+        var librosRelacionados = ObtenerPrestamosRelacionadosParaComprobante(prestamoBase)
+            .Select(p => new
+            {
+                prestamoId = p.PrestamoId,
+                titulo = p.TituloLibro,
+                codigo = p.CodigoInventario,
+                observacionesSalida = p.ObservacionesSalida
+            })
+            .ToList();
+
+        var usuario = _usuarioServicio.Select().FirstOrDefault(u => u.UsuarioId == prestamoBase.LectorId);
+        var ci = usuario?.CI ?? string.Empty;
+
+        var diasPrestamo = (int)Math.Max(1, Math.Ceiling((prestamoBase.FechaDevolucionEsperada.Date - prestamoBase.FechaPrestamo.Date).TotalDays));
+
+        var data = new
+        {
+            prestamoId = prestamoBase.PrestamoId,
+            folio = $"PR-{prestamoBase.FechaPrestamo:yyyyMMdd}-{prestamoBase.LectorId}",
+            fechaEmision = DateTime.Now,
+            nombreLector = prestamoBase.NombreLector,
+            clave = ci,
+            grupo = string.Empty,
+            dias = diasPrestamo,
+            fechaPrestamo = prestamoBase.FechaPrestamo,
+            fechaEntrega = prestamoBase.FechaDevolucionEsperada,
+            libros = librosRelacionados
+        };
+
+        return new JsonResult(new { success = true, data });
+    }
+
+    private IEnumerable<PrestamoDetalleDTO> ObtenerPrestamosRelacionadosParaComprobante(PrestamoDetalleDTO prestamoBase)
+    {
+        var fechaBase = prestamoBase.FechaPrestamo;
+
+        var relacionados = PrestamosDetallados
+            .Where(p => p.LectorId == prestamoBase.LectorId
+                        && p.Estado == prestamoBase.Estado
+                        && p.FechaDevolucionEsperada.Date == prestamoBase.FechaDevolucionEsperada.Date
+                        && Math.Abs((p.FechaPrestamo - fechaBase).TotalMinutes) <= 3)
+            .OrderBy(p => p.PrestamoId)
+            .ToList();
+
+        if (!relacionados.Any())
+        {
+            relacionados.Add(prestamoBase);
+        }
+
+        return relacionados;
+    }
+
     public IActionResult OnPostAnularPrestamo(int prestamoId)
     {
         try
