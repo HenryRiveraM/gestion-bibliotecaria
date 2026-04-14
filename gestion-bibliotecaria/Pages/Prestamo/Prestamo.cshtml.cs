@@ -7,6 +7,7 @@ using PrestamoEntity = gestion_bibliotecaria.Domain.Entities.Prestamo;
 using System.Linq;
 using gestion_bibliotecaria.Infrastructure.Security;
 using System.Data;
+using gestion_bibliotecaria.Infrastructure.Formatting;
 
 namespace gestion_bibliotecaria.Pages.Prestamo;
 
@@ -105,7 +106,7 @@ public class PrestamoModel : PageModel
         {
             success = true,
             id = usuario.UsuarioId,
-            nombreCompleto = $"{usuario.Nombres} {usuario.PrimerApellido} {usuario.SegundoApellido ?? ""}".Trim()
+            nombreCompleto = $"{usuario.Nombres} {usuario.PrimerApellido} {usuario.SegundoApellido ?? ""}".ToDisplayName()
         });
     }
 
@@ -361,6 +362,8 @@ public class PrestamoModel : PageModel
                 {
                     nombreLector += $" {usuario.SegundoApellido}";
                 }
+
+                nombreLector = nombreLector.ToDisplayName();
             }
 
             PrestamosDetallados.Add(new PrestamoDetalleDTO
@@ -423,7 +426,7 @@ public class PrestamoModel : PageModel
         var usuario = _usuarioServicio.Select().FirstOrDefault(u => u.UsuarioId == prestamoBase.LectorId);
         var ci = usuario?.CI ?? string.Empty;
         var bibliotecarioSesion = HttpContext.Session.GetString(SessionKeys.NombreUsuario) ?? string.Empty;
-        var bibliotecarioNombre = string.IsNullOrWhiteSpace(bibliotecarioSesion) ? "No registrado" : bibliotecarioSesion;
+        var bibliotecarioNombre = string.IsNullOrWhiteSpace(bibliotecarioSesion) ? "No registrado" : bibliotecarioSesion.ToDisplayName();
 
         var diasPrestamo = (int)Math.Max(1, Math.Ceiling((prestamoBase.FechaDevolucionEsperada.Date - prestamoBase.FechaPrestamo.Date).TotalDays));
 

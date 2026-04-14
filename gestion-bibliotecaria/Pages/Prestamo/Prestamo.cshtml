@@ -129,7 +129,7 @@
                                     <strong>@p.TituloLibro</strong>
                                 </td>
                                 <td><span class="badge badge-outline">@p.CodigoInventario</span></td>
-                                <td>@p.NombreLector</td>
+                                <td>@p.NombreLector.ToDisplayName()</td>
                                 <td><span class="estado @estadoClase">@estadoTexto</span></td>
                                 <td>@p.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>@p.FechaDevolucionEsperada.ToString("dd/MM/yyyy")</td>
