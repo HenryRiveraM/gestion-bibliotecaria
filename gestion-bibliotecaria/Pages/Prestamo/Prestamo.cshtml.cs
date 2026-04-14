@@ -422,6 +422,8 @@ public class PrestamoModel : PageModel
 
         var usuario = _usuarioServicio.Select().FirstOrDefault(u => u.UsuarioId == prestamoBase.LectorId);
         var ci = usuario?.CI ?? string.Empty;
+        var bibliotecarioSesion = HttpContext.Session.GetString(SessionKeys.NombreUsuario) ?? string.Empty;
+        var bibliotecarioNombre = string.IsNullOrWhiteSpace(bibliotecarioSesion) ? "No registrado" : bibliotecarioSesion;
 
         var diasPrestamo = (int)Math.Max(1, Math.Ceiling((prestamoBase.FechaDevolucionEsperada.Date - prestamoBase.FechaPrestamo.Date).TotalDays));
 
@@ -431,12 +433,16 @@ public class PrestamoModel : PageModel
             folio = $"PR-{prestamoBase.FechaPrestamo:yyyyMMdd}-{prestamoBase.LectorId}",
             fechaEmision = DateTime.Now,
             nombreLector = prestamoBase.NombreLector,
+            ci,
             clave = ci,
             grupo = string.Empty,
             dias = diasPrestamo,
             fechaPrestamo = prestamoBase.FechaPrestamo,
+            fechaDevolucion = prestamoBase.FechaDevolucionEsperada,
             fechaEntrega = prestamoBase.FechaDevolucionEsperada,
-            libros = librosRelacionados
+            libros = librosRelacionados,
+            totalLibros = librosRelacionados.Count,
+            bibliotecario = bibliotecarioNombre
         };
 
         return new JsonResult(new { success = true, data });
