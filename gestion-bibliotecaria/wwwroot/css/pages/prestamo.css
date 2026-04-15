@@ -841,13 +841,13 @@
 
 .comprobante-grid div {
     border: none;
-    border-radius: 10px;
-    padding: 8px 10px;
+    border-radius: 0;
+    padding: 0;
     font-size: 13px;
     line-height: 1.35;
     color: #0f172a;
-    background: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.12);
+    background: transparent;
+    box-shadow: none;
 }
 
 .comprobante-grid div strong {
@@ -857,7 +857,7 @@
 .comprobante-row {
     display: grid;
     gap: 3px;
-    padding: 11px 12px;
+    padding: 0;
 }
 
 .comprobante-row strong {
@@ -929,11 +929,11 @@
     text-align: right;
     font-size: 13px;
     color: #0f172a;
-    padding: 8px 10px;
-    border-radius: 10px;
+    padding: 0;
+    border-radius: 0;
     border: none;
-    background: linear-gradient(90deg, rgba(16, 163, 127, 0.14), rgba(59, 130, 246, 0.12));
-    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+    background: transparent;
+    box-shadow: none;
 }
 
 .comprobante-footer-right {
@@ -945,10 +945,10 @@
     gap: 4px;
     font-size: 13px;
     color: #1e293b;
-    background: rgba(255, 255, 255, 0.72);
-    border-radius: 10px;
-    padding: 10px 12px;
-    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+    background: transparent;
+    border-radius: 0;
+    padding: 10px 0 0;
+    box-shadow: none;
 }
 
 @media (max-width: 900px) {

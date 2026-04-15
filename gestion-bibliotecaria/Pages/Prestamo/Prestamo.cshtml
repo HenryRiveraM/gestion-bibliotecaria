@@ -238,7 +238,7 @@
 
                     <section class="comprobante-grid comprobante-grid-rows">
                         <div class="comprobante-row">
-                            <strong>IDPrestamo</strong>
+                            <strong>Prestamo</strong>
                             <span>${escapeHtml((comprobante.prestamoId ?? '').toString())}</span>
                         </div>
                         <div class="comprobante-row comprobante-row-dual">
@@ -254,7 +254,7 @@
                         <div class="comprobante-row comprobante-row-dual">
                             <div>
                                 <strong>Fecha de prestamo</strong>
-                                <span>${formatearFecha(comprobante.fechaPrestamo, true)}</span>
+                                <span>${formatearFecha(comprobante.fechaPrestamo, false)}</span>
                             </div>
                             <div>
                                 <strong>Fecha de devolucion</strong>
@@ -283,7 +283,7 @@
                     </section>
 
                     <footer class="comprobante-footer-right">
-                        <span>${formatearFecha(comprobante.fechaEmision, true)} - ${escapeHtml(comprobante.bibliotecario || 'No registrado')}</span>
+                        <span>${formatearFecha(comprobante.fechaEmision, false)} - ${escapeHtml(comprobante.bibliotecario || 'No registrado')}</span>
                     </footer>
                 </article>`;
         }
@@ -346,9 +346,6 @@
             const margen = 12;
             const ancho = 210 - (margen * 2);
 
-            doc.setDrawColor(60);
-            doc.rect(margen, margen, ancho, 273);
-
             try {
                 const logoDataUrl = await logoToDataUrl('/assets/images/blackLogoR.png');
                 doc.addImage(logoDataUrl, 'PNG', margen + 4, margen + 4, 44, 20);
@@ -367,7 +364,6 @@
 
             const drawSingleRow = (label, value) => {
                 const h = 11;
-                doc.rect(margen, y, ancho, h);
                 doc.setFont('helvetica', 'bold');
                 doc.text(String(label), margen + 2, y + 4);
                 doc.setFont('helvetica', 'normal');
@@ -379,8 +375,6 @@
                 const h = 11;
                 const colA = 120;
                 const colB = ancho - colA;
-                doc.rect(margen, y, colA, h);
-                doc.rect(margen + colA, y, colB, h);
                 doc.setFont('helvetica', 'bold');
                 doc.text(String(labelLeft), margen + 2, y + 4);
                 doc.text(String(labelRight), margen + colA + 2, y + 4);
@@ -390,9 +384,9 @@
                 y += h;
             };
 
-            drawSingleRow('IDPRESTAMO', String(comprobanteActual.prestamoId || ''));
+            drawSingleRow('PRESTAMO', String(comprobanteActual.prestamoId || ''));
             drawDoubleRow('NOMBRE DE LECTOR', comprobanteActual.nombreLector || 'No registrado', 'CI', comprobanteActual.ci || 'No registrado');
-            drawDoubleRow('FECHA DE PRESTAMO', formatearFecha(comprobanteActual.fechaPrestamo, true), 'FECHA DE DEVOLUCION', formatearFecha(comprobanteActual.fechaDevolucion, false));
+            drawDoubleRow('FECHA DE PRESTAMO', formatearFecha(comprobanteActual.fechaPrestamo, false), 'FECHA DE DEVOLUCION', formatearFecha(comprobanteActual.fechaDevolucion, false));
 
             y += 4;
             doc.setFont('helvetica', 'bold');
