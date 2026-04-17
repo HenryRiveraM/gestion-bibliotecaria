@@ -146,6 +146,10 @@
     padding: 22px;
 }
 
+.prestamo-panel-compact {
+    padding: 18px 20px;
+}
+
 .panel-heading {
     display: flex;
     justify-content: space-between;
@@ -182,8 +186,29 @@
     align-items: start;
 }
 
+.prestamo-grid-tight {
+    gap: 14px;
+}
+
 .lector-grid {
     grid-template-columns: minmax(0, 2fr) minmax(180px, .8fr);
+}
+
+.lector-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(300px, .85fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.lector-form-column,
+.lector-summary-column {
+    min-width: 0;
+}
+
+.lector-summary-column {
+    display: flex;
+    align-self: stretch;
 }
 
 .lector-modal-grid {
@@ -214,6 +239,7 @@
 .field-help {
     color: #9ca3af;
     font-size: 12px;
+    line-height: 1.35;
 }
 
 .input-form,
@@ -298,13 +324,20 @@
 }
 
 .selected-lector-card {
-    margin-top: 18px;
-    padding: 16px 18px;
+    margin-top: 14px;
+    padding: 14px 16px;
     border-radius: 14px;
     border: 1px solid rgba(16, 163, 127, 0.22);
     background: linear-gradient(180deg, rgba(16, 163, 127, 0.16), rgba(16, 163, 127, 0.08));
     display: grid;
     gap: 4px;
+}
+
+.selected-lector-card-side {
+    margin-top: 0;
+    width: 100%;
+    min-height: 100%;
+    align-content: start;
 }
 
 .selected-lector-label {
@@ -317,7 +350,7 @@
 
 .selected-lector-card strong {
     color: #f3f4f6;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .selected-lector-card small {
@@ -329,6 +362,34 @@
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
+}
+
+.selector-toolbar-vertical {
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.ejemplares-layout {
+    display: grid;
+    grid-template-columns: minmax(320px, .75fr) minmax(0, 1.45fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.ejemplares-selector-column,
+.ejemplares-summary-column {
+    min-width: 0;
+}
+
+.ejemplares-selector-column {
+    background: #141414;
+    border: 1px solid #262626;
+    border-radius: 16px;
+    padding: 18px;
+}
+
+.ejemplares-summary-column {
+    min-width: 0;
 }
 
 .custom-select-wrapper {
@@ -404,6 +465,7 @@
 
 .tabla-prestamo-seleccion {
     padding-top: 16px;
+    min-height: 100%;
 }
 
 .tabla-ejemplar {
@@ -521,6 +583,11 @@
     background: rgba(239, 68, 68, 0.18);
 }
 
+.btn-full-width {
+    width: 100%;
+    justify-content: center;
+}
+
 .dato-estatico {
     display: inline-flex;
     align-items: center;
@@ -531,6 +598,10 @@
     border: 1px solid rgba(16, 163, 127, 0.2);
     color: #d1fae5;
     font-weight: 600;
+}
+
+.lector-grid .input-form {
+    min-height: 46px;
 }
 
 .form-actions {
@@ -846,6 +917,14 @@
     .prestamo-grid,
     .lector-grid,
     .lector-modal-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .lector-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ejemplares-layout {
         grid-template-columns: 1fr;
     }
 
