@@ -129,7 +129,7 @@
                                     <strong>@p.TituloLibro</strong>
                                 </td>
                                 <td><span class="badge badge-outline">@p.CodigoInventario</span></td>
-                                <td>@p.NombreLector</td>
+                                <td>@p.NombreLector.ToDisplayName()</td>
                                 <td><span class="estado @estadoClase">@estadoTexto</span></td>
                                 <td>@p.FechaPrestamo.ToString("dd/MM/yyyy HH:mm")</td>
                                 <td>@p.FechaDevolucionEsperada.ToString("dd/MM/yyyy")</td>
@@ -229,22 +229,38 @@
             contenedor.innerHTML = `
                 <article class="comprobante-sheet">
                     <header class="comprobante-header">
-                        <img src="/assets/images/logo.png" class="comprobante-logo" alt="Logo biblioteca" />
+                        <img src="/assets/images/blackLogoR.png" class="comprobante-logo" alt="Logo StarBook" />
                         <div class="comprobante-heading">
-                            <h3>COMPROBANTE DE PRÉSTAMO</h3>
-                            <p>Biblioteca ISEG</p>
-                            <small>Folio: ${escapeHtml(comprobante.folio || '')}</small>
+                            <h3>RECIBO DE PRESTAMO</h3>
+                            <p>Biblioteca StarBook</p>
                         </div>
                     </header>
 
-                    <section class="comprobante-grid">
-                        <div><strong>Fecha:</strong> ${formatearFecha(comprobante.fechaEmision, true)}</div>
-                        <div><strong>Nombre:</strong> ${escapeHtml(comprobante.nombreLector || 'No registrado')}</div>
-                        <div><strong>Clave:</strong> ${escapeHtml(comprobante.clave || 'No registrado')}</div>
-                        <div><strong>Grupo:</strong> ${escapeHtml(comprobante.grupo || 'No registrado')}</div>
-                        <div><strong>Días:</strong> ${escapeHtml((comprobante.dias || 0).toString())}</div>
-                        <div><strong>Fecha préstamo:</strong> ${formatearFecha(comprobante.fechaPrestamo, true)}</div>
-                        <div><strong>Fecha entrega:</strong> ${formatearFecha(comprobante.fechaEntrega, false)}</div>
+                    <section class="comprobante-grid comprobante-grid-rows">
+                        <div class="comprobante-row">
+                            <strong>Prestamo</strong>
+                            <span>${escapeHtml((comprobante.prestamoId ?? '').toString())}</span>
+                        </div>
+                        <div class="comprobante-row comprobante-row-dual">
+                            <div>
+                                <strong>Nombre de lector</strong>
+                                <span>${escapeHtml(comprobante.nombreLector || 'No registrado')}</span>
+                            </div>
+                            <div>
+                                <strong>CI</strong>
+                                <span>${escapeHtml(comprobante.ci || 'No registrado')}</span>
+                            </div>
+                        </div>
+                        <div class="comprobante-row comprobante-row-dual">
+                            <div>
+                                <strong>Fecha de prestamo</strong>
+                                <span>${formatearFecha(comprobante.fechaPrestamo, false)}</span>
+                            </div>
+                            <div>
+                                <strong>Fecha de devolucion</strong>
+                                <span>${formatearFecha(comprobante.fechaDevolucion, false)}</span>
+                            </div>
+                        </div>
                     </section>
 
                     <section class="comprobante-libros">
@@ -261,7 +277,14 @@
                                 ${librosRows || '<tr><td colspan="3">Sin libros registrados.</td></tr>'}
                             </tbody>
                         </table>
+                        <div class="comprobante-total-right">
+                            <strong>Total de libros</strong> ${escapeHtml(String(comprobante.totalLibros ?? (comprobante.libros || []).length))}
+                        </div>
                     </section>
+
+                    <footer class="comprobante-footer-right">
+                        <span>${formatearFecha(comprobante.fechaEmision, false)} - ${escapeHtml(comprobante.bibliotecario || 'No registrado')}</span>
+                    </footer>
                 </article>`;
         }
 
@@ -323,11 +346,8 @@
             const margen = 12;
             const ancho = 210 - (margen * 2);
 
-            doc.setDrawColor(60);
-            doc.rect(margen, margen, ancho, 273);
-
             try {
-                const logoDataUrl = await logoToDataUrl('/assets/images/logo.png');
+                const logoDataUrl = await logoToDataUrl('/assets/images/blackLogoR.png');
                 doc.addImage(logoDataUrl, 'PNG', margen + 4, margen + 4, 44, 20);
             } catch {
                 // Si el logo no carga, el comprobante igual se genera.
@@ -335,32 +355,38 @@
 
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(15);
-            doc.text('PRESTAMO DE LIBROS BIBLIOTECA ISEG', margen + 60, margen + 10);
+            doc.text('RECIBO DE PRESTAMO - STARBOOK', margen + 60, margen + 10);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
-            doc.text(`Folio: ${comprobanteActual.folio || ''}`, margen + 60, margen + 16);
+            doc.text('Biblioteca StarBook', margen + 60, margen + 16);
 
             let y = margen + 30;
 
-            const drawRow = (labelLeft, valueLeft, labelRight, valueRight) => {
+            const drawSingleRow = (label, value) => {
+                const h = 11;
+                doc.setFont('helvetica', 'bold');
+                doc.text(String(label), margen + 2, y + 4);
+                doc.setFont('helvetica', 'normal');
+                doc.text(String(value || 'No registrado'), margen + 2, y + 8.5);
+                y += h;
+            };
+
+            const drawDoubleRow = (labelLeft, valueLeft, labelRight, valueRight) => {
                 const h = 11;
                 const colA = 120;
                 const colB = ancho - colA;
-                doc.rect(margen, y, colA, h);
-                doc.rect(margen + colA, y, colB, h);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`${labelLeft}:`, margen + 2, y + 4);
-                doc.text(`${labelRight}:`, margen + colA + 2, y + 4);
+                doc.text(String(labelLeft), margen + 2, y + 4);
+                doc.text(String(labelRight), margen + colA + 2, y + 4);
                 doc.setFont('helvetica', 'normal');
                 doc.text(String(valueLeft || 'No registrado'), margen + 2, y + 8.5);
                 doc.text(String(valueRight || 'No registrado'), margen + colA + 2, y + 8.5);
                 y += h;
             };
 
-            drawRow('FECHA', formatearFecha(comprobanteActual.fechaEmision, true), 'CLAVE', comprobanteActual.clave || 'No registrado');
-            drawRow('NOMBRE', comprobanteActual.nombreLector || 'No registrado', 'GRUPO', comprobanteActual.grupo || 'No registrado');
-            drawRow('DIAS', String(comprobanteActual.dias || 0), 'ENTREGA', formatearFecha(comprobanteActual.fechaEntrega, false));
-            drawRow('FECHA PRESTAMO', formatearFecha(comprobanteActual.fechaPrestamo, true), 'TOTAL LIBROS', String((comprobanteActual.libros || []).length));
+            drawSingleRow('PRESTAMO', String(comprobanteActual.prestamoId || ''));
+            drawDoubleRow('NOMBRE DE LECTOR', comprobanteActual.nombreLector || 'No registrado', 'CI', comprobanteActual.ci || 'No registrado');
+            drawDoubleRow('FECHA DE PRESTAMO', formatearFecha(comprobanteActual.fechaPrestamo, false), 'FECHA DE DEVOLUCION', formatearFecha(comprobanteActual.fechaDevolucion, false));
 
             y += 4;
             doc.setFont('helvetica', 'bold');
@@ -400,6 +426,15 @@
                     y += alto;
                 });
             }
+
+            y += 4;
+            doc.setFont('helvetica', 'bold');
+            doc.text(`TOTAL DE LIBROS ${String(comprobanteActual.totalLibros || (comprobanteActual.libros || []).length)}`, margen + ancho - 70, y);
+
+            y += 12;
+            doc.setFont('helvetica', 'normal');
+            const pieFirma = `${formatearFecha(comprobanteActual.fechaEmision, true)} - ${String(comprobanteActual.bibliotecario || 'No registrado')}`;
+            doc.text(pieFirma, margen + ancho - doc.getTextWidth(pieFirma), y);
 
             const nombreArchivo = `comprobante-prestamo-${comprobanteActual.prestamoId || 'biblioteca'}.pdf`;
             doc.save(nombreArchivo);

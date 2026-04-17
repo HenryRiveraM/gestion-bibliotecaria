@@ -588,7 +588,6 @@ else
                 </div>
             </div>
 
-            <input type="hidden" name="Ejemplar.Disponible" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="createDisponible"
@@ -598,8 +597,8 @@ else
                        checked="@(createDisponibleChecked ? "checked" : null)" />
                 <label for="createDisponible">Disponible para préstamo</label>
             </div>
+            <input type="hidden" name="Ejemplar.Disponible" value="false" />
 
-            <input type="hidden" name="Ejemplar.DadoDeBaja" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="createDadoBajaCheck"
@@ -610,6 +609,7 @@ else
                        checked="@(createDadoDeBajaChecked ? "checked" : null)" />
                 <label for="createDadoBajaCheck">Dado de baja</label>
             </div>
+            <input type="hidden" name="Ejemplar.DadoDeBaja" value="false" />
 
             <div id="createMotivoBajaDiv" style="display:@(createDadoDeBajaChecked ? "block" : "none")">
                 <textarea name="Ejemplar.MotivoBaja"
@@ -619,7 +619,6 @@ else
                           placeholder="Motivo de baja">@createMotivoBaja</textarea>
             </div>
 
-            <input type="hidden" name="Ejemplar.Estado" value="false" />
             <div class="form-check modal-check">
                 <input type="checkbox"
                        id="createEstado"
@@ -629,6 +628,7 @@ else
                        checked="@(createEstadoChecked ? "checked" : null)" />
                 <label for="createEstado">Activo en el sistema</label>
             </div>
+            <input type="hidden" name="Ejemplar.Estado" value="false" />
 
             <div class="modal-buttons">
                 <button type="submit" class="btn-success">Crear ejemplar</button>

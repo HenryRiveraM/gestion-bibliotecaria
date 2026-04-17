@@ -55,9 +55,9 @@
                 @foreach (var usuario in Model.Usuarios)
                 {
                     <tr>
-                        <td>@usuario.Nombres</td>
-                        <td>@usuario.PrimerApellido</td>
-                        <td>@usuario.SegundoApellido</td>
+                        <td>@usuario.Nombres.ToDisplayName()</td>
+                        <td>@usuario.PrimerApellido.ToDisplayName()</td>
+                        <td>@usuario.SegundoApellido.ToDisplayName()</td>
                         <td>@usuario.Email</td>
                         <td>@usuario.NombreUsuario</td>
                         <td>@usuario.Rol</td>

@@ -100,7 +100,7 @@ else
 
                 <td>
                     @(Model.AutoresNombres.TryGetValue(autorId, out var nombreAutor)
-                        ? nombreAutor
+                        ? nombreAutor.ToDisplayName()
                         : $"Autor #{autorId}")
                 </td>
 
@@ -229,8 +229,8 @@ else
                             @foreach (var autorRow in Model.Autores)
                             {
                                 var aId = autorRow.AutorId;
-                                var nombres = autorRow.Nombres ?? "";
-                                var apellidos = autorRow.Apellidos ?? "";
+                                var nombres = (autorRow.Nombres ?? "").ToDisplayName();
+                                var apellidos = (autorRow.Apellidos ?? "").ToDisplayName();
                                 var nacionalidad = autorRow.Nacionalidad;
                                 var textoAutor = $"{apellidos} {nombres}" + (!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "");
                                 <div class="option" data-value="@aId">@textoAutor</div>
@@ -404,8 +404,8 @@ else
                             @foreach (var autorRow in Model.Autores)
                             {
                                 var aId = autorRow.AutorId;
-                                var nombres = autorRow.Nombres ?? "";
-                                var apellidos = autorRow.Apellidos ?? "";
+                                var nombres = (autorRow.Nombres ?? "").ToDisplayName();
+                                var apellidos = (autorRow.Apellidos ?? "").ToDisplayName();
                                 var nacionalidad = autorRow.Nacionalidad;
                                 var displayText = $"{apellidos} {nombres}{(!string.IsNullOrWhiteSpace(nacionalidad) ? $" ({nacionalidad})" : "")}";
                                 <div class="option" data-value="@aId">@displayText</div>
