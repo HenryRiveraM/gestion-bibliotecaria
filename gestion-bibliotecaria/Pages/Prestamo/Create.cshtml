@@ -422,6 +422,9 @@
         }
 
         function mostrarDropdown() {
+            const ejemplaresIds = new Set(ejemplaresSeleccionados.map(x => String(x.id)));
+            const filtrados = catalogoEjemplares.filter(item => !ejemplaresIds.has(String(item.id)));
+            renderizarOpcionesEjemplares(filtrados);
             document.getElementById('custom-select-ejemplar').classList.add('active');
         }
 
@@ -655,7 +658,11 @@
 
             document.getElementById('input-busqueda-ejemplar').addEventListener('input', function (e) {
                 const termino = normalizar(e.target.value);
-                const filtrados = catalogoEjemplares.filter(item => normalizar(item.label).includes(termino));
+                // Filtrar ejemplares NO seleccionados
+                const ejemplaresIds = new Set(ejemplaresSeleccionados.map(x => String(x.id)));
+                const filtrados = catalogoEjemplares.filter(item => 
+                    normalizar(item.label).includes(termino) && !ejemplaresIds.has(String(item.id))
+                );
                 renderizarOpcionesEjemplares(filtrados);
                 mostrarDropdown();
             });

@@ -49,6 +49,7 @@
 
   <ItemGroup>
     <Folder Include="Aplicacion\Dtos\" />
+    <Folder Include="Database\Scripts\" />
   </ItemGroup>
 
 </Project>

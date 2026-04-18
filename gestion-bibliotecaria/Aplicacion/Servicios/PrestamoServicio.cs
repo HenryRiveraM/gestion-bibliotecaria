@@ -14,13 +14,11 @@ namespace gestion_bibliotecaria.Aplicacion.Servicios;
 public class PrestamoServicio : IPrestamoServicio
 {
     private readonly IPrestamoRepositorio _prestamoRepositorio;
-    private readonly IEjemplarRepositorio _ejemplarRepositorio;
     private readonly IUsuarioRepositorio _usuarioRepositorio;
 
-    public PrestamoServicio(IPrestamoRepositorio prestamoRepositorio, IEjemplarRepositorio ejemplarRepositorio, IUsuarioRepositorio usuarioRepositorio)
+    public PrestamoServicio(IPrestamoRepositorio prestamoRepositorio, IUsuarioRepositorio usuarioRepositorio)
     {
         _prestamoRepositorio = prestamoRepositorio;
-        _ejemplarRepositorio = ejemplarRepositorio;
         _usuarioRepositorio = usuarioRepositorio;
     }
 
@@ -34,7 +32,6 @@ public class PrestamoServicio : IPrestamoServicio
             dtos.Add(new PrestamoDto
             {
                 PrestamoId = p.PrestamoId,
-                EjemplarId = p.EjemplarId,
                 LectorId = p.LectorId,
                 FechaPrestamo = p.FechaPrestamo,
                 FechaDevolucionEsperada = p.FechaDevolucionEsperada,
@@ -53,7 +50,6 @@ public class PrestamoServicio : IPrestamoServicio
     {
         var prestamo = new Prestamo
         {
-            EjemplarId = dto.EjemplarId,
             LectorId = dto.LectorId,
             FechaPrestamo = dto.FechaPrestamo,
             FechaDevolucionEsperada = dto.FechaDevolucionEsperada,
@@ -74,34 +70,12 @@ public class PrestamoServicio : IPrestamoServicio
         return Result<PrestamoDto>.Success(dto);
     }
 
-    // Create and mark ejemplar as not available
-    public void CreateAndMarkEjemplar(Prestamo prestamo)
-    {
-        _prestamoRepositorio.Insert(prestamo);
-
-        // Intentar marcar ejemplar como no disponible
-        var ejemplar = _ejemplarRepositorio.GetById(prestamo.EjemplarId);
-        if (ejemplar != null)
-        {
-            ejemplar.Disponible = false;
-            ejemplar.UsuarioSesionId = prestamo.UsuarioSesionId ?? ejemplar.UsuarioSesionId;
-            _ejemplarRepositorio.Update(ejemplar);
-        }
-    }
-
-    public void CreateManyAndMarkEjemplares(IEnumerable<Prestamo> prestamos)
-    {
-        // Delegate to repository which handles transaction and ejemplar update
-        _prestamoRepositorio.InsertManyWithTransaction(prestamos);
-    }
-
     public Result<PrestamoDto> Update(PrestamoDto dto)
     {
         var prestamo = _prestamoRepositorio.GetById(dto.PrestamoId);
         if (prestamo == null)
             return Result<PrestamoDto>.Failure(new Error("Prestamo.NotFound", "Prestamo no encontrado"));
 
-        prestamo.EjemplarId = dto.EjemplarId;
         prestamo.LectorId = dto.LectorId;
         prestamo.FechaPrestamo = dto.FechaPrestamo;
         prestamo.FechaDevolucionEsperada = dto.FechaDevolucionEsperada;
@@ -111,8 +85,6 @@ public class PrestamoServicio : IPrestamoServicio
         prestamo.Estado = dto.Estado;
         prestamo.UsuarioSesionId = dto.UsuarioSesionId;
 
-        // No validamos en update igual que en create, porque el ejemplar puede estar ya no disponible (está prestado)
-        // Pero podríamos validar las fechas
         if (prestamo.FechaDevolucionEsperada < prestamo.FechaPrestamo)
             return Result<PrestamoDto>.Failure(PrestamoErrors.FechaDevolucionInvalida);
 
@@ -138,11 +110,6 @@ public class PrestamoServicio : IPrestamoServicio
         if (prestamo is null)
             return Result.Failure(PrestamoErrors.DatosObligatorios);
 
-        // Verificar que el ejemplar exista y esté disponible
-        var ejemplar = _ejemplarRepositorio.GetById(prestamo.EjemplarId);
-        if (ejemplar is null || !ejemplar.Disponible)
-            return Result.Failure(PrestamoErrors.EjemplarNoDisponible);
-
         // Verificar que el lector exista y esté activo
         var lector = _usuarioRepositorio.GetById(prestamo.LectorId);
         if (lector is null || !lector.Estado || !string.Equals(lector.Rol, Usuario.RolLector, StringComparison.Ordinal))
@@ -159,5 +126,10 @@ public class PrestamoServicio : IPrestamoServicio
     {
         var prestamos = _prestamoRepositorio.GetAll();
         return prestamos.Count(p => p.Estado == 1 && p.LectorId == lectorId);
+    }
+
+    public int InsertAndReturnId(Prestamo prestamo)
+    {
+        return _prestamoRepositorio.Insert(prestamo);
     }
 }

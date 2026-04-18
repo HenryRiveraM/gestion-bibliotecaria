@@ -35,7 +35,12 @@ builder.Services.AddScoped<IAutorServicio, AutorServicio>();
 builder.Services.AddScoped<ILibroServicio, LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
 builder.Services.AddScoped<IPrestamoRepositorio>(sp => new PrestamoRepository());
+builder.Services.AddScoped<IDetalleRepositorio>(sp => new DetalleRepository());
 builder.Services.AddScoped<IPrestamoServicio, PrestamoServicio>();
+builder.Services.AddScoped<IDetalleServicio>(sp => new DetalleServicio(
+    sp.GetRequiredService<IDetalleRepositorio>(),
+    sp.GetRequiredService<IEjemplarRepositorio>()
+));
 builder.Services.AddScoped<gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada, gestion_bibliotecaria.Aplicacion.Fachadas.PrestamoFachada>();
 builder.Services.AddScoped<IUserCredentialProvisioningService, UserCredentialProvisioningService>();
 builder.Services.AddScoped<IUsuarioServicio, UsuarioServicio>();

@@ -5,7 +5,7 @@ namespace gestion_bibliotecaria.Domain.Ports;
 public interface IPrestamoRepositorio
 {
     IEnumerable<Prestamo> GetAll();
-    void Insert(Prestamo prestamo);
+    int Insert(Prestamo prestamo);
     void Update(Prestamo prestamo);
     void Delete(Prestamo prestamo);
     Prestamo? GetById(int id);

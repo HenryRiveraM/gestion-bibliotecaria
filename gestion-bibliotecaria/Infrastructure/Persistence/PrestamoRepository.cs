@@ -19,7 +19,7 @@ public class PrestamoRepository : IPrestamoRepositorio
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
-        string query = @"SELECT p.PrestamoId, p.EjemplarId, p.LectorId, p.FechaPrestamo, p.FechaDevolucionEsperada, p.FechaDevolucionReal, p.ObservacionesSalida, p.ObservacionesEntrada, p.Estado, p.UsuarioSesionId, p.FechaRegistro, p.UltimaActualizacion
+        string query = @"SELECT p.PrestamoId, p.LectorId, p.FechaPrestamo, p.FechaDevolucionEsperada, p.FechaDevolucionReal, p.ObservacionesSalida, p.ObservacionesEntrada, p.Estado, p.UsuarioSesionId, p.FechaRegistro, p.UltimaActualizacion
                          FROM prestamo p
                          ORDER BY p.FechaPrestamo DESC;";
 
@@ -30,7 +30,6 @@ public class PrestamoRepository : IPrestamoRepositorio
             prestamos.Add(new Prestamo
             {
                 PrestamoId = reader.GetInt32("PrestamoId"),
-                EjemplarId = reader.GetInt32("EjemplarId"),
                 LectorId = reader.GetInt32("LectorId"),
                 FechaPrestamo = reader.GetDateTime("FechaPrestamo"),
                 FechaDevolucionEsperada = reader.GetDateTime("FechaDevolucionEsperada"),
@@ -47,18 +46,18 @@ public class PrestamoRepository : IPrestamoRepositorio
         return prestamos;
     }
 
-    public void Insert(Prestamo p)
+    public int Insert(Prestamo p)
     {
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
 
         string query = @"INSERT INTO prestamo
-            (EjemplarId, LectorId, FechaPrestamo, FechaDevolucionEsperada, FechaDevolucionReal, ObservacionesSalida, ObservacionesEntrada, Estado, UsuarioSesionId, FechaRegistro)
+            (LectorId, FechaPrestamo, FechaDevolucionEsperada, FechaDevolucionReal, ObservacionesSalida, ObservacionesEntrada, Estado, UsuarioSesionId, FechaRegistro)
             VALUES
-            (@EjemplarId, @LectorId, @FechaPrestamo, @FechaDevolucionEsperada, @FechaDevolucionReal, @ObservacionesSalida, @ObservacionesEntrada, @Estado, @UsuarioSesionId, NOW());";
+            (@LectorId, @FechaPrestamo, @FechaDevolucionEsperada, @FechaDevolucionReal, @ObservacionesSalida, @ObservacionesEntrada, @Estado, @UsuarioSesionId, NOW());
+            SELECT LAST_INSERT_ID();";
 
         using MySqlCommand command = new MySqlCommand(query, connection);
-        command.Parameters.AddWithValue("@EjemplarId", p.EjemplarId);
         command.Parameters.AddWithValue("@LectorId", p.LectorId);
         command.Parameters.AddWithValue("@FechaPrestamo", p.FechaPrestamo);
         command.Parameters.AddWithValue("@FechaDevolucionEsperada", p.FechaDevolucionEsperada);
@@ -68,7 +67,10 @@ public class PrestamoRepository : IPrestamoRepositorio
         command.Parameters.AddWithValue("@Estado", p.Estado);
         command.Parameters.AddWithValue("@UsuarioSesionId", p.UsuarioSesionId ?? (object)DBNull.Value);
 
-        command.ExecuteNonQuery();
+        var result = command.ExecuteScalar();
+        int prestamoId = result != null ? Convert.ToInt32(result) : 0;
+        p.PrestamoId = prestamoId;
+        return prestamoId;
     }
 
     public void Update(Prestamo p)
@@ -77,8 +79,7 @@ public class PrestamoRepository : IPrestamoRepositorio
         connection.Open();
 
         string query = @"UPDATE prestamo
-            SET EjemplarId = @EjemplarId,
-                LectorId = @LectorId,
+            SET LectorId = @LectorId,
                 FechaPrestamo = @FechaPrestamo,
                 FechaDevolucionEsperada = @FechaDevolucionEsperada,
                 FechaDevolucionReal = @FechaDevolucionReal,
@@ -91,7 +92,6 @@ public class PrestamoRepository : IPrestamoRepositorio
 
         using MySqlCommand command = new MySqlCommand(query, connection);
         command.Parameters.AddWithValue("@PrestamoId", p.PrestamoId);
-        command.Parameters.AddWithValue("@EjemplarId", p.EjemplarId);
         command.Parameters.AddWithValue("@LectorId", p.LectorId);
         command.Parameters.AddWithValue("@FechaPrestamo", p.FechaPrestamo);
         command.Parameters.AddWithValue("@FechaDevolucionEsperada", p.FechaDevolucionEsperada);
@@ -133,7 +133,6 @@ public class PrestamoRepository : IPrestamoRepositorio
             return new Prestamo
             {
                 PrestamoId = reader.GetInt32("PrestamoId"),
-                EjemplarId = reader.GetInt32("EjemplarId"),
                 LectorId = reader.GetInt32("LectorId"),
                 FechaPrestamo = reader.GetDateTime("FechaPrestamo"),
                 FechaDevolucionEsperada = reader.GetDateTime("FechaDevolucionEsperada"),
@@ -161,12 +160,11 @@ public class PrestamoRepository : IPrestamoRepositorio
             foreach (var p in prestamos)
             {
                 string query = @"INSERT INTO prestamo
-        (EjemplarId, LectorId, FechaPrestamo, FechaDevolucionEsperada, FechaDevolucionReal, ObservacionesSalida, ObservacionesEntrada, Estado, UsuarioSesionId, FechaRegistro)
+        (LectorId, FechaPrestamo, FechaDevolucionEsperada, FechaDevolucionReal, ObservacionesSalida, ObservacionesEntrada, Estado, UsuarioSesionId, FechaRegistro)
         VALUES
-        (@EjemplarId, @LectorId, @FechaPrestamo, @FechaDevolucionEsperada, @FechaDevolucionReal, @ObservacionesSalida, @ObservacionesEntrada, @Estado, @UsuarioSesionId, NOW());";
+        (@LectorId, @FechaPrestamo, @FechaDevolucionEsperada, @FechaDevolucionReal, @ObservacionesSalida, @ObservacionesEntrada, @Estado, @UsuarioSesionId, NOW());";
 
                 using MySqlCommand cmd = new MySqlCommand(query, connection, transaction);
-                cmd.Parameters.AddWithValue("@EjemplarId", p.EjemplarId);
                 cmd.Parameters.AddWithValue("@LectorId", p.LectorId);
                 cmd.Parameters.AddWithValue("@FechaPrestamo", p.FechaPrestamo);
                 cmd.Parameters.AddWithValue("@FechaDevolucionEsperada", p.FechaDevolucionEsperada);
@@ -177,13 +175,6 @@ public class PrestamoRepository : IPrestamoRepositorio
                 cmd.Parameters.AddWithValue("@UsuarioSesionId", p.UsuarioSesionId ?? (object)DBNull.Value);
 
                 cmd.ExecuteNonQuery();
-
-                // Update ejemplar to mark as not available
-                string updateEjemplar = @"UPDATE ejemplar SET Disponible = 0, UsuarioSesionId = @UsuarioSesionId WHERE EjemplarId = @EjemplarId;";
-                using MySqlCommand cmd2 = new MySqlCommand(updateEjemplar, connection, transaction);
-                cmd2.Parameters.AddWithValue("@EjemplarId", p.EjemplarId);
-                cmd2.Parameters.AddWithValue("@UsuarioSesionId", p.UsuarioSesionId ?? (object)DBNull.Value);
-                cmd2.ExecuteNonQuery();
             }
 
             transaction.Commit();

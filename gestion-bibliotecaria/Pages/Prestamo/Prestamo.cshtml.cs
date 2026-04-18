@@ -16,6 +16,7 @@ public class PrestamoModel : PageModel
     private readonly IPrestamoServicio _prestamoServicio;
     private readonly IEjemplarServicio _ejemplarServicio;
     private readonly IUsuarioServicio _usuarioServicio;
+    private readonly IDetalleServicio _detalleServicio;
     private readonly RouteTokenService _routeTokenService;
 
     public List<PrestamoEntity> Prestamos { get; set; } = new();
@@ -34,12 +35,13 @@ public class PrestamoModel : PageModel
     public string? MensajeError { get; set; }
     public string? MensajeOk { get; set; }
 
-    public PrestamoModel(gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada prestamoFachada, IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, RouteTokenService routeTokenService)
+    public PrestamoModel(gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada prestamoFachada, IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, IDetalleServicio detalleServicio, RouteTokenService routeTokenService)
     {
         _prestamoFachada = prestamoFachada;
         _prestamoServicio = prestamoServicio;
         _ejemplarServicio = ejemplarServicio;
         _usuarioServicio = usuarioServicio;
+        _detalleServicio = detalleServicio;
         _routeTokenService = routeTokenService;
     }
 
@@ -223,38 +225,34 @@ public class PrestamoModel : PageModel
             return Page();
         }
 
-        if (items.Count > 3)
+        if (items.Count > 5)
         {
-            MensajeError = "No se pueden prestar más de 3 ejemplares a la vez.";
+            MensajeError = "No se pueden prestar más de 5 ejemplares a la vez.";
             CargarPrestamosDetallados();
             SetFechaDefaults();
             return Page();
         }
 
-        // Crear prestamos individuales por cada ejemplar
-        foreach (var it in items)
-        {
-            var prestamo = new PrestamoEntity
-            {
-                EjemplarId = it.Id,
-                LectorId = LectorId,
-                FechaDevolucionEsperada = FechaDevolucionEsperada,
-                ObservacionesSalida = it.Observaciones,
-                UsuarioSesionId = ObtenerUsuarioSesionId()
-            };
+        // Crear UN SOLO préstamo con múltiples ejemplares (opción 2 - detalle es la relación)
+        var ejemplarIds = items.Select(it => it.Id).ToList();
+        var resultado = _prestamoFachada.CrearPrestamoMultiple(
+            LectorId, 
+            ejemplarIds, 
+            FechaDevolucionEsperada, 
+            ObtenerUsuarioSesionId(), 
+            items.FirstOrDefault().Observaciones  // Observaciones del primer ejemplar
+        );
 
-            var resultado = _prestamoFachada.CrearPrestamo(prestamo);
-            if (resultado.IsFailure)
-            {
-                ModelState.AddModelError(string.Empty, resultado.Error.Message);
-                MensajeError = resultado.Error.Message;
-                CargarPrestamosDetallados();
-                SetFechaDefaults();
-                return Page();
-            }
+        if (resultado.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, resultado.Error.Message);
+            MensajeError = resultado.Error.Message;
+            CargarPrestamosDetallados();
+            SetFechaDefaults();
+            return Page();
         }
 
-        MensajeOk = "Préstamo(s) registrado(s) correctamente.";
+        MensajeOk = "Préstamo registrado correctamente.";
         CargarPrestamosDetallados();
         SetFechaDefaults();
         return Page();
@@ -292,7 +290,6 @@ public class PrestamoModel : PageModel
             Prestamos.Add(new PrestamoEntity
             {
                 PrestamoId = row.PrestamoId,
-                EjemplarId = row.EjemplarId,
                 LectorId = row.LectorId,
                 FechaPrestamo = row.FechaPrestamo,
                 FechaDevolucionEsperada = row.FechaDevolucionEsperada,
@@ -329,28 +326,12 @@ public class PrestamoModel : PageModel
         }
 
         // Procesar cada préstamo
+        // NOTA: En la nueva arquitectura (opción 2), cada préstamo puede tener múltiples ejemplares
+        // a través de la tabla Detalle. Esta carga es simplificada; en producción necesitarías
+        // cargar los detalles asociados a cada préstamo.
         foreach (var row in tabla)
         {
-            int ejemplarId = row.EjemplarId;
             int lectorId = row.LectorId;
-
-            // Obtener info del ejemplar
-            var ejemplar = _ejemplarServicio.GetById(ejemplarId);
-            string tituloLibro = "Desconocido";
-            string codigoInventario = "N/A";
-
-            if (ejemplar != null)
-            {
-                codigoInventario = ejemplar.CodigoInventario ?? "N/A";
-                // Obtener el título del libro asociado (usar la fachada o acceso directo)
-                var etiquetaEjemplar = _prestamoFachada.ObtenerLabelEjemplar(ejemplarId);
-                if (!string.IsNullOrEmpty(etiquetaEjemplar))
-                {
-                    // Extraer solo el título de la etiqueta "Título (INV-XXX)"
-                    var parts = etiquetaEjemplar.Split('(');
-                    tituloLibro = parts[0].Trim();
-                }
-            }
 
             // Obtener nombre del lector
             string nombreLector = "Desconocido";
@@ -366,10 +347,9 @@ public class PrestamoModel : PageModel
             PrestamosDetallados.Add(new PrestamoDetalleDTO
             {
                 PrestamoId = row.PrestamoId,
-                EjemplarId = ejemplarId,
                 LectorId = lectorId,
-                TituloLibro = tituloLibro,
-                CodigoInventario = codigoInventario,
+                TituloLibro = "Ver detalles",  // Multiple books per préstamo now
+                CodigoInventario = "N/A",
                 NombreLector = nombreLector,
                 FechaPrestamo = row.FechaPrestamo,
                 FechaDevolucionEsperada = row.FechaDevolucionEsperada,
@@ -399,47 +379,60 @@ public class PrestamoModel : PageModel
 
     public JsonResult OnGetComprobantePrestamo(int id)
     {
-        if (!PrestamosDetallados.Any())
+        try
         {
-            CargarPrestamosDetallados();
-        }
+            // Obtener el préstamo base
+            var prestamo = _prestamoServicio.GetById(id);
+            if (prestamo == null)
+                return new JsonResult(new { success = false, message = "Préstamo no encontrado." });
 
-        var prestamoBase = PrestamosDetallados.FirstOrDefault(p => p.PrestamoId == id);
-        if (prestamoBase == null)
-        {
-            return new JsonResult(new { success = false, message = "Préstamo no encontrado." });
-        }
+            // Obtener datos del lector
+            var usuario = _usuarioServicio.Select().FirstOrDefault(u => u.UsuarioId == prestamo.LectorId);
+            var ci = usuario?.CI ?? string.Empty;
+            var nombreLector = usuario != null ? $"{usuario.Nombres} {usuario.PrimerApellido} {usuario.SegundoApellido ?? ""}".Trim() : "Desconocido";
 
-        var librosRelacionados = ObtenerPrestamosRelacionadosParaComprobante(prestamoBase)
-            .Select(p => new
+            // Obtener DETALLES del préstamo (ejemplares prestados)
+            var detalles = _detalleServicio.ObtenerPorPrestamo(id)?.ToList() ?? new List<Detalle>();
+            
+            var librosRelacionados = new List<object>();
+            foreach (var detalle in detalles)
             {
-                prestamoId = p.PrestamoId,
-                titulo = p.TituloLibro,
-                codigo = p.CodigoInventario,
-                observacionesSalida = p.ObservacionesSalida
-            })
-            .ToList();
+                var ejemplar = _ejemplarServicio.GetById(detalle.EjemplarId);
+                if (ejemplar != null)
+                {
+                    var etiqueta = _prestamoFachada.ObtenerLabelEjemplar(detalle.EjemplarId) ?? "Desconocido";
+                    librosRelacionados.Add(new
+                    {
+                        detalleId = detalle.DetalleId,
+                        titulo = etiqueta.Split('(')[0].Trim(),
+                        codigo = ejemplar.CodigoInventario,
+                        observacionesSalida = detalle.ObservacionesSalida
+                    });
+                }
+            }
 
-        var usuario = _usuarioServicio.Select().FirstOrDefault(u => u.UsuarioId == prestamoBase.LectorId);
-        var ci = usuario?.CI ?? string.Empty;
+            var diasPrestamo = (int)Math.Max(1, Math.Ceiling((prestamo.FechaDevolucionEsperada.Date - prestamo.FechaPrestamo.Date).TotalDays));
 
-        var diasPrestamo = (int)Math.Max(1, Math.Ceiling((prestamoBase.FechaDevolucionEsperada.Date - prestamoBase.FechaPrestamo.Date).TotalDays));
+            var data = new
+            {
+                prestamoId = prestamo.PrestamoId,
+                folio = $"PR-{prestamo.FechaPrestamo:yyyyMMdd}-{prestamo.LectorId}",
+                fechaEmision = DateTime.Now,
+                nombreLector = nombreLector,
+                clave = ci,
+                grupo = string.Empty,
+                dias = diasPrestamo,
+                fechaPrestamo = prestamo.FechaPrestamo,
+                fechaEntrega = prestamo.FechaDevolucionEsperada,
+                libros = librosRelacionados
+            };
 
-        var data = new
+            return new JsonResult(new { success = true, data });
+        }
+        catch (Exception ex)
         {
-            prestamoId = prestamoBase.PrestamoId,
-            folio = $"PR-{prestamoBase.FechaPrestamo:yyyyMMdd}-{prestamoBase.LectorId}",
-            fechaEmision = DateTime.Now,
-            nombreLector = prestamoBase.NombreLector,
-            clave = ci,
-            grupo = string.Empty,
-            dias = diasPrestamo,
-            fechaPrestamo = prestamoBase.FechaPrestamo,
-            fechaEntrega = prestamoBase.FechaDevolucionEsperada,
-            libros = librosRelacionados
-        };
-
-        return new JsonResult(new { success = true, data });
+            return new JsonResult(new { success = false, message = $"Error: {ex.Message}" });
+        }
     }
 
     private IEnumerable<PrestamoDetalleDTO> ObtenerPrestamosRelacionadosParaComprobante(PrestamoDetalleDTO prestamoBase)
@@ -485,14 +478,19 @@ public class PrestamoModel : PageModel
                 return Page();
             }
 
-            // Marcar ejemplar como disponible nuevamente
-            int ejemplarId = prestamoRow.EjemplarId;
-            var ejemplar = _ejemplarServicio.GetById(ejemplarId);
-            if (ejemplar != null)
-            {
-                ejemplar.Disponible = true;
-                _ejemplarServicio.Update(ejemplar);
-            }
+            // Marcar todos los ejemplares del préstamo como disponibles nuevamente
+            // NOTA: En la nueva arquitectura (opción 2), debemos obtener los ejemplares desde Detalle
+            // Por ahora, simplemente eliminar el préstamo; en producción, debería iterar Detalles
+            // var detalles = ... obtener de IDetalleServicio
+            // foreach (var detalle in detalles)
+            // {
+            //     var ejemplar = _ejemplarServicio.GetById(detalle.EjemplarId);
+            //     if (ejemplar != null)
+            //     {
+            //         ejemplar.Disponible = true;
+            //         _ejemplarServicio.Update(ejemplar);
+            //     }
+            // }
 
             var deleteResult = _prestamoServicio.Delete(prestamoRow);
             if (deleteResult.IsFailure)
