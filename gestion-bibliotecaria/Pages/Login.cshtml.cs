@@ -44,12 +44,22 @@ public class LoginModel : PageModel
         HttpContext.Session.SetString(SessionKeys.NombreUsuario, usuario.NombreUsuario ?? string.Empty);
         HttpContext.Session.SetString(SessionKeys.Rol, usuario.Rol);
 
+        Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+        Response.Headers["Pragma"] = "no-cache";
+        Response.Headers["Expires"] = "0";
+
         return Redirect("/");
     }
 
     public IActionResult OnPostLogout()
     {
         HttpContext.Session.Clear();
+        Response.Cookies.Delete(".AspNetCore.Session");
+
+        Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+        Response.Headers["Pragma"] = "no-cache";
+        Response.Headers["Expires"] = "0";
+
         return Redirect("/");
     }
 }
