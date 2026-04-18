@@ -1,4 +1,5 @@
 using gestion_bibliotecaria.Aplicacion.Fachadas;
+using gestion_bibliotecaria.Aplicacion.Factories;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
@@ -7,64 +8,123 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace gestion_bibliotecaria.Aplicacion.Fachadas;
+
+/// <summary>
+/// FACHADA DE PRÉSTAMO - Lógica Profesional
+/// 
+/// Estructura de BD:
+/// - Prestamo: almacena la TRANSACCIÓN (1 solo registro)
+/// - Detalle: almacena las LÍNEAS del préstamo (N registros, uno por ejemplar)
+/// 
+/// Esto permite:
+/// ✓ Múltiples ejemplares por préstamo
+/// ✓ Devoluciones parciales
+/// ✓ Auditoría clara
+/// </summary>
 public class PrestamoFachada : IPrestamoFachada
 {
     private readonly IPrestamoServicio _prestamoServicio;
     private readonly IEjemplarServicio _ejemplarServicio;
     private readonly IUsuarioServicio _usuarioServicio;
+    private readonly IDetalleServicio _detalleServicio;
 
-    public PrestamoFachada(IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio)
+    public PrestamoFachada(IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, IDetalleServicio detalleServicio)
     {
         _prestamoServicio = prestamoServicio;
         _ejemplar_servicio_check(ejemplarServicio);
         _ejemplarServicio = ejemplarServicio;
         _usuarioServicio = usuarioServicio;
+        _detalleServicio = detalleServicio;
     }
 
-    public Result CrearPrestamos(IEnumerable<Prestamo> prestamos)
+    /// <summary>
+    /// NUEVO MÉTODO PROFESIONAL
+    /// Crear un préstamo con múltiples ejemplares
+    /// 
+    /// Lógica:
+    /// 1. Crear UN SOLO registro en Prestamo
+    /// 2. Crear UN DETALLE por cada ejemplar
+    /// 3. Marcar ejemplares como NO disponibles
+    /// </summary>
+    public Result CrearPrestamoMultiple(int lectorId, IEnumerable<int> ejemplarIds, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null, string? observacionesSalida = null)
     {
-        // Validate each prestamo
-        foreach (var p in prestamos)
-        {
-            var validacion = _prestamoServicio.ValidarPrestamo(p);
-            if (validacion.IsFailure)
-                return Result.Failure(validacion.Error);
-        }
+        var ejemplares = ejemplarIds?.ToList() ?? new List<int>();
+        
+        // Validaciones básicas
+        if (!ejemplares.Any())
+            return Result.Failure(new Error("Prestamo.Error", "Debes seleccionar al menos un ejemplar."));
+
+        if (ejemplares.Count > 5)
+            return Result.Failure(new Error("Prestamo.Error", "No se pueden prestar más de 5 ejemplares a la vez."));
+
+        // Validar límite de préstamos activos
+        var actuales = _prestamoServicio.CountPrestamosActivos(lectorId);
+        if (actuales >= 5)
+            return Result.Failure(new Error("Prestamo.Limite", "El lector ya tiene el máximo de préstamos activos (5)."));
 
         try
         {
-            if (_prestamoServicio is gestion_bibliotecaria.Aplicacion.Servicios.PrestamoServicio svc)
+            // 1️⃣ CREAR UN SOLO PRÉSTAMO (sin referencia a ejemplar)
+            var prestamo = new Prestamo
             {
-                svc.CreateManyAndMarkEjemplares(prestamos);
+                LectorId = lectorId,
+                FechaPrestamo = DateTime.Now,
+                FechaDevolucionEsperada = fechaDevolucionEsperada,
+                ObservacionesSalida = observacionesSalida,
+                Estado = 1,  // ACTIVO
+                UsuarioSesionId = usuarioSesionId
+            };
+
+            // Validar préstamo
+            var validacion = _prestamoServicio.ValidarPrestamo(prestamo);
+            if (validacion.IsFailure)
+                return validacion;
+
+            // Insertar y obtener ID
+            _prestamoServicio.InsertAndReturnId(prestamo);
+            if (prestamo.PrestamoId <= 0)
+                return Result.Failure(new Error("Prestamo.Error", "No se pudo obtener el ID del préstamo."));
+
+            // 2️⃣ CREAR UN DETALLE POR CADA EJEMPLAR
+            var detalles = new List<Detalle>();
+            foreach (var ejemplarId in ejemplares)
+            {
+                var detalle = DetalleFactory.CrearDetalle(prestamo.PrestamoId, ejemplarId, usuarioSesionId, observacionesSalida);
+                detalles.Add(detalle);
             }
-            else
+
+            // Insertar detalles
+            var resultadoDetalles = _detalleServicio.CrearMultiples(detalles);
+            if (resultadoDetalles.IsFailure)
+                return resultadoDetalles;
+
+            // 3️⃣ MARCAR EJEMPLARES COMO NO DISPONIBLES
+            foreach (var ejemplarId in ejemplares)
             {
-                // fallback: create one by one
-                foreach (var p in prestamos)
+                var ejemplar = _ejemplarServicio.GetById(ejemplarId);
+                if (ejemplar != null)
                 {
-                    var dto = new gestion_bibliotecaria.Aplicacion.Dtos.PrestamoDto
-                    {
-                        EjemplarId = p.EjemplarId,
-                        LectorId = p.LectorId,
-                        FechaPrestamo = p.FechaPrestamo,
-                        FechaDevolucionEsperada = p.FechaDevolucionEsperada,
-                        ObservacionesSalida = p.ObservacionesSalida,
-                        UsuarioSesionId = p.UsuarioSesionId,
-                        Estado = p.Estado
-                    };
-                    _prestamoServicio.Create(dto);
+                    ejemplar.Disponible = false;
+                    ejemplar.UsuarioSesionId = usuarioSesionId;
+                    _ejemplarServicio.Update(ejemplar);
                 }
             }
 
             return Result.Success();
         }
-        catch
+        catch (Exception ex)
         {
-            return Result.Failure(new Error("Prestamo.Error", "No se pudo crear los préstamos."));
+            return Result.Failure(new Error("Prestamo.Error", $"Error al crear préstamo: {ex.Message}"));
         }
     }
 
-    // simple helper to avoid unused warning in older compilers (keeps constructor logic similar)
+    public Result CrearPrestamos(IEnumerable<Prestamo> prestamos)
+    {
+        // Este método es DEPRECATED - usa CrearPrestamoMultiple en su lugar
+        // Se mantiene solo para compatibilidad temporal
+        throw new NotImplementedException("Use CrearPrestamoMultiple instead");
+    }
+
     private void _ejemplar_servicio_check(IEjemplarServicio dummy) { }
 
     public IEnumerable<KeyValuePair<int, string>> BuscarEjemplaresActivos(string q)
@@ -99,10 +159,7 @@ public class PrestamoFachada : IPrestamoFachada
 
                 if (string.IsNullOrWhiteSpace(q) || ci.StartsWith(q, StringComparison.OrdinalIgnoreCase))
                 {
-                    lista.Add(new KeyValuePair<int, string>(
-                        u.UsuarioId, 
-                        ci + " - " + nombres
-                    ));
+                    lista.Add(new KeyValuePair<int, string>(u.UsuarioId, ci + " - " + nombres));
                 }
             }
             catch
@@ -123,20 +180,15 @@ public class PrestamoFachada : IPrestamoFachada
         {
             try
             {
-                var estado = u.Estado;
-                var rol = u.Rol ?? "NO_ROL";
-                var ci = u.CI ?? "NULL_CI";
-                var nombres = u.Nombres ?? "NO_NOMBRES";
-
                 lista.Add(new
                 {
                     usuarioId = u.UsuarioId,
-                    ci = ci,
-                    nombres = nombres,
-                    rol = rol,
-                    estado = estado,
-                    esLector = rol.Equals("Lector", StringComparison.OrdinalIgnoreCase),
-                    ciNoVacio = !string.IsNullOrWhiteSpace(ci) && ci != "NULL_CI"
+                    ci = u.CI ?? "NULL_CI",
+                    nombres = u.Nombres ?? "NO_NOMBRES",
+                    rol = u.Rol ?? "NO_ROL",
+                    estado = u.Estado,
+                    esLector = (u.Rol ?? "").Equals("Lector", StringComparison.OrdinalIgnoreCase),
+                    ciNoVacio = !string.IsNullOrWhiteSpace(u.CI)
                 });
             }
             catch (Exception ex)
@@ -169,7 +221,6 @@ public class PrestamoFachada : IPrestamoFachada
         if (ejemplar == null)
             return null;
 
-        // Get the title from the servicios
         var titulos = _ejemplarServicio.ObtenerTitulosLibros();
         if (titulos.TryGetValue(ejemplar.LibroId, out var titulo))
         {
@@ -181,11 +232,10 @@ public class PrestamoFachada : IPrestamoFachada
 
     public gestion_bibliotecaria.Domain.Entities.Usuario? ObtenerUsuarioPorCi(string ci)
     {
-        // buscar en repo de usuarios (no existe método por ci, iterar tabla)
         var usuarios = _usuarioServicio.Select();
         foreach (var u in usuarios)
         {
-            var full = u.CI ?? string.Empty; // En el DTO ya está unido el CI con el complemento
+            var full = u.CI ?? string.Empty;
             if (string.Equals(full, ci, StringComparison.OrdinalIgnoreCase))
             {
                 return new gestion_bibliotecaria.Domain.Entities.Usuario
@@ -204,44 +254,7 @@ public class PrestamoFachada : IPrestamoFachada
 
     public Result CrearPrestamo(Prestamo prestamo)
     {
-        var validacion = _prestamoServicio.ValidarPrestamo(prestamo);
-        if (validacion.IsFailure)
-            return Result.Failure(validacion.Error);
-
-        // Limitar prestamos activos por lector a 3
-        var actuales = _prestamoServicio.CountPrestamosActivos(prestamo.LectorId);
-        if (actuales >= 3)
-        {
-            return Result.Failure(new Error("Prestamo.Limite", "El lector ya tiene el máximo de préstamos activos (3)."));
-        }
-
-        try
-        {
-            prestamo.FechaPrestamo = DateTime.Now;
-            // Use service method that also marks ejemplar as not available
-            if (_prestamoServicio is gestion_bibliotecaria.Aplicacion.Servicios.PrestamoServicio svc)
-            {
-                svc.CreateAndMarkEjemplar(prestamo);
-            }
-            else
-            {
-                var dto = new gestion_bibliotecaria.Aplicacion.Dtos.PrestamoDto
-                {
-                    EjemplarId = prestamo.EjemplarId,
-                    LectorId = prestamo.LectorId,
-                    FechaPrestamo = prestamo.FechaPrestamo,
-                    FechaDevolucionEsperada = prestamo.FechaDevolucionEsperada,
-                    ObservacionesSalida = prestamo.ObservacionesSalida,
-                    UsuarioSesionId = prestamo.UsuarioSesionId,
-                    Estado = prestamo.Estado
-                };
-                _prestamoServicio.Create(dto);
-            }
-            return Result.Success();
-        }
-        catch
-        {
-            return Result.Failure(new Error("Prestamo.Error", "No se pudo crear el préstamo."));
-        }
+        // Este método es DEPRECATED - usa CrearPrestamoMultiple en su lugar
+        throw new NotImplementedException("Use CrearPrestamoMultiple instead");
     }
 }

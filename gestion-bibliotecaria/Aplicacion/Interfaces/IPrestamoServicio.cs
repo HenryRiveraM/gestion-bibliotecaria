@@ -14,4 +14,5 @@ public interface IPrestamoServicio
     Prestamo? GetById(int id);
     Result ValidarPrestamo(Prestamo prestamo);
     int CountPrestamosActivos(int lectorId);
+    int InsertAndReturnId(Prestamo prestamo);
 }

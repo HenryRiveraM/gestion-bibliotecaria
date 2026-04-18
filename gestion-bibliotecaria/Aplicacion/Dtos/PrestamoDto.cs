@@ -5,7 +5,6 @@ namespace gestion_bibliotecaria.Aplicacion.Dtos;
 public class PrestamoDto
 {
     public int PrestamoId { get; set; }
-    public int EjemplarId { get; set; }
     public int LectorId { get; set; }
     public DateTime FechaPrestamo { get; set; }
     public DateTime FechaDevolucionEsperada { get; set; }
@@ -17,6 +16,4 @@ public class PrestamoDto
 
     // Additional fields for grid display
     public string UsuarioNombre { get; set; } = string.Empty;
-    public string LibroTitulo { get; set; } = string.Empty;
-    public string EjemplarDetalle { get; set; } = string.Empty;
 }
