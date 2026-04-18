@@ -90,7 +90,8 @@
 .tabla-usuarios{
     width:100%;
     border-collapse:collapse;
-    min-width:1000px;
+    min-width:1120px;
+    table-layout:fixed;
 }
 
 .tabla-usuarios thead tr{
@@ -104,6 +105,7 @@
     font-size:15px;
     font-weight:700;
     white-space:nowrap;
+    vertical-align:middle;
 }
 
 .tabla-usuarios td{
@@ -111,10 +113,54 @@
     padding:14px 12px;
     border-bottom:1px solid #2a2a2a;
     vertical-align:middle;
+    overflow-wrap:anywhere;
+}
+
+.tabla-usuarios tbody tr:nth-child(even){
+    background:rgba(255,255,255,.02);
 }
 
 .tabla-usuarios tbody tr:hover{
     background:#1d1d1d;
+}
+
+.tabla-usuarios th:nth-child(1),
+.tabla-usuarios td:nth-child(1){
+    width:12%;
+}
+
+.tabla-usuarios th:nth-child(2),
+.tabla-usuarios td:nth-child(2),
+.tabla-usuarios th:nth-child(3),
+.tabla-usuarios td:nth-child(3){
+    width:11%;
+}
+
+.tabla-usuarios th:nth-child(4),
+.tabla-usuarios td:nth-child(4){
+    width:23%;
+}
+
+.tabla-usuarios th:nth-child(5),
+.tabla-usuarios td:nth-child(5){
+    width:9%;
+}
+
+.tabla-usuarios th:nth-child(6),
+.tabla-usuarios td:nth-child(6){
+    width:10%;
+}
+
+.tabla-usuarios th:nth-child(7),
+.tabla-usuarios td:nth-child(7){
+    width:8%;
+    text-align:center;
+}
+
+.tabla-usuarios th:nth-child(8),
+.tabla-usuarios td:nth-child(8){
+    width:16%;
+    text-align:center;
 }
 
 .estado{
@@ -137,21 +183,24 @@
 
 .acciones{
     white-space:nowrap;
+    text-align:center;
 }
 
 .btn-eliminar{
     display:inline-flex;
     align-items:center;
+    justify-content:center;
     gap:6px;
     background:#dc2626;
     color:#fff;
-    padding:10px 12px;
+    padding:10px 14px;
     border:none;
     border-radius:10px;
     cursor:pointer;
     font-size:14px;
     font-weight:600;
     transition:.2s ease;
+    min-width:118px;
 }
 
 .btn-eliminar:hover{
@@ -161,6 +210,9 @@
 .text-muted{
     color:#9ca3af;
     font-size:13px;
+    display:inline-block;
+    text-align:center;
+    width:100%;
 }
 
 /* MODAL */
@@ -351,5 +403,12 @@
     .modal-box h2{
         font-size:26px;
     }
-}
 
+    .tabla-container{
+        padding:16px;
+    }
+
+    .tabla-usuarios{
+        min-width:980px;
+    }
+}

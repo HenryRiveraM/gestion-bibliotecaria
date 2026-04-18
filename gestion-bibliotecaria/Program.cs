@@ -18,22 +18,32 @@ ConfigurationSingleton.Initialize(builder.Configuration);
 builder.Services.AddScoped<RouteTokenService>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection(EmailSettings.SectionName));
 builder.Services.AddHttpClient();
+
 builder.Services.AddDistributedMemoryCache();
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
+
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+
+    // Mejora de seguridad para la cookie de sesión
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository());
 builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository());
 builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository());
 builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository());
+
 builder.Services.AddScoped<IEmailSender>(EmailSenderFactory.Create);
+
 builder.Services.AddScoped<IAutorServicio, AutorServicio>();
 builder.Services.AddScoped<ILibroServicio, LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
+
 builder.Services.AddScoped<IPrestamoRepositorio>(sp => new PrestamoRepository());
 builder.Services.AddScoped<IDetalleRepositorio>(sp => new DetalleRepository());
 builder.Services.AddScoped<IPrestamoServicio, PrestamoServicio>();
@@ -66,10 +76,9 @@ app.UseRouting();
 
 app.UseSession();
 
-app.Use(async (context, next) =>
+static bool IsPublicPath(PathString path)
 {
-    var path = context.Request.Path;
-    var isPublicPath =
+    return
         path.Equals("/", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/Index", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWithSegments("/Login", StringComparison.OrdinalIgnoreCase) ||
@@ -81,8 +90,42 @@ app.Use(async (context, next) =>
         path.StartsWithSegments("/assets", StringComparison.OrdinalIgnoreCase) ||
         path.Equals("/favicon.ico", StringComparison.OrdinalIgnoreCase) ||
         path.Equals("/gestion_bibliotecaria.styles.css", StringComparison.OrdinalIgnoreCase);
+}
 
-    if (isPublicPath)
+/*
+    Middleware anti-caché.
+    Evita que páginas privadas queden visibles al usar la flecha atrás
+    después de cerrar sesión.
+*/
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path;
+
+    if (!IsPublicPath(path))
+    {
+        context.Response.OnStarting(() =>
+        {
+            context.Response.Headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0";
+            context.Response.Headers["Pragma"] = "no-cache";
+            context.Response.Headers["Expires"] = "0";
+
+            return Task.CompletedTask;
+        });
+    }
+
+    await next();
+});
+
+/*
+    Middleware de control de acceso.
+    Las rutas públicas pueden verse sin sesión.
+    Las rutas privadas requieren sesión activa.
+*/
+app.Use(async (context, next) =>
+{
+    var path = context.Request.Path;
+
+    if (IsPublicPath(path))
     {
         await next();
         return;
@@ -92,7 +135,7 @@ app.Use(async (context, next) =>
 
     if (string.IsNullOrWhiteSpace(usuarioSesion))
     {
-        context.Response.Redirect("/Login");
+        context.Response.Redirect("/");
         return;
     }
 
@@ -102,6 +145,7 @@ app.Use(async (context, next) =>
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
 app.MapRazorPages()
     .WithStaticAssets();
 

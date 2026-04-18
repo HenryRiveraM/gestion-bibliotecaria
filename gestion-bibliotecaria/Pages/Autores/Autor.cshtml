@@ -98,13 +98,15 @@
                     var token = autor.RouteToken;
                     var nombres = autor.Nombres ?? "";
                     var apellidos = autor.Apellidos ?? "";
+                    var nombresDisplay = nombres.ToDisplayName();
+                    var apellidosDisplay = apellidos.ToDisplayName();
                     var nacionalidad = autor.Nacionalidad ?? "";
                     var fecha = autor.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "";
                     var estado = autor.Estado;
 
                     <tr>
-                        <td>@nombres</td>
-                        <td>@apellidos</td>
+                        <td>@nombresDisplay</td>
+                        <td>@apellidosDisplay</td>
                         <td>@nacionalidad</td>
                         <td>@fecha</td>
 

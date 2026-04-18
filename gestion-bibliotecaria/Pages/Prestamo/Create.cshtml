@@ -49,133 +49,15 @@
         <form method="post" asp-page-handler="Crear" id="formPrestamo" class="prestamo-form" novalidate>
             @Html.AntiForgeryToken()
 
-            <section class="prestamo-panel">
+            <section class="prestamo-panel prestamo-panel-compact">
                 <div class="panel-heading">
                     <div>
                         <span class="form-section-title">Paso 1</span>
-                        <h2>Información del lector</h2>
-                    </div>
-                    <button type="button" class="btn-nuevo" data-bs-toggle="modal" data-bs-target="#modalNuevoLector">
-                        <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" alt="Nuevo lector" />
-                        Nuevo lector
-                    </button>
-                </div>
-
-                <p class="panel-copy">Busca por CI y, si hace falta, registra al lector sin salir de esta pantalla.</p>
-
-                <div class="prestamo-grid lector-grid">
-                    <div class="field-block field-block-wide">
-                        <label for="LectorCi" class="field-label">Documento de identidad</label>
-                        <div class="field-with-floating-results">
-                            <input type="text"
-                                   id="LectorCi"
-                                   name="LectorCi"
-                                   class="input-form"
-                                   placeholder="Escribe el CI para buscar al lector"
-                                   oninput="buscarLectores(this.value)"
-                                   autocomplete="off" />
-                            <div id="sugerencias-lectores" class="sugerencias"></div>
-                        </div>
-                        <small class="field-help">Al seleccionar una sugerencia se cargará el lector automáticamente.</small>
-                        <div id="error-LectorCi" class="field-error"></div>
-                    </div>
-
-                    <div class="field-block">
-                        <label for="LectorComp" class="field-label">Complemento</label>
-                        <input type="text"
-                               id="LectorComp"
-                               name="LectorComp"
-                               class="input-form"
-                               maxlength="8"
-                               placeholder="Ej: 1P" />
-                        <small class="field-help">Opcional. Si existe, úsalo para una búsqueda exacta.</small>
-                    </div>
-                </div>
-
-                <div id="lector-info" class="selected-lector-card" style="display:none;">
-                    <span class="selected-lector-label">Lector seleccionado</span>
-                    <strong id="lector-nombre"></strong>
-                    <small id="lector-ci-display"></small>
-                </div>
-
-                <input type="hidden" id="LectorId" name="LectorId" />
-                <div id="error-LectorId" class="field-error"></div>
-            </section>
-
-            <section class="prestamo-panel">
-                <div class="panel-heading">
-                    <div>
-                        <span class="form-section-title">Paso 2</span>
-                        <h2>Ejemplares a prestar</h2>
-                    </div>
-                </div>
-
-                <p class="panel-copy">Añade hasta tres ejemplares. Cada uno puede llevar una observación de salida.</p>
-
-                <div class="selector-toolbar">
-                    <div class="custom-select-wrapper">
-                        <div class="custom-select" id="custom-select-ejemplar">
-                            <div class="select-trigger">
-                                <input type="text"
-                                       id="input-busqueda-ejemplar"
-                                       class="search-inside-select"
-                                       placeholder="Busca por título o código de inventario"
-                                       autocomplete="off"
-                                       onfocus="mostrarDropdown()" />
-                                <svg class="select-arrow" viewBox="0 0 24 24" aria-hidden="true">
-                                    <polyline points="6 9 12 15 18 9"></polyline>
-                                </svg>
-                            </div>
-                            <div class="select-dropdown">
-                                <div class="select-options" id="lista-opciones-ejemplares">
-                                    <div class="option-loading">Cargando ejemplares...</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <button type="button" class="btn-nuevo" onclick="confirmarSeleccionEjemplar()">
-                        <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" alt="Añadir ejemplar" />
-                        Añadir ejemplar
-                    </button>
-                </div>
-
-                <div id="error-EjemplarData" class="field-error field-error-block"></div>
-
-                <div class="tabla-container tabla-prestamo-seleccion">
-                    <div id="prestamo-empty-state" class="empty-selection-state">
-                        <strong>Aún no agregaste ejemplares</strong>
-                        <span>Busca un ejemplar y presiónalo en “Añadir ejemplar” para incorporarlo al préstamo.</span>
-                    </div>
-
-                    <table id="tabla-ejemplares" class="tabla-ejemplar">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Ejemplar</th>
-                                <th>Conservación</th>
-                                <th>Observaciones de salida</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-
-                <input type="hidden" id="EjemplarData" name="EjemplarData" value="[]" />
-                <input type="hidden" id="ejemplar-temp-id" />
-                <input type="hidden" id="ejemplar-temp-texto" />
-            </section>
-
-            <section class="prestamo-panel">
-                <div class="panel-heading">
-                    <div>
-                        <span class="form-section-title">Paso 3</span>
                         <h2>Plazos del préstamo</h2>
                     </div>
                 </div>
 
-                <div class="prestamo-grid">
+                <div class="prestamo-grid prestamo-grid-tight">
                     <div class="field-block">
                         <label class="field-label">Fecha de préstamo</label>
                         <div class="dato-estatico">
@@ -196,6 +78,136 @@
                         <div id="error-FechaDevolucionEsperada" class="field-error"></div>
                     </div>
                 </div>
+            </section>
+
+            <section class="prestamo-panel prestamo-panel-compact">
+                <div class="panel-heading">
+                    <div>
+                        <span class="form-section-title">Paso 2</span>
+                        <h2>Información del lector</h2>
+                    </div>
+                    <button type="button" class="btn-nuevo" data-bs-toggle="modal" data-bs-target="#modalNuevoLector">
+                        <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" alt="Nuevo lector" />
+                        Nuevo lector
+                    </button>
+                </div>
+
+                <p class="panel-copy">Busca por CI y, si hace falta, registra al lector sin salir de esta pantalla.</p>
+
+                <div class="lector-layout">
+                    <div class="lector-form-column">
+                        <div class="prestamo-grid lector-grid">
+                            <div class="field-block field-block-wide">
+                                <label for="LectorCi" class="field-label">Documento de identidad</label>
+                                <div class="field-with-floating-results">
+                                    <input type="text"
+                                           id="LectorCi"
+                                           name="LectorCi"
+                                           class="input-form"
+                                           placeholder="Escribe el CI para buscar al lector"
+                                           oninput="buscarLectores(this.value)"
+                                           autocomplete="off" />
+                                    <div id="sugerencias-lectores" class="sugerencias"></div>
+                                </div>
+                                <small class="field-help">Al seleccionar una sugerencia se cargará el lector automáticamente.</small>
+                                <div id="error-LectorCi" class="field-error"></div>
+                            </div>
+
+                            <div class="field-block">
+                                <label for="LectorComp" class="field-label">Complemento</label>
+                                <input type="text"
+                                       id="LectorComp"
+                                       name="LectorComp"
+                                       class="input-form"
+                                       maxlength="8"
+                                       placeholder="Ej: 1P" />
+                                <small class="field-help">Opcional. Si existe, úsalo para una búsqueda exacta.</small>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="LectorId" name="LectorId" />
+                        <div id="error-LectorId" class="field-error"></div>
+                    </div>
+
+                    <div class="lector-summary-column">
+                        <div id="lector-info" class="selected-lector-card selected-lector-card-side" style="display:none;">
+                            <span class="selected-lector-label">Lector seleccionado</span>
+                            <strong id="lector-nombre"></strong>
+                            <small id="lector-ci-display"></small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="prestamo-panel">
+                <div class="panel-heading">
+                    <div>
+                        <span class="form-section-title">Paso 3</span>
+                        <h2>Ejemplares a prestar</h2>
+                    </div>
+                </div>
+
+                <p class="panel-copy">Añade hasta tres ejemplares. Cada uno puede llevar una observación de salida.</p>
+
+                <div class="ejemplares-layout">
+                    <div class="ejemplares-selector-column">
+                        <div class="selector-toolbar selector-toolbar-vertical">
+                            <div class="custom-select-wrapper">
+                                <div class="custom-select" id="custom-select-ejemplar">
+                                    <div class="select-trigger">
+                                        <input type="text"
+                                               id="input-busqueda-ejemplar"
+                                               class="search-inside-select"
+                                               placeholder="Busca por título o código de inventario"
+                                               autocomplete="off"
+                                               onfocus="mostrarDropdown()" />
+                                        <svg class="select-arrow" viewBox="0 0 24 24" aria-hidden="true">
+                                            <polyline points="6 9 12 15 18 9"></polyline>
+                                        </svg>
+                                    </div>
+                                    <div class="select-dropdown">
+                                        <div class="select-options" id="lista-opciones-ejemplares">
+                                            <div class="option-loading">Cargando ejemplares...</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn-nuevo btn-full-width" onclick="confirmarSeleccionEjemplar()">
+                                <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" alt="Añadir ejemplar" />
+                                Añadir ejemplar
+                            </button>
+                        </div>
+
+                        <div id="error-EjemplarData" class="field-error field-error-block"></div>
+                    </div>
+
+                    <div class="ejemplares-summary-column">
+                        <div class="tabla-container tabla-prestamo-seleccion">
+                            <div id="prestamo-empty-state" class="empty-selection-state">
+                                <strong>Aún no agregaste ejemplares</strong>
+                                <span>Busca un ejemplar y presiónalo en “Añadir ejemplar” para incorporarlo al préstamo.</span>
+                            </div>
+
+                            <table id="tabla-ejemplares" class="tabla-ejemplar">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Ejemplar</th>
+                                        <th>Conservación</th>
+                                        <th>Observaciones de salida</th>
+                                        <th>Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="EjemplarData" name="EjemplarData" value="[]" />
+                <input type="hidden" id="ejemplar-temp-id" />
+                <input type="hidden" id="ejemplar-temp-texto" />
             </section>
 
             <div class="form-actions">

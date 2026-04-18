@@ -151,7 +151,7 @@
                                 data-bs-toggle="dropdown"
                                 aria-expanded="false">
                                 <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                                @nombreUsuarioSesion
+                                @nombreUsuarioSesion.ToDisplayName()
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end custom-dropdown-menu">
                                 <li>
@@ -178,7 +178,7 @@
 
 @if (!haySesion)
 {
-    <div id="modalLogin" class="modal">
+    <div id="modalLogin" class="custom-modal">
         <div class="modal-box modal-login-box">
 
             <div class="modal-icon login">
@@ -358,6 +358,18 @@
             cerrarModalLogin();
         }
     });
+
+    window.addEventListener("pageshow", function (event) {
+    var navigation = performance.getEntriesByType("navigation")[0];
+
+    var vieneDeAtras =
+        event.persisted ||
+        (navigation && navigation.type === "back_forward");
+
+    if (vieneDeAtras) {
+        window.location.reload();
+    }
+});
 </script>
 
 </body>
