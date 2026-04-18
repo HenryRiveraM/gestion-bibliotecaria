@@ -47,71 +47,65 @@
             <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 
                 <ul class="navbar-nav flex-grow-1">
-
-                    <!-- HOME -->
-                    <li class="nav-item">
-                        <a class="nav-link text-dark d-flex align-items-center gap-2" href="/">
-                            <img src="~/assets/icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Home12
-                        </a>
-                    </li>
-
-                    <!-- EJEMPLAR -->
-                    <li class="nav-item">
-                        <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Ejemplar">
-                            <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Ejemplar
-                        </a>
-                    </li>
-
-                    <!-- LIBROS -->
-                    <li class="nav-item">
-                        <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Libro">
-                            <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Libros
-                        </a>
-                    </li>
-
-                    <!-- AUTORES -->
-                    <li class="nav-item">
-                        <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Autor">
-                            <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Autores
-                        </a>
-                    </li>
-
-                    <!-- PRESTAMOS -->
-                    <li class="nav-item">
-                        <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Prestamo">
-                            <img src="~/assets/icons/history_edu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                            Préstamos
-                        </a>
-                    </li>
-
-                    @if (esAdmin)
+                    @if (haySesion)
                     {
+                        <!-- HOME -->
                         <li class="nav-item">
-                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Usuarios">
-                                <img src="~/assets/icons/groups_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
-                                Usuarios
+                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/">
+                                <img src="~/assets/icons/home_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Home
                             </a>
                         </li>
+
+                        <!-- EJEMPLAR -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Ejemplar">
+                                <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Ejemplar
+                            </a>
+                        </li>
+
+                        <!-- LIBROS -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Libro">
+                                <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Libros
+                            </a>
+                        </li>
+
+                        <!-- AUTORES -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Autor">
+                                <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Autores
+                            </a>
+                        </li>
+
+                        <!-- PRESTAMOS -->
+                        <li class="nav-item">
+                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Prestamo">
+                                <img src="~/assets/icons/history_edu_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                Préstamos
+                            </a>
+                        </li>
+
+                        @if (esAdmin)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Usuarios">
+                                    <img src="~/assets/icons/groups_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
+                                    Usuarios
+                                </a>
+                            </li>
+                        }
                     }
-
-                    <!-- PRIVACY -->
-                    <li class="nav-item">
-                        <a class="nav-link text-dark" href="/Privacy">
-                            Privacy
-                        </a>
-                    </li>
-
                 </ul>
 
                 <ul class="navbar-nav">
                     @if (!haySesion)
                     {
                         <li class="nav-item">
-                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/Login">
+                            <a class="nav-link text-dark d-flex align-items-center gap-2" href="/?login=1">
                                 <img src="~/assets/icons/person_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" width="20">
                                 Iniciar sesion
                             </a>

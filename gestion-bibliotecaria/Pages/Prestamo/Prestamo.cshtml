@@ -33,29 +33,6 @@
             </a>
         </div>
 
-        <div class="prestamo-stats-grid">
-            <article class="prestamo-stat-card">
-                <span class="prestamo-stat-label">Total registrados</span>
-                <strong>@totalPrestamos</strong>
-                <small>Incluye préstamos activos, devueltos y anulados.</small>
-            </article>
-            <article class="prestamo-stat-card">
-                <span class="prestamo-stat-label">Activos</span>
-                <strong>@prestamosActivos</strong>
-                <small>Préstamos que aún no registran devolución real.</small>
-            </article>
-            <article class="prestamo-stat-card">
-                <span class="prestamo-stat-label">Devueltos</span>
-                <strong>@prestamosDevueltos</strong>
-                <small>Operaciones cerradas correctamente.</small>
-            </article>
-            <article class="prestamo-stat-card">
-                <span class="prestamo-stat-label">Anulados</span>
-                <strong>@prestamosAnulados</strong>
-                <small>Registros que fueron desactivados.</small>
-            </article>
-        </div>
-
         @if (!string.IsNullOrWhiteSpace(Model.MensajeOk))
         {
             <div class="alert-custom alert-success-custom">@Model.MensajeOk</div>
@@ -167,6 +144,21 @@
                 </table>
             </div>
         }
+
+        <div class="estadisticas estadisticas-prestamo">
+            <div class="stat stat-info">
+                Total registrados: @totalPrestamos
+            </div>
+            <div class="stat stat-success">
+                Activos: @prestamosActivos
+            </div>
+            <div class="stat stat-warning">
+                Devueltos: @prestamosDevueltos
+            </div>
+            <div class="stat stat-danger">
+                Anulados: @prestamosAnulados
+            </div>
+        </div>
     </div>
 </div>
 
