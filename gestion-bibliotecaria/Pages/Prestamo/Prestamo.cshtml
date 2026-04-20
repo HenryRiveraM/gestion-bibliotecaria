@@ -19,7 +19,7 @@
         <div class="page-header">
             <div class="titulo-logo">
                 <div class="page-icon-shell">
-                    <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header" alt="Prestamos realizados" />
+                    <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-header" alt="Préstamos realizados" />
                 </div>
                 <div>
                     <h1>Préstamos realizados</h1>
@@ -223,14 +223,14 @@
                     <header class="comprobante-header">
                         <img src="/assets/images/blackLogoR.png" class="comprobante-logo" alt="Logo StarBook" />
                         <div class="comprobante-heading">
-                            <h3>RECIBO DE PRESTAMO</h3>
+                            <h3>RECIBO DE PRÉSTAMO</h3>
                             <p>Biblioteca StarBook</p>
                         </div>
                     </header>
 
                     <section class="comprobante-grid comprobante-grid-rows">
                         <div class="comprobante-row">
-                            <strong>Prestamo</strong>
+                            <strong>Préstamo</strong>
                             <span>${escapeHtml((comprobante.prestamoId ?? '').toString())}</span>
                         </div>
                         <div class="comprobante-row comprobante-row-dual">
@@ -245,11 +245,11 @@
                         </div>
                         <div class="comprobante-row comprobante-row-dual">
                             <div>
-                                <strong>Fecha de prestamo</strong>
+                                <strong>Fecha de préstamo</strong>
                                 <span>${formatearFecha(comprobante.fechaPrestamo, false)}</span>
                             </div>
                             <div>
-                                <strong>Fecha de devolucion</strong>
+                                <strong>Fecha de devolución</strong>
                                 <span>${formatearFecha(comprobante.fechaDevolucion, false)}</span>
                             </div>
                         </div>
@@ -347,7 +347,7 @@
 
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(15);
-            doc.text('RECIBO DE PRESTAMO - STARBOOK', margen + 60, margen + 10);
+            doc.text('RECIBO DE PRÉSTAMO - STARBOOK', margen + 60, margen + 10);
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
             doc.text('Biblioteca StarBook', margen + 60, margen + 16);
@@ -376,9 +376,9 @@
                 y += h;
             };
 
-            drawSingleRow('PRESTAMO', String(comprobanteActual.prestamoId || ''));
+            drawSingleRow('PRÉSTAMO', String(comprobanteActual.prestamoId || ''));
             drawDoubleRow('NOMBRE DE LECTOR', comprobanteActual.nombreLector || 'No registrado', 'CI', comprobanteActual.ci || 'No registrado');
-            drawDoubleRow('FECHA DE PRESTAMO', formatearFecha(comprobanteActual.fechaPrestamo, false), 'FECHA DE DEVOLUCION', formatearFecha(comprobanteActual.fechaDevolucion, false));
+            drawDoubleRow('FECHA DE PRÉSTAMO', formatearFecha(comprobanteActual.fechaPrestamo, false), 'FECHA DE DEVOLUCIÓN', formatearFecha(comprobanteActual.fechaDevolucion, false));
 
             y += 4;
             doc.setFont('helvetica', 'bold');
