@@ -70,7 +70,6 @@
                 <table class="tabla-ejemplar tabla-prestamos-historial">
                     <thead>
                         <tr>
-                            <th>ID</th>
                             <th>Libro</th>
                             <th>Código</th>
                             <th>Lector</th>
@@ -101,7 +100,6 @@
                                 data-libro="@p.TituloLibro.ToLowerInvariant()"
                                 data-codigo="@p.CodigoInventario.ToLowerInvariant()"
                                 data-estado="@estadoTexto.ToLowerInvariant()">
-                                <td><span class="badge badge-dark">#@p.PrestamoId</span></td>
                                 <td>
                                     <strong>@p.TituloLibro</strong>
                                 </td>
@@ -117,7 +115,7 @@
                                     }
                                     else
                                     {
-                                        <span class="text-muted">Pendiente</span>
+                                        <span class="text-pendiente">Pendiente</span>
                                     }
                                 </td>
                                 <td class="td-acciones">
@@ -176,6 +174,26 @@
             <button type="button" class="btn-nuevo" onclick="descargarComprobantePdf()">Descargar PDF</button>
             <button type="button" class="btn-secondary" onclick="cerrarModal()">Cerrar</button>
         </div>
+    </div>
+</div>
+
+<div id="modal-anular-prestamo" class="modal">
+    <div class="modal-box">
+        <div class="modal-icon">
+            <img src="~/assets/icons/delete_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-modal" alt="Anular préstamo" />
+        </div>
+        <h2>Anular préstamo</h2>
+        <p id="texto-anular-prestamo">¿Deseas anular este préstamo? Los ejemplares volverán a estar disponibles.</p>
+
+        <form method="post" action="?handler=AnularPrestamo">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="prestamo-id-anular" name="prestamoId" />
+
+            <div class="modal-buttons">
+                <button type="submit" class="btn-danger">Confirmar anulación</button>
+                <button type="button" class="btn-secondary" onclick="cerrarModalAnulacion()">Cancelar</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -448,6 +466,12 @@
                             ? 'Devuelto'
                             : 'Activo';
 
+                    const listaLibros = (p.libros || []);
+                    const listaCodigos = (p.codigos || []);
+                    const librosHtml = listaLibros.length
+                        ? `<ul>${listaLibros.map((libro, idx) => `<li>${escapeHtml(libro)} <small>(${escapeHtml(listaCodigos[idx] || 'S/C')})</small></li>`).join('')}</ul>`
+                        : `<span>${escapeHtml(p.tituloLibro || 'Sin ejemplares')}</span>`;
+
                     const html = `
                         <div class="detalles-grid">
                             <div class="detalle-item">
@@ -459,16 +483,12 @@
                                 <span>${estadoTexto}</span>
                             </div>
                             <div class="detalle-item detalle-item-wide">
-                                <strong>Libro</strong>
-                                <span>${p.tituloLibro}</span>
-                            </div>
-                            <div class="detalle-item">
-                                <strong>Código</strong>
-                                <span>${p.codigoInventario}</span>
+                                <strong>Libros</strong>
+                                ${librosHtml}
                             </div>
                             <div class="detalle-item detalle-item-wide">
                                 <strong>Lector</strong>
-                                <span>${p.nombreLector}</span>
+                                <span>${escapeHtml(p.nombreLector || 'Desconocido')}</span>
                             </div>
                             <div class="detalle-item">
                                 <strong>Salida</strong>
@@ -485,12 +505,12 @@
                             ${p.observacionesSalida ? `
                                 <div class="detalle-obs">
                                     <strong>Observaciones de salida</strong>
-                                    <p>${p.observacionesSalida}</p>
+                                    <p>${escapeHtml(p.observacionesSalida)}</p>
                                 </div>` : ''}
                             ${p.observacionesEntrada ? `
                                 <div class="detalle-obs">
                                     <strong>Observaciones de entrada</strong>
-                                    <p>${p.observacionesEntrada}</p>
+                                    <p>${escapeHtml(p.observacionesEntrada)}</p>
                                 </div>` : ''}
                         </div>`;
 
@@ -517,28 +537,28 @@
             }
         }
 
-        function confirmarAnulacion(prestamoId) {
-            if (!confirm('¿Deseas anular este préstamo? El ejemplar volverá a estar disponible.')) {
-                return;
+        window.confirmarAnulacion = function (prestamoId) {
+            const inputId = document.getElementById('prestamo-id-anular');
+            if (inputId) {
+                inputId.value = prestamoId;
             }
 
-            const form = document.createElement('form');
-            form.method = 'post';
-            form.action = window.location.pathname + '?handler=AnularPrestamo';
-
-            const idInput = document.createElement('input');
-            idInput.type = 'hidden';
-            idInput.name = 'prestamoId';
-            idInput.value = prestamoId;
-
-            const token = document.querySelector('#prestamoAntiForgeryForm input[name="__RequestVerificationToken"]');
-            if (token) {
-                form.appendChild(token.cloneNode());
+            const texto = document.getElementById('texto-anular-prestamo');
+            if (texto) {
+                texto.textContent = `¿Deseas anular el préstamo #${prestamoId}? Los ejemplares volverán a estar disponibles.`;
             }
 
-            form.appendChild(idInput);
-            document.body.appendChild(form);
-            form.submit();
+            const modal = document.getElementById('modal-anular-prestamo');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+
+        function cerrarModalAnulacion() {
+            const modal = document.getElementById('modal-anular-prestamo');
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
 
         document.getElementById('buscador-prestamo')?.addEventListener('input', function (e) {
@@ -552,6 +572,10 @@
         window.addEventListener('click', function (e) {
             if (e.target === document.getElementById('modal-detalles')) {
                 cerrarModal();
+            }
+
+            if (e.target === document.getElementById('modal-anular-prestamo')) {
+                cerrarModalAnulacion();
             }
         });
     </script>

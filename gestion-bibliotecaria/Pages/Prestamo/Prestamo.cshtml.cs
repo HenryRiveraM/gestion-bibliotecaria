@@ -310,6 +310,13 @@ public class PrestamoModel : PageModel
         var tabla = _prestamoServicio.Select();
         PrestamosDetallados = new List<PrestamoDetalleDTO>();
 
+        var detallesPorPrestamo = _detalleServicio.ObtenerTodos()
+            .GroupBy(d => d.PrestamoId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        var titulosLibros = _ejemplarServicio.ObtenerTitulosLibros();
+        var cacheEjemplares = new Dictionary<int, gestion_bibliotecaria.Aplicacion.Dtos.EjemplarDto?>();
+
         // Cargar todos los usuarios en memoria para búsqueda rápida
         var usuariosTabla = _usuarioServicio.Select();
         var usuariosDict = new Dictionary<int, (string Nombres, string PrimerApellido, string? SegundoApellido)>();
@@ -326,15 +333,10 @@ public class PrestamoModel : PageModel
             catch { }
         }
 
-        // Procesar cada préstamo
-        // NOTA: En la nueva arquitectura (opción 2), cada préstamo puede tener múltiples ejemplares
-        // a través de la tabla Detalle. Esta carga es simplificada; en producción necesitarías
-        // cargar los detalles asociados a cada préstamo.
         foreach (var row in tabla)
         {
             int lectorId = row.LectorId;
 
-            // Obtener nombre del lector
             string nombreLector = "Desconocido";
             if (usuariosDict.TryGetValue(lectorId, out var usuario))
             {
@@ -347,12 +349,55 @@ public class PrestamoModel : PageModel
                 nombreLector = nombreLector.ToDisplayName();
             }
 
+            var libros = new List<string>();
+            var codigos = new List<string>();
+
+            if (detallesPorPrestamo.TryGetValue(row.PrestamoId, out var detallesPrestamo))
+            {
+                foreach (var detalle in detallesPrestamo)
+                {
+                    if (!cacheEjemplares.TryGetValue(detalle.EjemplarId, out var ejemplar))
+                    {
+                        ejemplar = _ejemplarServicio.GetById(detalle.EjemplarId);
+                        cacheEjemplares[detalle.EjemplarId] = ejemplar;
+                    }
+
+                    if (ejemplar == null)
+                    {
+                        continue;
+                    }
+
+                    var titulo = !string.IsNullOrWhiteSpace(ejemplar.LibroTitulo)
+                        ? ejemplar.LibroTitulo
+                        : (titulosLibros.TryGetValue(ejemplar.LibroId, out var t) ? t : "Sin título");
+
+                    libros.Add((titulo ?? "Sin título").ToDisplayName());
+                    codigos.Add(string.IsNullOrWhiteSpace(ejemplar.CodigoInventario) ? "S/C" : ejemplar.CodigoInventario);
+                }
+            }
+
+            var tituloResumen = "Sin ejemplares";
+            var codigoResumen = "N/A";
+
+            if (libros.Count == 1)
+            {
+                tituloResumen = libros[0];
+                codigoResumen = codigos.FirstOrDefault() ?? "S/C";
+            }
+            else if (libros.Count > 1)
+            {
+                tituloResumen = $"{libros[0]} (+{libros.Count - 1} más)";
+                codigoResumen = $"{codigos[0]} (+{codigos.Count - 1})";
+            }
+
             PrestamosDetallados.Add(new PrestamoDetalleDTO
             {
                 PrestamoId = row.PrestamoId,
                 LectorId = lectorId,
-                TituloLibro = "Ver detalles",  // Multiple books per préstamo now
-                CodigoInventario = "N/A",
+                TituloLibro = tituloResumen,
+                CodigoInventario = codigoResumen,
+                Libros = libros,
+                Codigos = codigos,
                 NombreLector = nombreLector,
                 FechaPrestamo = row.FechaPrestamo,
                 FechaDevolucionEsperada = row.FechaDevolucionEsperada,
@@ -462,6 +507,8 @@ public class PrestamoModel : PageModel
     {
         try
         {
+            var usuarioSesionId = ObtenerUsuarioSesionId();
+
             // Obtener el préstamo actual
             var tabla = _prestamoServicio.Select();
             gestion_bibliotecaria.Aplicacion.Dtos.PrestamoDto? prestamoRow = null;
@@ -481,20 +528,42 @@ public class PrestamoModel : PageModel
                 return Page();
             }
 
-            // Marcar todos los ejemplares del préstamo como disponibles nuevamente
-            // NOTA: En la nueva arquitectura (opción 2), debemos obtener los ejemplares desde Detalle
-            // Por ahora, simplemente eliminar el préstamo; en producción, debería iterar Detalles
-            // var detalles = ... obtener de IDetalleServicio
-            // foreach (var detalle in detalles)
-            // {
-            //     var ejemplar = _ejemplarServicio.GetById(detalle.EjemplarId);
-            //     if (ejemplar != null)
-            //     {
-            //         ejemplar.Disponible = true;
-            //         _ejemplarServicio.Update(ejemplar);
-            //     }
-            // }
+            // 1) Obtener detalles del préstamo
+            var detalles = _detalleServicio.ObtenerPorPrestamo(prestamoId)?.ToList() ?? new List<Detalle>();
 
+            // 2) Marcar ejemplares como disponibles y detalles como anulados
+            foreach (var detalle in detalles)
+            {
+                detalle.EstadoDetalle = 0;
+                detalle.UsuarioSesionId = usuarioSesionId ?? detalle.UsuarioSesionId;
+                var resultadoDetalle = _detalleServicio.Actualizar(detalle);
+                if (resultadoDetalle.IsFailure)
+                {
+                    ModelState.AddModelError(string.Empty, resultadoDetalle.Error.Message);
+                    MensajeError = resultadoDetalle.Error.Message;
+                    CargarPrestamosDetallados();
+                    return Page();
+                }
+
+                var ejemplar = _ejemplarServicio.GetById(detalle.EjemplarId);
+                if (ejemplar != null)
+                {
+                    ejemplar.Disponible = true;
+                    ejemplar.UsuarioSesionId = usuarioSesionId ?? ejemplar.UsuarioSesionId;
+
+                    var resultadoEjemplar = _ejemplarServicio.Update(ejemplar);
+                    if (resultadoEjemplar.IsFailure)
+                    {
+                        ModelState.AddModelError(string.Empty, resultadoEjemplar.Error.Message);
+                        MensajeError = resultadoEjemplar.Error.Message;
+                        CargarPrestamosDetallados();
+                        return Page();
+                    }
+                }
+            }
+
+            // 3) Marcar préstamo como anulado
+            prestamoRow.UsuarioSesionId = usuarioSesionId ?? prestamoRow.UsuarioSesionId;
             var deleteResult = _prestamoServicio.Delete(prestamoRow);
             if (deleteResult.IsFailure)
             {

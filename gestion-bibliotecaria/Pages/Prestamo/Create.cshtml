@@ -563,17 +563,11 @@
             limpiarErroresFormulario();
             let valido = true;
 
-            const lectorId = document.getElementById('LectorId').value.trim();
             const lectorCi = document.getElementById('LectorCi').value.trim();
             const fechaDevolucion = document.getElementById('FechaDevolucionEsperada').value;
 
             if (!lectorCi) {
                 mostrarMensajeError('Debes ingresar el CI del lector.', 'error-LectorCi');
-                valido = false;
-            }
-
-            if (!lectorId) {
-                mostrarMensajeError('Selecciona un lector válido desde las sugerencias.', 'error-LectorId');
                 valido = false;
             }
 
