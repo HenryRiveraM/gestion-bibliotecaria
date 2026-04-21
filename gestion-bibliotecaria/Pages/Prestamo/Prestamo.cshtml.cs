@@ -235,13 +235,11 @@ public class PrestamoModel : PageModel
         }
 
         // Crear UN SOLO préstamo con múltiples ejemplares (opción 2 - detalle es la relación)
-        var ejemplarIds = items.Select(it => it.Id).ToList();
         var resultado = _prestamoFachada.CrearPrestamoMultiple(
-            LectorId, 
-            ejemplarIds, 
-            FechaDevolucionEsperada, 
-            ObtenerUsuarioSesionId(), 
-            items.FirstOrDefault().Observaciones  // Observaciones del primer ejemplar
+            LectorId,
+            items.Select(it => (EjemplarId: it.Id, ObservacionesSalida: it.Observaciones)),
+            FechaDevolucionEsperada,
+            ObtenerUsuarioSesionId()
         );
 
         if (resultado.IsFailure)
@@ -343,7 +341,7 @@ public class PrestamoModel : PageModel
                 nombreLector = $"{usuario.Nombres} {usuario.PrimerApellido}".Trim();
                 if (!string.IsNullOrWhiteSpace(usuario.SegundoApellido))
                 {
-                    nombreLector += $" {usuario.SegundoApellido}";
+                    nombreLector += $" { usuario.SegundoApellido}";
                 }
 
                 nombreLector = nombreLector.ToDisplayName();
@@ -351,6 +349,7 @@ public class PrestamoModel : PageModel
 
             var libros = new List<string>();
             var codigos = new List<string>();
+            var observacionesPorLibro = new List<string>();
 
             if (detallesPorPrestamo.TryGetValue(row.PrestamoId, out var detallesPrestamo))
             {
@@ -373,6 +372,7 @@ public class PrestamoModel : PageModel
 
                     libros.Add((titulo ?? "Sin título").ToDisplayName());
                     codigos.Add(string.IsNullOrWhiteSpace(ejemplar.CodigoInventario) ? "S/C" : ejemplar.CodigoInventario);
+                    observacionesPorLibro.Add(string.IsNullOrWhiteSpace(detalle.ObservacionesSalida) ? "Sin observaciones" : detalle.ObservacionesSalida!);
                 }
             }
 
@@ -398,6 +398,7 @@ public class PrestamoModel : PageModel
                 CodigoInventario = codigoResumen,
                 Libros = libros,
                 Codigos = codigos,
+                ObservacionesPorLibro = observacionesPorLibro,
                 NombreLector = nombreLector,
                 FechaPrestamo = row.FechaPrestamo,
                 FechaDevolucionEsperada = row.FechaDevolucionEsperada,

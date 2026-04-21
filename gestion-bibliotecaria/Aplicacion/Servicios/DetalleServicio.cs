@@ -2,6 +2,7 @@ using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Ports;
+using gestion_bibliotecaria.Domain.Validations;
 
 namespace gestion_bibliotecaria.Aplicacion.Servicios;
 
@@ -123,5 +124,24 @@ public class DetalleServicio : IDetalleServicio
 
         if (detalle.EstadoDetalle < 0 || detalle.EstadoDetalle > 2)
             throw new ArgumentException("EstadoDetalle debe estar entre 0 y 2");
+
+        detalle.ObservacionesSalida = NormalizarYValidarObservacion(detalle.ObservacionesSalida, "observación de salida");
+        detalle.ObservacionesEntrada = NormalizarYValidarObservacion(detalle.ObservacionesEntrada, "observación de entrada");
+    }
+
+    private static string? NormalizarYValidarObservacion(string? observacion, string nombreCampo)
+    {
+        if (string.IsNullOrWhiteSpace(observacion))
+            return null;
+
+        var normalizada = ValidadorEntrada.NormalizarEspacios(observacion);
+
+        if (ValidadorEntrada.ExcedeLongitud(normalizada, 150))
+            throw new ArgumentException($"La {nombreCampo} no puede exceder 150 caracteres.");
+
+        if (!ValidadorEntrada.SoloLetrasYNumeros(normalizada))
+            throw new ArgumentException($"La {nombreCampo} solo permite letras, números y espacios.");
+
+        return normalizada;
     }
 }

@@ -48,8 +48,17 @@ public class PrestamoFachada : IPrestamoFachada
     /// </summary>
     public Result CrearPrestamoMultiple(int lectorId, IEnumerable<int> ejemplarIds, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null, string? observacionesSalida = null)
     {
-        var ejemplares = ejemplarIds?.ToList() ?? new List<int>();
-        
+        var detallesEjemplares = (ejemplarIds ?? Enumerable.Empty<int>())
+            .Select(id => (EjemplarId: id, ObservacionesSalida: observacionesSalida));
+
+        return CrearPrestamoMultiple(lectorId, detallesEjemplares, fechaDevolucionEsperada, usuarioSesionId);
+    }
+
+    public Result CrearPrestamoMultiple(int lectorId, IEnumerable<(int EjemplarId, string? ObservacionesSalida)> detallesEjemplares, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null)
+    {
+        var detallesEntrada = detallesEjemplares?.ToList() ?? new List<(int EjemplarId, string? ObservacionesSalida)>();
+        var ejemplares = detallesEntrada.Select(x => x.EjemplarId).ToList();
+
         // Validaciones básicas
         if (!ejemplares.Any())
             return Result.Failure(new Error("Prestamo.Error", "Debes seleccionar al menos un ejemplar."));
@@ -70,7 +79,7 @@ public class PrestamoFachada : IPrestamoFachada
                 LectorId = lectorId,
                 FechaPrestamo = DateTime.Now,
                 FechaDevolucionEsperada = fechaDevolucionEsperada,
-                ObservacionesSalida = observacionesSalida,
+                ObservacionesSalida = detallesEntrada.FirstOrDefault().ObservacionesSalida,
                 Estado = 1,  // ACTIVO
                 UsuarioSesionId = usuarioSesionId
             };
@@ -87,9 +96,9 @@ public class PrestamoFachada : IPrestamoFachada
 
             // 2️⃣ CREAR UN DETALLE POR CADA EJEMPLAR
             var detalles = new List<Detalle>();
-            foreach (var ejemplarId in ejemplares)
+            foreach (var item in detallesEntrada)
             {
-                var detalle = DetalleFactory.CrearDetalle(prestamo.PrestamoId, ejemplarId, usuarioSesionId, observacionesSalida);
+                var detalle = DetalleFactory.CrearDetalle(prestamo.PrestamoId, item.EjemplarId, usuarioSesionId, item.ObservacionesSalida);
                 detalles.Add(detalle);
             }
 
