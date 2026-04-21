@@ -212,12 +212,35 @@
 
             <div class="form-actions">
                 <a class="btn-secondary text-decoration-none" href="/Prestamo">Cancelar</a>
-                <button type="submit" class="btn-nuevo">
+                <button type="button" id="btnFinalizarPrestamo" class="btn-nuevo">
                     <img src="~/assets/icons/add_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="icono-btn" alt="Registrar préstamo" />
                     Finalizar préstamo
                 </button>
             </div>
         </form>
+    </div>
+</div>
+
+<div id="modalConfirmarPrestamo" class="modal">
+    <div class="modal-box">
+        <div class="modal-icon crear">
+            <img src="~/assets/icons/sync_alt_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg"
+                 class="icono-modal"
+                 alt="Confirmar préstamo" />
+        </div>
+
+        <h2>Confirmar préstamo</h2>
+        <p>¿Estás seguro de realizar este préstamo?</p>
+
+        <div class="modal-buttons">
+            <button type="button" class="btn-nuevo" onclick="confirmarEnvioPrestamo()">
+                Sí, realizar préstamo
+            </button>
+
+            <button type="button" class="btn-secondary" onclick="cerrarModalConfirmarPrestamo()">
+                Cancelar
+            </button>
+        </div>
     </div>
 </div>
 
@@ -290,6 +313,7 @@
     <script>
         let ejemplaresSeleccionados = [];
         let catalogoEjemplares = [];
+        let confirmacionPrestamoAceptada = false;
 
         const reabrirModalLector = @reabrirModalLector.ToString().ToLowerInvariant();
 
@@ -332,6 +356,29 @@
         function limpiarErroresFormulario() {
             ['error-LectorCi', 'error-LectorId', 'error-EjemplarData', 'error-FechaDevolucionEsperada'].forEach(clearFieldError);
             limpiarFeedback();
+        }
+
+        function abrirModalConfirmarPrestamo() {
+            const modal = document.getElementById('modalConfirmarPrestamo');
+            if (modal) {
+                modal.style.display = 'flex';
+            }
+        }
+
+        function cerrarModalConfirmarPrestamo() {
+            const modal = document.getElementById('modalConfirmarPrestamo');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function confirmarEnvioPrestamo() {
+            const form = document.getElementById('formPrestamo');
+            if (!form) return;
+
+            confirmacionPrestamoAceptada = true;
+            cerrarModalConfirmarPrestamo();
+            form.requestSubmit();
         }
 
         function mostrarMensajeError(mensaje, errorId) {
@@ -723,7 +770,28 @@
                 clearFieldError('error-FechaDevolucionEsperada');
             });
 
+            document.getElementById('btnFinalizarPrestamo').addEventListener('click', () => {
+                if (!validarPrestamoFrontend()) {
+                    return;
+                }
+
+                abrirModalConfirmarPrestamo();
+            });
+
             document.getElementById('formPrestamo').addEventListener('submit', (e) => {
+                if (!confirmacionPrestamoAceptada) {
+                    e.preventDefault();
+
+                    if (!validarPrestamoFrontend()) {
+                        return false;
+                    }
+
+                    abrirModalConfirmarPrestamo();
+                    return false;
+                }
+
+                confirmacionPrestamoAceptada = false;
+
                 if (!validarPrestamoFrontend()) {
                     e.preventDefault();
                     return false;
@@ -748,6 +816,11 @@
                 const lectorContainer = document.querySelector('.field-with-floating-results');
                 if (sugerencias && lectorContainer && !lectorContainer.contains(e.target)) {
                     sugerencias.innerHTML = '';
+                }
+
+                const modalConfirmacion = document.getElementById('modalConfirmarPrestamo');
+                if (modalConfirmacion && e.target === modalConfirmacion) {
+                    cerrarModalConfirmarPrestamo();
                 }
             });
 
