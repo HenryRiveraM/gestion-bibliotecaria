@@ -52,6 +52,7 @@ builder.Services.AddScoped<IDetalleServicio>(sp => new DetalleServicio(
     sp.GetRequiredService<IEjemplarRepositorio>()
 ));
 builder.Services.AddScoped<gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada, gestion_bibliotecaria.Aplicacion.Fachadas.PrestamoFachada>();
+builder.Services.AddScoped<gestion_bibliotecaria.Aplicacion.Fachadas.IAnulacionFachada, gestion_bibliotecaria.Aplicacion.Fachadas.AnulacionFachada>();
 builder.Services.AddScoped<IUserCredentialProvisioningService, UserCredentialProvisioningService>();
 builder.Services.AddScoped<IUsuarioServicio, UsuarioServicio>();
 

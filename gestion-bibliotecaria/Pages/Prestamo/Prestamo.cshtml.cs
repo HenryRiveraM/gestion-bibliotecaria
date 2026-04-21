@@ -1,19 +1,21 @@
+using gestion_bibliotecaria.Aplicacion.DTOs;
+using gestion_bibliotecaria.Aplicacion.Fachadas;
+using gestion_bibliotecaria.Aplicacion.Interfaces;
+using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Infrastructure.Formatting;
+using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using gestion_bibliotecaria.Aplicacion.Interfaces;
-using gestion_bibliotecaria.Aplicacion.DTOs;
-using gestion_bibliotecaria.Domain.Entities;
-using PrestamoEntity = gestion_bibliotecaria.Domain.Entities.Prestamo;
-using System.Linq;
-using gestion_bibliotecaria.Infrastructure.Security;
 using System.Data;
-using gestion_bibliotecaria.Infrastructure.Formatting;
+using System.Linq;
+using PrestamoEntity = gestion_bibliotecaria.Domain.Entities.Prestamo;
 
 namespace gestion_bibliotecaria.Pages.Prestamo;
 
 public class PrestamoModel : PageModel
 {
     private readonly gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada _prestamoFachada;
+    private readonly IAnulacionFachada _anulacionFachada;
     private readonly IPrestamoServicio _prestamoServicio;
     private readonly IEjemplarServicio _ejemplarServicio;
     private readonly IUsuarioServicio _usuarioServicio;
@@ -38,7 +40,7 @@ public class PrestamoModel : PageModel
     public bool MostrarModalComprobante { get; set; }
     public int? ComprobantePrestamoId { get; set; }
 
-    public PrestamoModel(gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada prestamoFachada, IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, IDetalleServicio detalleServicio, RouteTokenService routeTokenService)
+    public PrestamoModel(gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada prestamoFachada, IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, IDetalleServicio detalleServicio, RouteTokenService routeTokenService, IAnulacionFachada anulacionFachada)
     {
         _prestamoFachada = prestamoFachada;
         _prestamoServicio = prestamoServicio;
@@ -46,6 +48,7 @@ public class PrestamoModel : PageModel
         _usuarioServicio = usuarioServicio;
         _detalleServicio = detalleServicio;
         _routeTokenService = routeTokenService;
+        _anulacionFachada = anulacionFachada;
     }
 
     public IActionResult OnGet()
@@ -583,66 +586,34 @@ public class PrestamoModel : PageModel
         {
             var usuarioSesionId = ObtenerUsuarioSesionId();
 
-            // Obtener el préstamo actual
-            var tabla = _prestamoServicio.Select();
-            gestion_bibliotecaria.Aplicacion.Dtos.PrestamoDto? prestamoRow = null;
-            foreach (var row in tabla)
+            string motivo = "Anulado por el usuario";
+
+            if (usuarioSesionId.HasValue)
             {
-                if (row.PrestamoId == prestamoId)
+                var usuarioSesion = _usuarioServicio.Select()
+                    .FirstOrDefault(u => u.UsuarioId == usuarioSesionId.Value);
+
+                if (usuarioSesion != null)
                 {
-                    prestamoRow = row;
-                    break;
-                }
-            }
+                    var nombreCompleto = $"{usuarioSesion.Nombres} {usuarioSesion.PrimerApellido} {usuarioSesion.SegundoApellido ?? ""}".Trim();
 
-            if (prestamoRow == null)
-            {
-                MensajeError = "Préstamo no encontrado.";
-                CargarPrestamosDetallados();
-                return Page();
-            }
-
-            // 1) Obtener detalles del préstamo
-            var detalles = _detalleServicio.ObtenerPorPrestamo(prestamoId)?.ToList() ?? new List<Detalle>();
-
-            // 2) Marcar ejemplares como disponibles y detalles como anulados
-            foreach (var detalle in detalles)
-            {
-                detalle.EstadoDetalle = 0;
-                detalle.UsuarioSesionId = usuarioSesionId ?? detalle.UsuarioSesionId;
-                var resultadoDetalle = _detalleServicio.Actualizar(detalle);
-                if (resultadoDetalle.IsFailure)
-                {
-                    ModelState.AddModelError(string.Empty, resultadoDetalle.Error.Message);
-                    MensajeError = resultadoDetalle.Error.Message;
-                    CargarPrestamosDetallados();
-                    return Page();
-                }
-
-                var ejemplar = _ejemplarServicio.GetById(detalle.EjemplarId);
-                if (ejemplar != null)
-                {
-                    ejemplar.Disponible = true;
-                    ejemplar.UsuarioSesionId = usuarioSesionId ?? ejemplar.UsuarioSesionId;
-
-                    var resultadoEjemplar = _ejemplarServicio.Update(ejemplar);
-                    if (resultadoEjemplar.IsFailure)
+                    if (!string.IsNullOrWhiteSpace(nombreCompleto))
                     {
-                        ModelState.AddModelError(string.Empty, resultadoEjemplar.Error.Message);
-                        MensajeError = resultadoEjemplar.Error.Message;
-                        CargarPrestamosDetallados();
-                        return Page();
+                        motivo = $"Anulado por el usuario {nombreCompleto}";
                     }
                 }
             }
 
-            // 3) Marcar préstamo como anulado
-            prestamoRow.UsuarioSesionId = usuarioSesionId ?? prestamoRow.UsuarioSesionId;
-            var deleteResult = _prestamoServicio.Delete(prestamoRow);
-            if (deleteResult.IsFailure)
+            var resultado = _anulacionFachada.AnularPrestamo(
+                prestamoId,
+                usuarioSesionId,
+                motivo
+            );
+
+            if (resultado.IsFailure)
             {
-                ModelState.AddModelError(string.Empty, deleteResult.Error.Message);
-                MensajeError = deleteResult.Error.Message;
+                ModelState.AddModelError(string.Empty, resultado.Error.Message);
+                MensajeError = resultado.Error.Message;
                 CargarPrestamosDetallados();
                 return Page();
             }
