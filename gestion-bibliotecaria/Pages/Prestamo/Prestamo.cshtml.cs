@@ -35,6 +35,8 @@ public class PrestamoModel : PageModel
 
     public string? MensajeError { get; set; }
     public string? MensajeOk { get; set; }
+    public bool MostrarModalComprobante { get; set; }
+    public int? ComprobantePrestamoId { get; set; }
 
     public PrestamoModel(gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada prestamoFachada, IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, IDetalleServicio detalleServicio, RouteTokenService routeTokenService)
     {
@@ -252,6 +254,8 @@ public class PrestamoModel : PageModel
         }
 
         MensajeOk = "Préstamo registrado correctamente.";
+        ComprobantePrestamoId = resultado.Value;
+        MostrarModalComprobante = true;
         CargarPrestamosDetallados();
         SetFechaDefaults();
         return Page();
