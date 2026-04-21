@@ -46,7 +46,7 @@ public class PrestamoFachada : IPrestamoFachada
     /// 2. Crear UN DETALLE por cada ejemplar
     /// 3. Marcar ejemplares como NO disponibles
     /// </summary>
-    public Result CrearPrestamoMultiple(int lectorId, IEnumerable<int> ejemplarIds, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null, string? observacionesSalida = null)
+    public Result<int> CrearPrestamoMultiple(int lectorId, IEnumerable<int> ejemplarIds, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null, string? observacionesSalida = null)
     {
         var detallesEjemplares = (ejemplarIds ?? Enumerable.Empty<int>())
             .Select(id => (EjemplarId: id, ObservacionesSalida: observacionesSalida));
@@ -54,22 +54,22 @@ public class PrestamoFachada : IPrestamoFachada
         return CrearPrestamoMultiple(lectorId, detallesEjemplares, fechaDevolucionEsperada, usuarioSesionId);
     }
 
-    public Result CrearPrestamoMultiple(int lectorId, IEnumerable<(int EjemplarId, string? ObservacionesSalida)> detallesEjemplares, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null)
+    public Result<int> CrearPrestamoMultiple(int lectorId, IEnumerable<(int EjemplarId, string? ObservacionesSalida)> detallesEjemplares, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null)
     {
         var detallesEntrada = detallesEjemplares?.ToList() ?? new List<(int EjemplarId, string? ObservacionesSalida)>();
         var ejemplares = detallesEntrada.Select(x => x.EjemplarId).ToList();
 
         // Validaciones básicas
         if (!ejemplares.Any())
-            return Result.Failure(new Error("Prestamo.Error", "Debes seleccionar al menos un ejemplar."));
+            return Result<int>.Failure(new Error("Prestamo.Error", "Debes seleccionar al menos un ejemplar."));
 
         if (ejemplares.Count > 5)
-            return Result.Failure(new Error("Prestamo.Error", "No se pueden prestar más de 5 ejemplares a la vez."));
+            return Result<int>.Failure(new Error("Prestamo.Error", "No se pueden prestar más de 5 ejemplares a la vez."));
 
         // Validar límite de préstamos activos
         var actuales = _prestamoServicio.CountPrestamosActivos(lectorId);
         if (actuales >= 5)
-            return Result.Failure(new Error("Prestamo.Limite", "El lector ya tiene el máximo de préstamos activos (5)."));
+            return Result<int>.Failure(new Error("Prestamo.Limite", "El lector ya tiene el máximo de préstamos activos (5)."));
 
         try
         {
@@ -87,12 +87,12 @@ public class PrestamoFachada : IPrestamoFachada
             // Validar préstamo
             var validacion = _prestamoServicio.ValidarPrestamo(prestamo);
             if (validacion.IsFailure)
-                return validacion;
+                return Result<int>.Failure(validacion.Error);
 
             // Insertar y obtener ID
             _prestamoServicio.InsertAndReturnId(prestamo);
             if (prestamo.PrestamoId <= 0)
-                return Result.Failure(new Error("Prestamo.Error", "No se pudo obtener el ID del préstamo."));
+                return Result<int>.Failure(new Error("Prestamo.Error", "No se pudo obtener el ID del préstamo."));
 
             // 2️⃣ CREAR UN DETALLE POR CADA EJEMPLAR
             var detalles = new List<Detalle>();
@@ -105,7 +105,7 @@ public class PrestamoFachada : IPrestamoFachada
             // Insertar detalles
             var resultadoDetalles = _detalleServicio.CrearMultiples(detalles);
             if (resultadoDetalles.IsFailure)
-                return resultadoDetalles;
+                return Result<int>.Failure(resultadoDetalles.Error);
 
             // 3️⃣ MARCAR EJEMPLARES COMO NO DISPONIBLES
             foreach (var ejemplarId in ejemplares)
@@ -119,11 +119,11 @@ public class PrestamoFachada : IPrestamoFachada
                 }
             }
 
-            return Result.Success();
+            return Result<int>.Success(prestamo.PrestamoId);
         }
         catch (Exception ex)
         {
-            return Result.Failure(new Error("Prestamo.Error", $"Error al crear préstamo: {ex.Message}"));
+            return Result<int>.Failure(new Error("Prestamo.Error", $"Error al crear préstamo: {ex.Message}"));
         }
     }
 

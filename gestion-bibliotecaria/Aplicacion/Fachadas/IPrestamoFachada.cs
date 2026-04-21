@@ -8,8 +8,8 @@ public interface IPrestamoFachada
 {
     IEnumerable<KeyValuePair<int, string>> BuscarEjemplaresActivos(string q);
     IEnumerable<KeyValuePair<int, string>> BuscarLectoresPorCi(string q);
-    Result CrearPrestamoMultiple(int lectorId, IEnumerable<int> ejemplarIds, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null, string? observacionesSalida = null);
-    Result CrearPrestamoMultiple(int lectorId, IEnumerable<(int EjemplarId, string? ObservacionesSalida)> detallesEjemplares, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null);
+    Result<int> CrearPrestamoMultiple(int lectorId, IEnumerable<int> ejemplarIds, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null, string? observacionesSalida = null);
+    Result<int> CrearPrestamoMultiple(int lectorId, IEnumerable<(int EjemplarId, string? ObservacionesSalida)> detallesEjemplares, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null);
     Result CrearPrestamo(Prestamo prestamo);
     int CountPrestamosActivos(int lectorId);
     Prestamo? ObtenerPrestamoPorId(int id);
