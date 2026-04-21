@@ -6,10 +6,7 @@ public class Detalle
     public int PrestamoId { get; set; }
     public int EjemplarId { get; set; }
     
-    // Estado por ejemplar en el detalle del préstamo:
-    // 1 = PRESTADO (pendiente de devolución)
-    // 2 = DEVUELTO
-    // 0 = ANULADO
+    
     public byte EstadoDetalle { get; set; } = 1;
     
     public DateTime? FechaDevolucionReal { get; set; }

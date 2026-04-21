@@ -14,12 +14,12 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
     {
     }
 
-    // Constructor para inyección de dependencias
+    
     public UsuarioRepository(IConfiguration configuration)
     {
     }
 
-    // --- MÉTODOS DE BÚSQUEDA ---
+    
 
     public Usuario? GetByCi(string ci)
     {
@@ -87,7 +87,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
         return usuario;
     }
 
-    // --- MAPPING (EL SECRETO PARA EVITAR ERRORES DE NULO) ---
+    
     private Usuario MapReaderToUsuario(MySqlDataReader reader)
     {
         return new Usuario
@@ -109,7 +109,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
         };
     }
 
-    // --- MÉTODOS DE ESCRITURA ---
+   
 
     public void Insert(Usuario usuario)
     {
@@ -197,7 +197,7 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
         }
     }
 
-    // --- MÉTODOS DE UTILIDAD Y COMPATIBILIDAD ---
+    
 
     public IEnumerable<Usuario> GetAll()
     {
