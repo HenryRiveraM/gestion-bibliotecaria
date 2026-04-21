@@ -9,6 +9,7 @@
     var nombreUsuario = HttpContext.Session.GetString(SessionKeys.NombreUsuario) ?? "Usuario";
     var rolSesion = HttpContext.Session.GetString(SessionKeys.Rol) ?? "Bibliotecario";
     var esAdmin = string.Equals(rolSesion, "Admin", StringComparison.OrdinalIgnoreCase);
+    var esBibliotecario = string.Equals(rolSesion, "Bibliotecario", StringComparison.OrdinalIgnoreCase);
 }
 
 @section Styles {
@@ -80,19 +81,22 @@
         </section>
 
         <section class="quick-actions">
-            <a href="/Prestamo/Create" class="quick-card quick-card-primary">
-                <img src="~/assets/icons/sync_alt_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Registrar préstamo" />
-                <h2>Registrar préstamo</h2>
-                <p>Inicia una nueva circulación y asigna ejemplares al lector.</p>
-                <span>Ir al módulo</span>
-            </a>
+            @if (esBibliotecario)
+            {
+                <a href="/Prestamo/Create" class="quick-card quick-card-primary">
+                    <img src="~/assets/icons/sync_alt_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Registrar préstamo" />
+                    <h2>Registrar préstamo</h2>
+                    <p>Inicia una nueva circulación y asigna ejemplares al lector.</p>
+                    <span>Ir al módulo</span>
+                </a>
 
-            <a href="/Prestamo" class="quick-card">
-                <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Préstamos realizados" />
-                <h2>Préstamos realizados</h2>
-                <p>Consulta operaciones registradas, estados y movimientos recientes.</p>
-                <span>Ver historial</span>
-            </a>
+                <a href="/Prestamo" class="quick-card">
+                    <img src="~/assets/icons/library_books_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Préstamos realizados" />
+                    <h2>Préstamos realizados</h2>
+                    <p>Consulta operaciones registradas, estados y movimientos recientes.</p>
+                    <span>Ver historial</span>
+                </a>
+            }
 
             <a href="/Ejemplar" class="quick-card">
                 <img src="~/assets/icons/inventory_2_24dp_E3E3E3_FILL0_wght400_GRAD0_opsz24.svg" class="modulo-icon" alt="Gestionar ejemplares" />

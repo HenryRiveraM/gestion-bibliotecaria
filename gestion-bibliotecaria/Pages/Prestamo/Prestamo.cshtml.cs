@@ -46,11 +46,17 @@ public class PrestamoModel : PageModel
         _routeTokenService = routeTokenService;
     }
 
-    public void OnGet()
+    public IActionResult OnGet()
     {
+        if (!UsuarioEsBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         CargarPrestamosDetallados();
         FechaPrestamoDisplay = DateTime.Now;
         FechaDevolucionDefault = FechaPrestamoDisplay.AddDays(14);
+        return Page();
     }
 
     private void SetFechaDefaults()
@@ -61,6 +67,9 @@ public class PrestamoModel : PageModel
 
     public JsonResult OnGetAutocompleteEjemplares(string q)
     {
+        if (!UsuarioEsBibliotecario())
+            return JsonAccesoDenegado();
+
         var items = _prestamoFachada.BuscarEjemplaresActivos(q ?? string.Empty)
             .Select(kv => new { id = kv.Key, label = kv.Value });
 
@@ -69,6 +78,9 @@ public class PrestamoModel : PageModel
 
     public JsonResult OnGetEjemplarDetalle(int id)
     {
+        if (!UsuarioEsBibliotecario())
+            return JsonAccesoDenegado();
+
         var ejemplar = _prestamoFachada.ObtenerEjemplarPorId(id);
         if (ejemplar == null)
             return new JsonResult(null);
@@ -86,6 +98,9 @@ public class PrestamoModel : PageModel
 
     public JsonResult OnGetAutocompleteLectores(string q)
     {
+        if (!UsuarioEsBibliotecario())
+            return JsonAccesoDenegado();
+
         // Retorna solo CIs para el autocomplete
         var items = _prestamoFachada.BuscarLectoresPorCi(q ?? string.Empty)
             .Select(kv => new { id = kv.Key, label = kv.Value.Split(" - ")[0] }); // Solo el CI
@@ -95,6 +110,9 @@ public class PrestamoModel : PageModel
 
     public JsonResult OnGetBuscarLectorPorCi(string ci, string? complemento)
     {
+        if (!UsuarioEsBibliotecario())
+            return JsonAccesoDenegado();
+
         if (string.IsNullOrWhiteSpace(ci))
             return new JsonResult(new { success = false, message = "CI requerido" });
 
@@ -115,6 +133,9 @@ public class PrestamoModel : PageModel
     // DEBUG: Ver todos los lectores en la BD
     public JsonResult OnGetDebugLectores()
     {
+        if (!UsuarioEsBibliotecario())
+            return JsonAccesoDenegado();
+
         var tabla = _prestamoFachada.ObtenerTodosLosLectores(); // Will implement this method
         return new JsonResult(tabla);
     }
@@ -122,6 +143,11 @@ public class PrestamoModel : PageModel
     // Handler para creación desde la página Create. Recibe una lista de ids de ejemplar como cadena JSON.
     public IActionResult OnPostCrear(string EjemplarData, int LectorId, DateTime FechaDevolucionEsperada, string? LectorCi, string? LectorComp)
     {
+        if (!UsuarioEsBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         // Resolver lector: si LectorId no provisto, intentar buscar por CI+complemento
         if (LectorId <= 0)
         {
@@ -259,6 +285,11 @@ public class PrestamoModel : PageModel
 
     public IActionResult OnPostCrearLector()
     {
+        if (!UsuarioEsBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         var usuarioSesionId = ObtenerUsuarioSesionId() ?? 1;
 
         var resultado = _usuarioServicio.CrearLector(NuevoLector, usuarioSesionId);
@@ -412,6 +443,9 @@ public class PrestamoModel : PageModel
 
     public JsonResult OnGetDetallesPrestamo(int id)
     {
+        if (!UsuarioEsBibliotecario())
+            return JsonAccesoDenegado();
+
         var prestamo = PrestamosDetallados.FirstOrDefault(p => p.PrestamoId == id);
         if (prestamo == null)
         {
@@ -428,6 +462,9 @@ public class PrestamoModel : PageModel
 
     public JsonResult OnGetComprobantePrestamo(int id)
     {
+        if (!UsuarioEsBibliotecario())
+            return JsonAccesoDenegado();
+
         try
         {
             // Obtener el préstamo base
@@ -506,6 +543,11 @@ public class PrestamoModel : PageModel
 
     public IActionResult OnPostAnularPrestamo(int prestamoId)
     {
+        if (!UsuarioEsBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         try
         {
             var usuarioSesionId = ObtenerUsuarioSesionId();
@@ -595,5 +637,19 @@ public class PrestamoModel : PageModel
         }
 
         return null;
+    }
+
+    private bool UsuarioEsBibliotecario()
+    {
+        var rolSesion = HttpContext.Session.GetString(SessionKeys.Rol);
+        return string.Equals(rolSesion, Usuario.RolBibliotecario, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private JsonResult JsonAccesoDenegado()
+    {
+        return new JsonResult(new { success = false, message = "Acceso denegado." })
+        {
+            StatusCode = StatusCodes.Status403Forbidden
+        };
     }
 }
