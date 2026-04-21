@@ -192,7 +192,6 @@
                             <table id="tabla-ejemplares" class="tabla-ejemplar">
                                 <thead>
                                     <tr>
-                                        <th>ID</th>
                                         <th>Ejemplar</th>
                                         <th>Conservación</th>
                                         <th>Observaciones de salida</th>
@@ -613,7 +612,6 @@
             ejemplaresSeleccionados.forEach((ejemplar, idx) => {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td><span class="badge badge-dark">#${ejemplar.id}</span></td>
                     <td>
                         <strong>${ejemplar.label}</strong>
                     </td>
