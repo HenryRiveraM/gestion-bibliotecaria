@@ -117,8 +117,10 @@
                    id="Nombres"
                    placeholder="Nombres"
                    required />
+            <div id="errorNombresUsuario" class="field-error"></div>
 
             <input asp-for="NuevoUsuario.CI" class="input-form" id="CI" placeholder="Carnet de identidad (sin complemento)" />
+            <div id="errorCiUsuario" class="field-error"></div>
             <input id="Complemento" name="Complemento" class="input-form" placeholder="Complemento (opcional)" />
 
             <input asp-for="NuevoUsuario.PrimerApellido"
@@ -126,6 +128,7 @@
                    id="PrimerApellido"
                    placeholder="Primer apellido"
                    required />
+            <div id="errorPrimerApellidoUsuario" class="field-error"></div>
 
             <input asp-for="NuevoUsuario.SegundoApellido"
                    class="input-form"
@@ -138,6 +141,7 @@
                    type="email"
                    placeholder="Correo electrónico"
                    required />
+            <div id="errorEmailUsuario" class="field-error"></div>
 
             @if (Model.IsAdmin)
             {
@@ -148,6 +152,7 @@
                     <option value="@Usuario.RolAdmin">Admin</option>
                     <option value="@Usuario.RolLector">Lector</option>
                 </select>
+                <div id="errorRolUsuario" class="field-error"></div>
             }
 
             <div class="modal-buttons">
@@ -234,14 +239,23 @@
             }, 3500);
         }
 
+        function setFieldErrorUsuario(id, mensaje) {
+            var field = document.getElementById(id);
+            if (!field) return;
+            field.textContent = mensaje || "";
+        }
+
         document.addEventListener("DOMContentLoaded", function () {
             var form = document.getElementById("formCrearUsuario");
 
             if (form) {
                 var nombres = document.getElementById("Nombres");
+                var ci = document.getElementById("CI");
+                var complemento = document.getElementById("Complemento");
                 var primerApellido = document.getElementById("PrimerApellido");
                 var segundoApellido = document.getElementById("SegundoApellido");
                 var email = document.getElementById("Email");
+                var rol = document.getElementById("RolNuevoUsuario");
 
                 function limpiarMensaje() {
                     var box = document.getElementById("mensajeValidacionUsuario");
@@ -250,21 +264,53 @@
                     box.textContent = "";
                 }
 
-                [nombres, primerApellido, segundoApellido, email].forEach(function (input) {
+                function limpiarErroresCampo() {
+                    [
+                        "errorNombresUsuario",
+                        "errorCiUsuario",
+                        "errorPrimerApellidoUsuario",
+                        "errorEmailUsuario",
+                        "errorRolUsuario"
+                    ].forEach(function (id) {
+                        setFieldErrorUsuario(id, "");
+                    });
+                }
+
+                [nombres, ci, complemento, primerApellido, segundoApellido, email, rol].forEach(function (input) {
                     if (!input) return;
-                    input.addEventListener("input", limpiarMensaje);
+                    input.addEventListener("input", function () {
+                        limpiarMensaje();
+                        limpiarErroresCampo();
+                    });
+                    input.addEventListener("change", function () {
+                        limpiarMensaje();
+                        limpiarErroresCampo();
+                    });
                 });
 
                 form.addEventListener("submit", function (e) {
+                    limpiarMensaje();
+                    limpiarErroresCampo();
+
                     if (!nombres.value.trim()) {
                         e.preventDefault();
+                        setFieldErrorUsuario("errorNombresUsuario", "Debes ingresar los nombres.");
                         mostrarErrorUsuario("Debes ingresar los nombres.");
                         nombres.focus();
                         return;
                     }
 
+                    if (!ci.value.trim()) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorCiUsuario", "Debes ingresar el carnet de identidad.");
+                        mostrarErrorUsuario("Debes ingresar el carnet de identidad.");
+                        ci.focus();
+                        return;
+                    }
+
                     if (!primerApellido.value.trim()) {
                         e.preventDefault();
+                        setFieldErrorUsuario("errorPrimerApellidoUsuario", "Debes ingresar el primer apellido.");
                         mostrarErrorUsuario("Debes ingresar el primer apellido.");
                         primerApellido.focus();
                         return;
@@ -274,17 +320,26 @@
 
                     if (!email.value.trim()) {
                         e.preventDefault();
+                        setFieldErrorUsuario("errorEmailUsuario", "Debes ingresar el correo electrónico.");
                         mostrarErrorUsuario("Debes ingresar el correo electrónico.");
                         email.focus();
                         return;
                     }
-                    
+
                     var emailValido = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/.test(email.value.trim());
                     if (!emailValido) {
                         e.preventDefault();
+                        setFieldErrorUsuario("errorEmailUsuario", "Debes ingresar un correo electrónico válido.");
                         mostrarErrorUsuario("Debes ingresar un correo electrónico válido.");
                         email.focus();
                         return;
+                    }
+
+                    if (rol && !rol.value.trim()) {
+                        e.preventDefault();
+                        setFieldErrorUsuario("errorRolUsuario", "Debes seleccionar un rol.");
+                        mostrarErrorUsuario("Debes seleccionar un rol.");
+                        rol.focus();
                     }
                 });
             }
