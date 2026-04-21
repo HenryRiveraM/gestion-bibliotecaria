@@ -199,6 +199,7 @@
 
 @section Scripts {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         let comprobanteActual = null;
 
@@ -227,6 +228,11 @@
                 return;
             }
 
+            const fechaDevolucion = comprobante.fechaDevolucion ?? comprobante.fechaEntrega;
+            const ci = comprobante.ci ?? comprobante.clave;
+            const bibliotecario = comprobante.bibliotecario ?? comprobante.usuarioNombre;
+            const totalLibros = comprobante.totalLibros ?? (comprobante.libros || []).length;
+
             const librosRows = (comprobante.libros || [])
                 .map((libro, idx) => `
                     <tr>
@@ -252,23 +258,23 @@
                             <span>${escapeHtml((comprobante.prestamoId ?? '').toString())}</span>
                         </div>
                         <div class="comprobante-row comprobante-row-dual">
-                            <div>
+                            <div class="comprobante-campo-linea">
                                 <strong>Nombre de lector</strong>
                                 <span>${escapeHtml(comprobante.nombreLector || 'No registrado')}</span>
                             </div>
-                            <div>
+                            <div class="comprobante-campo-linea">
                                 <strong>CI</strong>
-                                <span>${escapeHtml(comprobante.ci || 'No registrado')}</span>
+                                <span>${escapeHtml(ci || 'No registrado')}</span>
                             </div>
                         </div>
                         <div class="comprobante-row comprobante-row-dual">
-                            <div>
+                            <div class="comprobante-campo-linea">
                                 <strong>Fecha de préstamo</strong>
                                 <span>${formatearFecha(comprobante.fechaPrestamo, false)}</span>
                             </div>
-                            <div>
+                            <div class="comprobante-campo-linea">
                                 <strong>Fecha de devolución</strong>
-                                <span>${formatearFecha(comprobante.fechaDevolucion, false)}</span>
+                                <span>${formatearFecha(fechaDevolucion, false)}</span>
                             </div>
                         </div>
                     </section>
@@ -288,12 +294,12 @@
                             </tbody>
                         </table>
                         <div class="comprobante-total-right">
-                            <strong>Total de libros</strong> ${escapeHtml(String(comprobante.totalLibros ?? (comprobante.libros || []).length))}
+                            <strong>Total de libros</strong> ${escapeHtml(String(totalLibros))}
                         </div>
                     </section>
 
                     <footer class="comprobante-footer-right">
-                        <span>${formatearFecha(comprobante.fechaEmision, false)} - ${escapeHtml(comprobante.bibliotecario || 'No registrado')}</span>
+                        <span>${formatearFecha(comprobante.fechaEmision, false)} - ${escapeHtml(bibliotecario || 'No registrado')}</span>
                     </footer>
                 </article>`;
         }
@@ -350,101 +356,57 @@
                 return;
             }
 
+            if (!window.html2canvas) {
+                alert('No se pudo cargar el generador visual del PDF.');
+                return;
+            }
+
             const { jsPDF } = jsPdfNamespace;
             const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
-            const margen = 12;
-            const ancho = 210 - (margen * 2);
+            const stage = document.createElement('div');
+            stage.style.position = 'fixed';
+            stage.style.left = '-10000px';
+            stage.style.top = '0';
+            stage.style.width = '842px';
+            stage.style.background = '#ffffff';
+            stage.style.padding = '0';
+            stage.style.zIndex = '-1';
 
-            try {
-                const logoDataUrl = await logoToDataUrl('/assets/images/blackLogoR.png');
-                doc.addImage(logoDataUrl, 'PNG', margen + 4, margen + 4, 44, 20);
-            } catch {
-                // Si el logo no carga, el comprobante igual se genera.
+            const original = document.querySelector('#comprobante-preview .comprobante-sheet');
+            if (!original) {
+                alert('No se encontró el comprobante para exportar.');
+                return;
             }
 
-            doc.setFont('helvetica', 'bold');
-            doc.setFontSize(15);
-            doc.text('RECIBO DE PRÉSTAMO - STARBOOK', margen + 60, margen + 10);
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'normal');
-            doc.text('Biblioteca StarBook', margen + 60, margen + 16);
+            stage.appendChild(original.cloneNode(true));
+            document.body.appendChild(stage);
 
-            let y = margen + 30;
-
-            const drawSingleRow = (label, value) => {
-                const h = 11;
-                doc.setFont('helvetica', 'bold');
-                doc.text(String(label), margen + 2, y + 4);
-                doc.setFont('helvetica', 'normal');
-                doc.text(String(value || 'No registrado'), margen + 2, y + 8.5);
-                y += h;
-            };
-
-            const drawDoubleRow = (labelLeft, valueLeft, labelRight, valueRight) => {
-                const h = 11;
-                const colA = 120;
-                const colB = ancho - colA;
-                doc.setFont('helvetica', 'bold');
-                doc.text(String(labelLeft), margen + 2, y + 4);
-                doc.text(String(labelRight), margen + colA + 2, y + 4);
-                doc.setFont('helvetica', 'normal');
-                doc.text(String(valueLeft || 'No registrado'), margen + 2, y + 8.5);
-                doc.text(String(valueRight || 'No registrado'), margen + colA + 2, y + 8.5);
-                y += h;
-            };
-
-            drawSingleRow('PRÉSTAMO', String(comprobanteActual.prestamoId || ''));
-            drawDoubleRow('NOMBRE DE LECTOR', comprobanteActual.nombreLector || 'No registrado', 'CI', comprobanteActual.ci || 'No registrado');
-            drawDoubleRow('FECHA DE PRÉSTAMO', formatearFecha(comprobanteActual.fechaPrestamo, false), 'FECHA DE DEVOLUCIÓN', formatearFecha(comprobanteActual.fechaDevolucion, false));
-
-            y += 4;
-            doc.setFont('helvetica', 'bold');
-            doc.text('LIBROS PRESTADOS', margen + 1, y);
-            y += 3;
-
-            doc.rect(margen, y, 12, 8);
-            doc.rect(margen + 12, y, 120, 8);
-            doc.rect(margen + 132, y, ancho - 132, 8);
-            doc.text('#', margen + 4, y + 5);
-            doc.text('TITULO', margen + 14, y + 5);
-            doc.text('CODIGO', margen + 134, y + 5);
-            y += 8;
-
-            const libros = comprobanteActual.libros || [];
-            if (!libros.length) {
-                doc.rect(margen, y, ancho, 8);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Sin libros registrados.', margen + 3, y + 5);
-                y += 8;
-            } else {
-                libros.forEach((libro, index) => {
-                    const titulo = String(libro.titulo || 'Sin título');
-                    const codigo = String(libro.codigo || 'S/C');
-                    const lineasTitulo = doc.splitTextToSize(titulo, 116);
-                    const lineasCodigo = doc.splitTextToSize(codigo, ancho - 136);
-                    const maxLineas = Math.max(lineasTitulo.length, lineasCodigo.length);
-                    const alto = Math.max(8, 4 + maxLineas * 4);
-
-                    doc.rect(margen, y, 12, alto);
-                    doc.rect(margen + 12, y, 120, alto);
-                    doc.rect(margen + 132, y, ancho - 132, alto);
-
-                    doc.text(String(index + 1), margen + 4, y + 5);
-                    doc.text(lineasTitulo, margen + 14, y + 5);
-                    doc.text(lineasCodigo, margen + 134, y + 5);
-                    y += alto;
-                });
+            const elemento = stage.firstElementChild;
+            if (!elemento) {
+                stage.remove();
+                alert('No se pudo preparar el comprobante para exportar.');
+                return;
             }
 
-            y += 4;
-            doc.setFont('helvetica', 'bold');
-            doc.text(`TOTAL DE LIBROS ${String(comprobanteActual.totalLibros || (comprobanteActual.libros || []).length)}`, margen + ancho - 70, y);
+            const canvas = await window.html2canvas(elemento, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff'
+            });
 
-            y += 12;
-            doc.setFont('helvetica', 'normal');
-            const pieFirma = `${formatearFecha(comprobanteActual.fechaEmision, true)} - ${String(comprobanteActual.bibliotecario || 'No registrado')}`;
-            doc.text(pieFirma, margen + ancho - doc.getTextWidth(pieFirma), y);
+            stage.remove();
+
+            const imgData = canvas.toDataURL('image/png');
+            const margen = 10;
+            const anchoPdf = 210 - (margen * 2);
+            const altoPdf = (canvas.height * anchoPdf) / canvas.width;
+            const altoMaximo = 297 - (margen * 2);
+            const renderWidth = altoPdf > altoMaximo ? (anchoPdf * altoMaximo) / altoPdf : anchoPdf;
+            const renderHeight = altoPdf > altoMaximo ? altoMaximo : altoPdf;
+
+            doc.addImage(imgData, 'PNG', margen, margen, renderWidth, renderHeight);
 
             const nombreArchivo = `comprobante-prestamo-${comprobanteActual.prestamoId || 'biblioteca'}.pdf`;
             doc.save(nombreArchivo);

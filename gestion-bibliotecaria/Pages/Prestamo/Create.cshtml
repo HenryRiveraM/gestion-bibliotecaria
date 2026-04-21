@@ -308,13 +308,40 @@
     </div>
 </div>
 
+<div class="modal fade" id="modalComprobantePrestamo" tabindex="-1" aria-labelledby="modalComprobantePrestamoLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content modal-theme">
+            <div class="modal-header modal-header-theme">
+                <div>
+                    <h5 class="modal-title" id="modalComprobantePrestamoLabel">Recibo de préstamo</h5>
+                    <p class="modal-subtitle">Vista previa del comprobante generado al finalizar el préstamo.</p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="comprobante-preview-create" class="comprobante-preview"></div>
+            </div>
+
+            <div class="modal-footer modal-footer-theme">
+                <button type="button" class="btn-nuevo" onclick="descargarComprobantePdf()">Descargar PDF</button>
+                <button type="button" class="btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         let ejemplaresSeleccionados = [];
         let catalogoEjemplares = [];
         let confirmacionPrestamoAceptada = false;
 
         const reabrirModalLector = @reabrirModalLector.ToString().ToLowerInvariant();
+        const abrirModalComprobanteAlCargar = @Model.MostrarModalComprobante.ToString().ToLowerInvariant();
+        const comprobantePrestamoId = @((Model.ComprobantePrestamoId ?? 0).ToString());
 
         function obtenerBasePrestamo() {
             return window.location.pathname.replace(/\/Create$/, '') || window.location.pathname;
@@ -392,6 +419,195 @@
             document.getElementById('lector-nombre').textContent = '';
             document.getElementById('lector-ci-display').textContent = '';
             document.getElementById('lector-info').style.display = 'none';
+        }
+
+        function formatearFecha(fecha, incluirHora = false) {
+            if (!fecha) return 'No registrado';
+
+            const valor = new Date(fecha);
+            return incluirHora
+                ? valor.toLocaleString()
+                : valor.toLocaleDateString();
+        }
+
+        function escapeHtml(texto) {
+            return (texto ?? '')
+                .toString()
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function renderComprobantePreview(comprobante) {
+            const contenedor = document.getElementById('comprobante-preview-create');
+            if (!contenedor || !comprobante) return;
+
+            const fechaDevolucion = comprobante.fechaDevolucion ?? comprobante.fechaEntrega;
+            const ci = comprobante.ci ?? comprobante.clave;
+            const bibliotecario = comprobante.bibliotecario ?? comprobante.usuarioNombre;
+            const totalLibros = comprobante.totalLibros ?? (comprobante.libros || []).length;
+
+            const librosRows = (comprobante.libros || [])
+                .map((libro, idx) => `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td>${escapeHtml(libro.titulo || 'Sin título')}</td>
+                        <td>${escapeHtml(libro.codigo || 'S/C')}</td>
+                    </tr>`)
+                .join('');
+
+            contenedor.innerHTML = `
+                <article class="comprobante-sheet">
+                    <header class="comprobante-header">
+                        <img src="/assets/images/blackLogoR.png" class="comprobante-logo" alt="Logo StarBook" />
+                        <div class="comprobante-heading">
+                            <h3>RECIBO DE PRÉSTAMO</h3>
+                            <p>Biblioteca StarBook</p>
+                        </div>
+                    </header>
+
+                    <section class="comprobante-grid comprobante-grid-rows">
+                        <div class="comprobante-row">
+                            <strong>Préstamo</strong>
+                            <span>${escapeHtml((comprobante.prestamoId ?? '').toString())}</span>
+                        </div>
+                        <div class="comprobante-row comprobante-row-dual">
+                            <div class="comprobante-campo-linea">
+                                <strong>Nombre de lector</strong>
+                                <span>${escapeHtml(comprobante.nombreLector || 'No registrado')}</span>
+                            </div>
+                            <div class="comprobante-campo-linea">
+                                <strong>CI</strong>
+                                <span>${escapeHtml(ci || 'No registrado')}</span>
+                            </div>
+                        </div>
+                        <div class="comprobante-row comprobante-row-dual">
+                            <div class="comprobante-campo-linea">
+                                <strong>Fecha de préstamo</strong>
+                                <span>${formatearFecha(comprobante.fechaPrestamo, false)}</span>
+                            </div>
+                            <div class="comprobante-campo-linea">
+                                <strong>Fecha de devolución</strong>
+                                <span>${formatearFecha(fechaDevolucion, false)}</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="comprobante-libros">
+                        <h4>Libros prestados</h4>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Título</th>
+                                    <th>Código</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${librosRows || '<tr><td colspan="3">Sin libros registrados.</td></tr>'}
+                            </tbody>
+                        </table>
+                        <div class="comprobante-total-right">
+                            <strong>Total de libros</strong> ${escapeHtml(String(totalLibros))}
+                        </div>
+                    </section>
+
+                    <footer class="comprobante-footer-right">
+                        <span>${formatearFecha(comprobante.fechaEmision, false)} - ${escapeHtml(bibliotecario || 'No registrado')}</span>
+                    </footer>
+                </article>`;
+        }
+
+        async function logoToDataUrl(url) {
+            const imagen = new Image();
+            imagen.crossOrigin = 'anonymous';
+            imagen.src = url;
+
+            await new Promise((resolve, reject) => {
+                imagen.onload = resolve;
+                imagen.onerror = reject;
+            });
+
+            const canvas = document.createElement('canvas');
+            canvas.width = imagen.width;
+            canvas.height = imagen.height;
+            canvas.getContext('2d')?.drawImage(imagen, 0, 0);
+            return canvas.toDataURL('image/png');
+        }
+
+        async function descargarComprobantePdf() {
+            if (!comprobantePrestamoId) {
+                alert('No hay un recibo disponible para descargar.');
+                return;
+            }
+
+            const jsPdfNamespace = window.jspdf;
+            if (!jsPdfNamespace || !jsPdfNamespace.jsPDF || !window.html2canvas) {
+                alert('No se pudo cargar el generador del PDF.');
+                return;
+            }
+
+            const { jsPDF } = jsPdfNamespace;
+            const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+            const modalElement = document.getElementById('modalComprobantePrestamo');
+            const preview = document.getElementById('comprobante-preview-create');
+            const original = preview?.querySelector('.comprobante-sheet');
+
+            if (!original) {
+                alert('Primero debe generarse el recibo.');
+                return;
+            }
+
+            const stage = document.createElement('div');
+            stage.style.position = 'fixed';
+            stage.style.left = '-10000px';
+            stage.style.top = '0';
+            stage.style.width = '842px';
+            stage.style.background = '#ffffff';
+            stage.style.padding = '0';
+            stage.style.zIndex = '-1';
+
+            stage.appendChild(original.cloneNode(true));
+            document.body.appendChild(stage);
+
+            const canvas = await window.html2canvas(stage.firstElementChild, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#ffffff'
+            });
+
+            stage.remove();
+
+            const imgData = canvas.toDataURL('image/png');
+            const margen = 10;
+            const anchoPdf = 210 - (margen * 2);
+            const altoPdf = (canvas.height * anchoPdf) / canvas.width;
+            const altoMaximo = 297 - (margen * 2);
+            const renderWidth = altoPdf > altoMaximo ? (anchoPdf * altoMaximo) / altoPdf : anchoPdf;
+            const renderHeight = altoPdf > altoMaximo ? altoMaximo : altoPdf;
+
+            doc.addImage(imgData, 'PNG', margen, margen, renderWidth, renderHeight);
+            doc.save(`comprobante-prestamo-${comprobantePrestamoId}.pdf`);
+        }
+
+        async function cargarYMostrarComprobante(prestamoId) {
+            const base = obtenerBasePrestamo();
+            const response = await fetch(`${base}?handler=ComprobantePrestamo&id=${prestamoId}`);
+            const data = await response.json();
+
+            if (!data.success || !data.data) {
+                throw new Error('No se pudo generar el comprobante.');
+            }
+
+            renderComprobantePreview(data.data);
+
+            const modalElement = document.getElementById('modalComprobantePrestamo');
+            if (modalElement && window.bootstrap?.Modal) {
+                window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+            }
         }
 
         async function buscarLectores(q) {
@@ -826,6 +1042,14 @@
                 const modalElement = document.getElementById('modalNuevoLector');
                 if (modalElement && window.bootstrap?.Modal) {
                     window.bootstrap.Modal.getOrCreateInstance(modalElement).show();
+                }
+            }
+
+            if (abrirModalComprobanteAlCargar && comprobantePrestamoId > 0) {
+                try {
+                    await cargarYMostrarComprobante(comprobantePrestamoId);
+                } catch (error) {
+                    mostrarFeedback(error.message || 'No se pudo abrir el comprobante.');
                 }
             }
         });
