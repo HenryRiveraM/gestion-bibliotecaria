@@ -9,18 +9,7 @@ using System.Linq;
 
 namespace gestion_bibliotecaria.Aplicacion.Fachadas;
 
-/// <summary>
-/// FACHADA DE PRÉSTAMO - Lógica Profesional
-/// 
-/// Estructura de BD:
-/// - Prestamo: almacena la TRANSACCIÓN (1 solo registro)
-/// - Detalle: almacena las LÍNEAS del préstamo (N registros, uno por ejemplar)
-/// 
-/// Esto permite:
-/// ✓ Múltiples ejemplares por préstamo
-/// ✓ Devoluciones parciales
-/// ✓ Auditoría clara
-/// </summary>
+
 public class PrestamoFachada : IPrestamoFachada
 {
     private readonly IPrestamoServicio _prestamoServicio;
@@ -37,15 +26,7 @@ public class PrestamoFachada : IPrestamoFachada
         _detalleServicio = detalleServicio;
     }
 
-    /// <summary>
-    /// NUEVO MÉTODO PROFESIONAL
-    /// Crear un préstamo con múltiples ejemplares
-    /// 
-    /// Lógica:
-    /// 1. Crear UN SOLO registro en Prestamo
-    /// 2. Crear UN DETALLE por cada ejemplar
-    /// 3. Marcar ejemplares como NO disponibles
-    /// </summary>
+    
     public Result<int> CrearPrestamoMultiple(int lectorId, IEnumerable<int> ejemplarIds, DateTime fechaDevolucionEsperada, int? usuarioSesionId = null, string? observacionesSalida = null)
     {
         var detallesEjemplares = (ejemplarIds ?? Enumerable.Empty<int>())
@@ -59,42 +40,42 @@ public class PrestamoFachada : IPrestamoFachada
         var detallesEntrada = detallesEjemplares?.ToList() ?? new List<(int EjemplarId, string? ObservacionesSalida)>();
         var ejemplares = detallesEntrada.Select(x => x.EjemplarId).ToList();
 
-        // Validaciones básicas
+        
         if (!ejemplares.Any())
             return Result<int>.Failure(new Error("Prestamo.Error", "Debes seleccionar al menos un ejemplar."));
 
         if (ejemplares.Count > 5)
             return Result<int>.Failure(new Error("Prestamo.Error", "No se pueden prestar más de 5 ejemplares a la vez."));
 
-        // Validar límite de préstamos activos
+      
         var actuales = _prestamoServicio.CountPrestamosActivos(lectorId);
         if (actuales >= 5)
             return Result<int>.Failure(new Error("Prestamo.Limite", "El lector ya tiene el máximo de préstamos activos (5)."));
 
         try
         {
-            // 1️⃣ CREAR UN SOLO PRÉSTAMO (sin referencia a ejemplar)
+            
             var prestamo = new Prestamo
             {
                 LectorId = lectorId,
                 FechaPrestamo = DateTime.Now,
                 FechaDevolucionEsperada = fechaDevolucionEsperada,
                 ObservacionesSalida = detallesEntrada.FirstOrDefault().ObservacionesSalida,
-                Estado = 1,  // ACTIVO
+                Estado = 1,  
                 UsuarioSesionId = usuarioSesionId
             };
 
-            // Validar préstamo
+            
             var validacion = _prestamoServicio.ValidarPrestamo(prestamo);
             if (validacion.IsFailure)
                 return Result<int>.Failure(validacion.Error);
 
-            // Insertar y obtener ID
+            
             _prestamoServicio.InsertAndReturnId(prestamo);
             if (prestamo.PrestamoId <= 0)
                 return Result<int>.Failure(new Error("Prestamo.Error", "No se pudo obtener el ID del préstamo."));
 
-            // 2️⃣ CREAR UN DETALLE POR CADA EJEMPLAR
+            
             var detalles = new List<Detalle>();
             foreach (var item in detallesEntrada)
             {
@@ -102,12 +83,12 @@ public class PrestamoFachada : IPrestamoFachada
                 detalles.Add(detalle);
             }
 
-            // Insertar detalles
+           
             var resultadoDetalles = _detalleServicio.CrearMultiples(detalles);
             if (resultadoDetalles.IsFailure)
                 return Result<int>.Failure(resultadoDetalles.Error);
 
-            // 3️⃣ MARCAR EJEMPLARES COMO NO DISPONIBLES
+            
             foreach (var ejemplarId in ejemplares)
             {
                 var ejemplar = _ejemplarServicio.GetById(ejemplarId);
@@ -129,8 +110,7 @@ public class PrestamoFachada : IPrestamoFachada
 
     public Result CrearPrestamos(IEnumerable<Prestamo> prestamos)
     {
-        // Este método es DEPRECATED - usa CrearPrestamoMultiple en su lugar
-        // Se mantiene solo para compatibilidad temporal
+        
         throw new NotImplementedException("Use CrearPrestamoMultiple instead");
     }
 
@@ -263,7 +243,7 @@ public class PrestamoFachada : IPrestamoFachada
 
     public Result CrearPrestamo(Prestamo prestamo)
     {
-        // Este método es DEPRECATED - usa CrearPrestamoMultiple en su lugar
+       
         throw new NotImplementedException("Use CrearPrestamoMultiple instead");
     }
 }
