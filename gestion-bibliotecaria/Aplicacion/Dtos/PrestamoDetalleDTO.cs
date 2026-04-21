@@ -11,6 +11,7 @@ public class PrestamoDetalleDTO
     public string CodigoInventario { get; set; } = string.Empty;
     public List<string> Libros { get; set; } = new();
     public List<string> Codigos { get; set; } = new();
+    public List<string> ObservacionesPorLibro { get; set; } = new();
     
     // Información del Lector
     public string NombreLector { get; set; } = string.Empty;

@@ -468,9 +468,14 @@
 
                     const listaLibros = (p.libros || []);
                     const listaCodigos = (p.codigos || []);
+                    const listaObservaciones = (p.observacionesPorLibro || []);
                     const librosHtml = listaLibros.length
                         ? `<ul>${listaLibros.map((libro, idx) => `<li>${escapeHtml(libro)} <small>(${escapeHtml(listaCodigos[idx] || 'S/C')})</small></li>`).join('')}</ul>`
                         : `<span>${escapeHtml(p.tituloLibro || 'Sin ejemplares')}</span>`;
+
+                    const observacionesPorLibroHtml = listaLibros.length
+                        ? `<ul>${listaLibros.map((libro, idx) => `<li><strong>${escapeHtml(libro)}:</strong> ${escapeHtml(listaObservaciones[idx] || 'Sin observaciones')}</li>`).join('')}</ul>`
+                        : '';
 
                     const html = `
                         <div class="detalles-grid">
@@ -502,7 +507,12 @@
                                 <strong>Devolución real</strong>
                                 <span>${p.fechaDevolucionReal ? formatearFecha(p.fechaDevolucionReal, true) : 'Pendiente'}</span>
                             </div>
-                            ${p.observacionesSalida ? `
+                            ${observacionesPorLibroHtml ? `
+                                <div class="detalle-obs">
+                                    <strong>Observaciones por ejemplar</strong>
+                                    ${observacionesPorLibroHtml}
+                                </div>` : ''}
+                            ${!observacionesPorLibroHtml && p.observacionesSalida ? `
                                 <div class="detalle-obs">
                                     <strong>Observaciones de salida</strong>
                                     <p>${escapeHtml(p.observacionesSalida)}</p>

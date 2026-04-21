@@ -503,6 +503,55 @@
             limpiarFeedback();
         }
 
+        function syncEjemplarData() {
+            document.getElementById('EjemplarData').value = JSON.stringify(
+                ejemplaresSeleccionados.map(x => ({
+                    id: parseInt(x.id, 10),
+                    observaciones: x.observaciones || ''
+                }))
+            );
+        }
+
+        function validarObservacionTexto(texto) {
+            if (!texto || !texto.trim()) {
+                return '';
+            }
+
+            const normalizada = texto.trim().replace(/\s+/g, ' ');
+            if (normalizada.length > 150) {
+                return 'La observación no puede exceder 150 caracteres.';
+            }
+
+            const patron = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 ]+$/;
+            if (!patron.test(normalizada)) {
+                return 'Solo se permiten letras, números y espacios.';
+            }
+
+            return '';
+        }
+
+        function setErrorObservacion(idx, mensaje) {
+            const field = document.getElementById(`error-obs-${idx}`);
+            if (field) {
+                field.textContent = mensaje || '';
+            }
+        }
+
+        function validarObservacionesEjemplares() {
+            let valido = true;
+
+            ejemplaresSeleccionados.forEach((ejemplar, idx) => {
+                const error = validarObservacionTexto(ejemplar.observaciones || '');
+                ejemplar.errorObservacion = error;
+                setErrorObservacion(idx, error);
+                if (error) {
+                    valido = false;
+                }
+            });
+
+            return valido;
+        }
+
         function renderTablaEjemplares() {
             const tbody = document.querySelector('#tabla-ejemplares tbody');
             const emptyState = document.getElementById('prestamo-empty-state');
@@ -529,6 +578,7 @@
                             value="${(ejemplar.observaciones || '').replace(/"/g, '&quot;')}"
                             placeholder="Detalle opcional del estado de salida"
                             oninput="updateObs(${idx}, this.value)" />
+                        <div id="error-obs-${idx}" class="field-error">${ejemplar.errorObservacion || ''}</div>
                     </td>
                     <td>
                         <button type="button" class="btn-remove-chip" onclick="quitarEjemplar(${idx})">Quitar</button>
@@ -536,22 +586,14 @@
                 tbody.appendChild(tr);
             });
 
-            document.getElementById('EjemplarData').value = JSON.stringify(
-                ejemplaresSeleccionados.map(x => ({
-                    id: parseInt(x.id, 10),
-                    observaciones: x.observaciones || ''
-                }))
-            );
+            syncEjemplarData();
         }
 
         function updateObs(idx, valor) {
             ejemplaresSeleccionados[idx].observaciones = valor;
-            document.getElementById('EjemplarData').value = JSON.stringify(
-                ejemplaresSeleccionados.map(x => ({
-                    id: parseInt(x.id, 10),
-                    observaciones: x.observaciones || ''
-                }))
-            );
+            ejemplaresSeleccionados[idx].errorObservacion = '';
+            setErrorObservacion(idx, '');
+            syncEjemplarData();
         }
 
         function quitarEjemplar(idx) {
@@ -578,6 +620,10 @@
 
             if (ejemplaresSeleccionados.length > 3) {
                 mostrarMensajeError('No se pueden prestar más de 3 ejemplares a la vez.', 'error-EjemplarData');
+                valido = false;
+            }
+
+            if (!validarObservacionesEjemplares()) {
                 valido = false;
             }
 
@@ -683,12 +729,7 @@
                     return false;
                 }
 
-                document.getElementById('EjemplarData').value = JSON.stringify(
-                    ejemplaresSeleccionados.map(x => ({
-                        id: parseInt(x.id, 10),
-                        observaciones: x.observaciones || ''
-                    }))
-                );
+                syncEjemplarData();
             });
 
             document.getElementById('formNuevoLector').addEventListener('submit', (e) => {
