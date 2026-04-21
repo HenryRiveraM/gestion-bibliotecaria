@@ -1,12 +1,14 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Aplicacion.Dtos;
+using gestion_bibliotecaria.Aplicacion.Fachadas;
+using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Common;
 using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Infrastructure.Security;
-using MySql.Data.MySqlClient;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using MySql.Data.MySqlClient;
+
 
 namespace gestion_bibliotecaria.Pages;
 
@@ -14,6 +16,7 @@ public class EjemplarModel : PageModel
 {
     private readonly IEjemplarServicio _ejemplarServicio;
     private readonly RouteTokenService _routeTokenService;
+    private readonly IEjemplarDisponibilidadFachada _ejemplarDisponibilidadFachada;
 
     public List<EjemplarDto> Ejemplares { get; set; } = new();
     public Dictionary<int, string> LibrosTitulos { get; set; } = new();
@@ -23,10 +26,12 @@ public class EjemplarModel : PageModel
 
     public EjemplarModel(
         IEjemplarServicio ejemplarServicio,
-        RouteTokenService routeTokenService)
+        RouteTokenService routeTokenService,
+        IEjemplarDisponibilidadFachada ejemplarDisponibilidadFachada)
     {
         _ejemplarServicio = ejemplarServicio;
         _routeTokenService = routeTokenService;
+        _ejemplarDisponibilidadFachada = ejemplarDisponibilidadFachada; 
     }
 
     public void OnGet()
@@ -197,5 +202,39 @@ public class EjemplarModel : PageModel
         }
 
         return null;
+    }
+
+    public IActionResult OnPostCambiarDisponibilidad(string token, bool disponible)
+    {
+        if (!_routeTokenService.TryObtenerId(token, out var ejemplarId))
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            var usuarioSesionId = ObtenerUsuarioSesionId();
+
+            var resultado = _ejemplarDisponibilidadFachada.CambiarDisponibilidad(
+                ejemplarId,
+                disponible,
+                usuarioSesionId
+            );
+
+            if (resultado.IsFailure)
+            {
+                ModelState.AddModelError(string.Empty, resultado.Error.Message);
+                CargarPagina();
+                return Page();
+            }
+
+            return RedirectToPage();
+        }
+        catch (Exception)
+        {
+            ModelState.AddModelError(string.Empty, "Ocurrió un error al cambiar la disponibilidad.");
+            CargarPagina();
+            return Page();
+        }
     }
 }

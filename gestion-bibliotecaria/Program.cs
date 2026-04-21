@@ -1,5 +1,6 @@
-using gestion_bibliotecaria.Aplicacion.Servicios;
+using gestion_bibliotecaria.Aplicacion.Fachadas;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
+using gestion_bibliotecaria.Aplicacion.Servicios;
 using gestion_bibliotecaria.Domain.Ports;
 using gestion_bibliotecaria.Infrastructure.Configuration;
 using gestion_bibliotecaria.Infrastructure.Email;
@@ -52,6 +53,8 @@ builder.Services.AddScoped<IDetalleServicio>(sp => new DetalleServicio(
     sp.GetRequiredService<IEjemplarRepositorio>()
 ));
 builder.Services.AddScoped<gestion_bibliotecaria.Aplicacion.Fachadas.IPrestamoFachada, gestion_bibliotecaria.Aplicacion.Fachadas.PrestamoFachada>();
+builder.Services.AddScoped<gestion_bibliotecaria.Aplicacion.Fachadas.IAnulacionFachada, gestion_bibliotecaria.Aplicacion.Fachadas.AnulacionFachada>();
+builder.Services.AddScoped<gestion_bibliotecaria.Aplicacion.Fachadas.IEjemplarDisponibilidadFachada, gestion_bibliotecaria.Aplicacion.Fachadas.EjemplarDisponibilidadFachada>();
 builder.Services.AddScoped<IUserCredentialProvisioningService, UserCredentialProvisioningService>();
 builder.Services.AddScoped<IUsuarioServicio, UsuarioServicio>();
 
