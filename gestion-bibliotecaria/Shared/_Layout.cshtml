@@ -77,7 +77,7 @@
                         </ul>
                     </li>
                     }
-                    @if (esAdmin || esBibliotecario)
+                    @if (esBibliotecario)
                     {
                     <li class="nav-item dropdown">
                         <a class="nav-link nav-btn dropdown-toggle d-flex align-items-center gap-2"
@@ -121,7 +121,10 @@
                         </a>
 
                         <ul class="dropdown-menu custom-dropdown-menu">
-                            <li><a class="dropdown-item custom-dropdown-item" href="/Prestamo">Préstamos realizados</a></li>
+                            @if (esBibliotecario)
+                            {
+                                <li><a class="dropdown-item custom-dropdown-item" href="/Prestamo">Préstamos realizados</a></li>
+                            }
                             <li><a class="dropdown-item custom-dropdown-item" href="#">Libros más prestados</a></li>
                             <li><a class="dropdown-item custom-dropdown-item" href="#">Ejemplares disponibles</a></li>
                             <li><a class="dropdown-item custom-dropdown-item" href="#">Usuarios con retraso</a></li>

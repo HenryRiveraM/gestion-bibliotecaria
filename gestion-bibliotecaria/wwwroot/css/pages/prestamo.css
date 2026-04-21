@@ -1,5 +1,5 @@
 .prestamo-page {
-    padding: 30px 20px;
+    padding: 14px 14px;
 }
 
 .prestamo-shell {
@@ -10,21 +10,21 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 18px;
-    margin-bottom: 24px;
+    gap: 10px;
+    margin-bottom: 10px;
     flex-wrap: wrap;
 }
 
 .titulo-logo {
     display: flex;
     align-items: flex-start;
-    gap: 14px;
+    gap: 8px;
 }
 
 .page-icon-shell {
-    width: 52px;
-    height: 52px;
-    border-radius: 14px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
     display: grid;
     place-items: center;
     background: linear-gradient(180deg, rgba(16, 163, 127, 0.18), rgba(16, 163, 127, 0.08));
@@ -33,21 +33,21 @@
 }
 
 .page-header h1 {
-    font-size: 28px;
+    font-size: 22px;
     font-weight: 700;
     color: #e5e7eb;
     margin: 0;
 }
 
 .page-subtitle {
-    margin: 6px 0 0;
+    margin: 4px 0 0;
     color: #9ca3af;
-    font-size: 15px;
+    font-size: 13px;
     max-width: 760px;
 }
 
 .icono-header {
-    width: 24px;
+    width: 20px;
     filter: brightness(0) invert(1);
 }
 
@@ -60,15 +60,16 @@
 .btn-ghost-action {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    border-radius: 10px;
-    padding: 11px 18px;
+    gap: 6px;
+    border-radius: 8px;
+    padding: 8px 13px;
     text-decoration: none;
     font-weight: 600;
     border: none;
     cursor: pointer;
     transition: .2s ease;
     white-space: nowrap;
+    font-size: 13px;
 }
 
 .btn-nuevo {
@@ -98,11 +99,12 @@
     justify-content: center;
     background: #27272a;
     color: #f3f4f6;
-    padding: 11px 18px;
-    border-radius: 10px;
+    padding: 8px 13px;
+    border-radius: 8px;
     border: 1px solid #34343a;
     transition: .2s ease;
     cursor: pointer;
+    font-size: 13px;
 }
 
 .btn-danger {
@@ -111,12 +113,13 @@
     justify-content: center;
     background: #ef4444;
     color: #ffffff;
-    padding: 11px 18px;
-    border-radius: 10px;
+    padding: 8px 13px;
+    border-radius: 8px;
     border: 1px solid #dc2626;
     font-weight: 600;
     cursor: pointer;
     transition: .2s ease;
+    font-size: 13px;
 }
 
 .btn-secondary:hover {
@@ -128,11 +131,12 @@
 }
 
 .alert-custom {
-    padding: 14px 18px;
+    padding: 10px 14px;
     border-radius: 12px;
-    margin-bottom: 18px;
+    margin-bottom: 10px;
     font-weight: 500;
     border: 1px solid transparent;
+    font-size: 13px;
 }
 
 .alert-success-custom {
@@ -149,7 +153,7 @@
 
 .prestamo-form {
     display: grid;
-    gap: 18px;
+    gap: 9px;
 }
 
 .prestamo-panel,
@@ -161,36 +165,36 @@
 }
 
 .prestamo-panel {
-    padding: 22px;
+    padding: 13px;
 }
 
 .prestamo-panel-compact {
-    padding: 18px 20px;
+    padding: 11px 13px;
 }
 
 .panel-heading {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 8px;
+    gap: 9px;
+    margin-bottom: 2px;
     flex-wrap: wrap;
 }
 
 .panel-heading h2 {
-    margin: 4px 0 0;
+    margin: 2px 0 0;
     color: #f3f4f6;
-    font-size: 22px;
+    font-size: 16px;
 }
 
 .panel-copy {
     color: #9ca3af;
-    margin: 0 0 18px;
-    font-size: 14px;
+    margin: 0 0 9px;
+    font-size: 12px;
 }
 
 .form-section-title {
-    font-size: 11px;
+    font-size: 10px;
     color: #6b7280;
     text-transform: uppercase;
     letter-spacing: .12em;
@@ -200,12 +204,12 @@
 .prestamo-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 18px;
+    gap: 9px;
     align-items: start;
 }
 
 .prestamo-grid-tight {
-    gap: 14px;
+    gap: 7px;
 }
 
 .lector-grid {
@@ -215,7 +219,7 @@
 .lector-layout {
     display: grid;
     grid-template-columns: minmax(0, 1.5fr) minmax(300px, .85fr);
-    gap: 18px;
+    gap: 9px;
     align-items: start;
 }
 
@@ -238,7 +242,7 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: flex-start;
-    gap: 8px;
+    gap: 4px;
     min-width: 0;
     align-self: start;
 }
@@ -249,14 +253,14 @@
 
 .field-label {
     color: #e5e7eb;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 600;
     margin: 0;
 }
 
 .field-help {
     color: #9ca3af;
-    font-size: 12px;
+    font-size: 10px;
     line-height: 1.35;
 }
 
@@ -267,9 +271,9 @@
     background: #111418;
     border: 1px solid #2a2f36;
     color: #e5e7eb;
-    border-radius: 12px;
-    padding: 13px 15px;
-    font-size: 15px;
+    border-radius: 9px;
+    padding: 8px 11px;
+    font-size: 13px;
     outline: none;
     transition: .2s ease;
     box-sizing: border-box;
@@ -290,12 +294,12 @@
 .field-error {
     min-height: 18px;
     color: #fda4af;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 500;
 }
 
 .field-error-block {
-    margin-top: 10px;
+    margin-top: 6px;
 }
 
 .field-with-floating-results {
@@ -304,16 +308,16 @@
 
 .sugerencias {
     position: absolute;
-    top: calc(100% + 6px);
+    top: calc(100% + 4px);
     left: 0;
     right: 0;
     z-index: 40;
     background: #171a1f;
     border: 1px solid #2c3440;
-    border-radius: 14px;
+    border-radius: 12px;
     box-shadow: 0 18px 32px rgba(0, 0, 0, 0.45);
     overflow: hidden;
-    max-height: 240px;
+    max-height: 200px;
     overflow-y: auto;
 }
 
@@ -324,7 +328,7 @@
     background: transparent;
     border: none;
     color: #e5e7eb;
-    padding: 12px 14px;
+    padding: 10px 12px;
     cursor: pointer;
     transition: background .2s ease;
 }
@@ -336,15 +340,15 @@
 
 .sugerencia-empty,
 .option-loading {
-    padding: 14px;
+    padding: 12px;
     color: #9ca3af;
-    font-size: 14px;
+    font-size: 13px;
 }
 
 .selected-lector-card {
-    margin-top: 14px;
-    padding: 14px 16px;
-    border-radius: 14px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
     border: 1px solid rgba(16, 163, 127, 0.22);
     background: linear-gradient(180deg, rgba(16, 163, 127, 0.16), rgba(16, 163, 127, 0.08));
     display: grid;
@@ -361,14 +365,14 @@
 .selected-lector-label {
     text-transform: uppercase;
     letter-spacing: .1em;
-    font-size: 11px;
+    font-size: 10px;
     color: #a7f3d0;
     font-weight: 700;
 }
 
 .selected-lector-card strong {
     color: #f3f4f6;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .selected-lector-card small {
@@ -378,7 +382,7 @@
 .selector-toolbar {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     flex-wrap: wrap;
 }
 
@@ -390,7 +394,7 @@
 .ejemplares-layout {
     display: grid;
     grid-template-columns: minmax(320px, .75fr) minmax(0, 1.45fr);
-    gap: 18px;
+    gap: 10px;
     align-items: start;
 }
 
@@ -402,8 +406,8 @@
 .ejemplares-selector-column {
     background: #141414;
     border: 1px solid #262626;
-    border-radius: 16px;
-    padding: 18px;
+    border-radius: 12px;
+    padding: 12px;
 }
 
 .ejemplares-summary-column {
@@ -412,7 +416,7 @@
 
 .custom-select-wrapper {
     flex: 1;
-    min-width: 280px;
+    min-width: 220px;
 }
 
 .custom-select {
@@ -422,11 +426,11 @@
 .select-trigger {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     background: #111418;
     border: 1px solid #2a2f36;
-    border-radius: 12px;
-    padding-right: 14px;
+    border-radius: 9px;
+    padding-right: 10px;
 }
 
 .custom-select.active .select-trigger {
@@ -456,12 +460,12 @@
 .select-dropdown {
     display: none;
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 6px);
     left: 0;
     right: 0;
     background: #171a1f;
     border: 1px solid #2c3440;
-    border-radius: 14px;
+    border-radius: 10px;
     z-index: 35;
     box-shadow: 0 18px 32px rgba(0, 0, 0, 0.45);
     overflow: hidden;
@@ -472,17 +476,17 @@
 }
 
 .select-options {
-    max-height: 280px;
+    max-height: 180px;
     overflow-y: auto;
 }
 
 .tabla-container {
-    padding: 22px;
+    padding: 11px 12px;
     overflow-x: auto;
 }
 
 .tabla-prestamo-seleccion {
-    padding-top: 16px;
+    padding-top: 6px;
     min-height: 100%;
 }
 
@@ -496,17 +500,18 @@
     background: #232323;
     color: #e5e7eb;
     text-align: left;
-    padding: 14px 12px;
-    font-size: 14px;
+    padding: 7px 8px;
+    font-size: 11px;
     font-weight: 700;
     white-space: nowrap;
 }
 
 .tabla-ejemplar td {
     color: #d1d5db;
-    padding: 14px 12px;
+    padding: 7px 8px;
     border-bottom: 1px solid #2a2a2a;
     vertical-align: middle;
+    font-size: 12px;
 }
 
 .tabla-ejemplar tbody tr:hover {
@@ -514,19 +519,20 @@
 }
 
 .tabla-input {
-    min-width: 250px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    min-width: 200px;
+    padding-top: 6px;
+    padding-bottom: 6px;
 }
 
 .empty-selection-state,
 .empty-table-state {
     display: grid;
-    gap: 6px;
+    gap: 4px;
     place-items: center;
     text-align: center;
-    padding: 28px 16px;
+    padding: 10px 8px;
     color: #9ca3af;
+    font-size: 12px;
 }
 
 .empty-selection-state strong,
@@ -538,9 +544,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 12px;
+    padding: 4px 8px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
 }
 
@@ -559,9 +565,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 5px 10px;
+    padding: 3px 7px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 700;
 }
 
@@ -603,10 +609,11 @@
     background: rgba(239, 68, 68, 0.12);
     color: #fca5a5;
     border: 1px solid rgba(239, 68, 68, 0.28);
-    padding: 9px 12px;
-    border-radius: 10px;
+    padding: 6px 9px;
+    border-radius: 8px;
     cursor: pointer;
     transition: .2s ease;
+    font-size: 12px;
 }
 
 .btn-remove-chip:hover {
@@ -621,9 +628,9 @@
 .dato-estatico {
     display: inline-flex;
     align-items: center;
-    min-height: 48px;
-    padding: 0 14px;
-    border-radius: 12px;
+    min-height: 36px;
+    padding: 0 10px;
+    border-radius: 9px;
     background: linear-gradient(180deg, rgba(16, 163, 127, 0.14), rgba(16, 163, 127, 0.06));
     border: 1px solid rgba(16, 163, 127, 0.2);
     color: #d1fae5;
@@ -631,13 +638,13 @@
 }
 
 .lector-grid .input-form {
-    min-height: 46px;
+    min-height: 36px;
 }
 
 .form-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 12px;
+    gap: 7px;
     flex-wrap: wrap;
 }
 
