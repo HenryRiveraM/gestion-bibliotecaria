@@ -440,6 +440,22 @@ public class PrestamoModel : PageModel
             var ci = usuario?.CI ?? string.Empty;
             var nombreLector = usuario != null ? $"{usuario.Nombres} {usuario.PrimerApellido} {usuario.SegundoApellido ?? ""}".Trim() : "Desconocido";
 
+            var usuarioSesionId = ObtenerUsuarioSesionId();
+            string bibliotecario = HttpContext.Session.GetString(SessionKeys.NombreUsuario) ?? "No registrado";
+            if (usuarioSesionId.HasValue)
+            {
+                var usuarioSesion = _usuarioServicio.Select().FirstOrDefault(u => u.UsuarioId == usuarioSesionId.Value);
+                if (usuarioSesion != null)
+                {
+                    bibliotecario = $"{usuarioSesion.Nombres} {usuarioSesion.PrimerApellido} {usuarioSesion.SegundoApellido ?? ""}".Trim();
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(bibliotecario))
+            {
+                bibliotecario = HttpContext.Session.GetString(SessionKeys.NombreUsuario) ?? "No registrado";
+            }
+
             // Obtener DETALLES del préstamo (ejemplares prestados)
             var detalles = _detalleServicio.ObtenerPorPrestamo(id)?.ToList() ?? new List<Detalle>();
             
@@ -449,18 +465,24 @@ public class PrestamoModel : PageModel
                 var ejemplar = _ejemplarServicio.GetById(detalle.EjemplarId);
                 if (ejemplar != null)
                 {
-                    var etiqueta = _prestamoFachada.ObtenerLabelEjemplar(detalle.EjemplarId) ?? "Desconocido";
+                    var etiqueta = _prestamoFachada.ObtenerLabelEjemplar(detalle.EjemplarId);
+                    var titulo = !string.IsNullOrWhiteSpace(etiqueta)
+                        ? etiqueta.Split('(')[0].Trim()
+                        : (ejemplar.LibroTitulo ?? "Sin título");
+
                     librosRelacionados.Add(new
                     {
                         detalleId = detalle.DetalleId,
-                        titulo = etiqueta.Split('(')[0].Trim(),
-                        codigo = ejemplar.CodigoInventario,
+                        titulo = string.IsNullOrWhiteSpace(titulo) ? "Sin título" : titulo,
+                        codigo = string.IsNullOrWhiteSpace(ejemplar.CodigoInventario) ? "S/C" : ejemplar.CodigoInventario,
                         observacionesSalida = detalle.ObservacionesSalida
                     });
                 }
             }
 
-            var diasPrestamo = (int)Math.Max(1, Math.Ceiling((prestamo.FechaDevolucionEsperada.Date - prestamo.FechaPrestamo.Date).TotalDays));
+            var fechaDevolucion = prestamo.FechaDevolucionEsperada;
+            var diasPrestamo = (int)Math.Max(1, Math.Ceiling((fechaDevolucion.Date - prestamo.FechaPrestamo.Date).TotalDays));
+            var totalLibros = librosRelacionados.Count;
 
             var data = new
             {
@@ -468,12 +490,17 @@ public class PrestamoModel : PageModel
                 folio = $"PR-{prestamo.FechaPrestamo:yyyyMMdd}-{prestamo.LectorId}",
                 fechaEmision = DateTime.Now,
                 nombreLector = nombreLector,
+                ci = ci,
                 clave = ci,
                 grupo = string.Empty,
                 dias = diasPrestamo,
                 fechaPrestamo = prestamo.FechaPrestamo,
-                fechaEntrega = prestamo.FechaDevolucionEsperada,
-                libros = librosRelacionados
+                fechaDevolucion = fechaDevolucion,
+                fechaEntrega = fechaDevolucion,
+                libros = librosRelacionados,
+                totalLibros,
+                bibliotecario,
+                usuarioNombre = bibliotecario
             };
 
             return new JsonResult(new { success = true, data });

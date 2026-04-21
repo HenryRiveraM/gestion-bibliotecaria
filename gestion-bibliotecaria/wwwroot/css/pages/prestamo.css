@@ -989,8 +989,10 @@
 }
 
 .comprobante-row {
-    display: grid;
-    gap: 3px;
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 10px;
     padding: 0;
 }
 
@@ -1005,6 +1007,7 @@
     font-size: 14px;
     font-weight: 600;
     color: #111827;
+    flex: 1 1 auto;
 }
 
 .comprobante-row-dual {
@@ -1014,8 +1017,23 @@
 }
 
 .comprobante-row-dual > div {
-    display: grid;
-    gap: 3px;
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.comprobante-campo-linea {
+    min-width: 0;
+}
+
+.comprobante-campo-linea strong {
+    flex: 0 0 auto;
+}
+
+.comprobante-campo-linea span {
+    flex: 1 1 auto;
+    min-width: 0;
 }
 
 .comprobante-grid-wide {
