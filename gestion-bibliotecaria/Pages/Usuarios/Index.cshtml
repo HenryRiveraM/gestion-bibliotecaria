@@ -155,6 +155,9 @@
                 <div id="errorRolUsuario" class="field-error"></div>
             }
 
+                 <input asp-for="NuevoUsuario.NombreUsuario" id="NombreUsuario" type="hidden" />
+                 <input asp-for="NuevoUsuario.PasswordHash" id="PasswordHash" type="hidden" />
+
             <div class="modal-buttons">
                 <button type="submit" class="btn-success">
                     Crear usuario
@@ -256,6 +259,48 @@
                 var segundoApellido = document.getElementById("SegundoApellido");
                 var email = document.getElementById("Email");
                 var rol = document.getElementById("RolNuevoUsuario");
+                var nombreUsuario = document.getElementById("NombreUsuario");
+                var password = document.getElementById("PasswordHash");
+
+                function esRolConCredenciales() {
+                    if (!rol) return false;
+                    return rol.value === "@Usuario.RolAdmin" || rol.value === "@Usuario.RolBibliotecario";
+                }
+
+                function actualizarCamposCredenciales() {
+                    if (!esRolConCredenciales()) {
+                        if (nombreUsuario) nombreUsuario.value = "";
+                        if (password) password.value = "";
+                    }
+                }
+
+                function buildCredentialSeed(value) {
+                    return (value || "")
+                        .trim()
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .replace(/[^a-zA-Z0-9]/g, "");
+                }
+
+                function ensureHiddenCredentials() {
+                    if (!esRolConCredenciales()) {
+                        return;
+                    }
+
+                    if (nombreUsuario && !nombreUsuario.value.trim()) {
+                        var seedNombre = buildCredentialSeed(nombres ? nombres.value : "");
+                        var seedApellido = buildCredentialSeed(primerApellido ? primerApellido.value : "");
+                        var base = (seedNombre.slice(0, 3) + seedApellido.slice(0, 3)).toLowerCase();
+                        if (!base) {
+                            base = "usr";
+                        }
+                        nombreUsuario.value = base + Date.now().toString().slice(-6);
+                    }
+
+                    if (password && !password.value.trim()) {
+                        password.value = "tmp" + Date.now().toString().slice(-8);
+                    }
+                }
 
                 function limpiarMensaje() {
                     var box = document.getElementById("mensajeValidacionUsuario");
@@ -276,7 +321,7 @@
                     });
                 }
 
-                [nombres, ci, complemento, primerApellido, segundoApellido, email, rol].forEach(function (input) {
+                [nombres, ci, complemento, primerApellido, segundoApellido, email, rol, nombreUsuario, password].forEach(function (input) {
                     if (!input) return;
                     input.addEventListener("input", function () {
                         limpiarMensaje();
@@ -287,6 +332,12 @@
                         limpiarErroresCampo();
                     });
                 });
+
+                if (rol) {
+                    rol.addEventListener("change", actualizarCamposCredenciales);
+                }
+
+                actualizarCamposCredenciales();
 
                 form.addEventListener("submit", function (e) {
                     limpiarMensaje();
@@ -340,7 +391,10 @@
                         setFieldErrorUsuario("errorRolUsuario", "Debes seleccionar un rol.");
                         mostrarErrorUsuario("Debes seleccionar un rol.");
                         rol.focus();
+                        return;
                     }
+
+                    ensureHiddenCredentials();
                 });
             }
 
