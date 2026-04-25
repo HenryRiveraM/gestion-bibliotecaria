@@ -35,7 +35,7 @@ public class AutorModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/");
+            return LocalRedirect("/");
         }
 
         CargarAutores();
@@ -61,7 +61,7 @@ public class AutorModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/");
+            return LocalRedirect("/");
         }
 
         if (!_routeTokenService.TryObtenerId(token, out var id))
@@ -81,7 +81,7 @@ public class AutorModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/");
+            return LocalRedirect("/");
         }
 
         ModalActivo = "crear";
@@ -112,7 +112,7 @@ public class AutorModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/");
+            return LocalRedirect("/");
         }
 
         ModalActivo = "editar";
