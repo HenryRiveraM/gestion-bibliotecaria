@@ -38,13 +38,12 @@ public class IndexModel : PageModel
 
     public IActionResult OnGet()
     {
-        var rol = HttpContext.Session.GetString(SessionKeys.Rol);
-        if (rol != Usuario.RolAdmin && rol != Usuario.RolBibliotecario)
+        if (!EsAdmin())
         {
             return RedirectToPage("/Index");
         }
 
-        IsAdmin = rol == Usuario.RolAdmin;
+        IsAdmin = true;
 
         CargarUsuarios();
         return Page();
@@ -52,23 +51,17 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostCrearAsync(CancellationToken cancellationToken)
     {
-        var rolSesion = HttpContext.Session.GetString(SessionKeys.Rol);
-        if (rolSesion != Usuario.RolAdmin && rolSesion != Usuario.RolBibliotecario)
+        if (!EsAdmin())
         {
             return RedirectToPage("/Index");
         }
 
-        IsAdmin = rolSesion == Usuario.RolAdmin;
+        IsAdmin = true;
 
         var usuarioSesionId = ObtenerUsuarioSesionId();
         if (!usuarioSesionId.HasValue)
         {
             return RedirectToPage("/Login");
-        }
-
-        if (!IsAdmin)
-        {
-            RolNuevoUsuario = Usuario.RolLector;
         }
 
         NuevoUsuario.Rol = RolNuevoUsuario;
@@ -118,13 +111,12 @@ public class IndexModel : PageModel
 
     public IActionResult OnPostBaja(string token)
     {
-        var rolSesion = HttpContext.Session.GetString(SessionKeys.Rol);
-        if (rolSesion != Usuario.RolAdmin && rolSesion != Usuario.RolBibliotecario)
+        if (!EsAdmin())
         {
             return RedirectToPage("/Index");
         }
 
-        IsAdmin = rolSesion == Usuario.RolAdmin;
+        IsAdmin = true;
 
         var usuarioSesionId = ObtenerUsuarioSesionId();
         if (!usuarioSesionId.HasValue)

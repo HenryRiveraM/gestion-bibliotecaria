@@ -1,5 +1,8 @@
 using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
+using gestion_bibliotecaria.Domain.Entities;
+using gestion_bibliotecaria.Infrastructure.Security;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -17,13 +20,24 @@ public class CreateModel : PageModel
         _libroServicio = libroServicio;
     }
 
-    public void OnGet()
+    public IActionResult OnGet()
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         Libro.Estado = true;
+        return Page();
     }
 
     public IActionResult OnPost()
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         if (!ModelState.IsValid)
         {
             return Page();
@@ -38,5 +52,13 @@ public class CreateModel : PageModel
         }
 
         return RedirectToPage("Index");
+    }
+
+    private bool EsAdminOBibliotecario()
+    {
+        var rol = HttpContext.Session.GetString(SessionKeys.Rol);
+
+        return string.Equals(rol, Usuario.RolAdmin, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(rol, Usuario.RolBibliotecario, StringComparison.OrdinalIgnoreCase);
     }
 }

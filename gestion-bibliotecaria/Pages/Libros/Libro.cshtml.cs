@@ -1,4 +1,5 @@
 using gestion_bibliotecaria.Aplicacion.Dtos;
+using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Validations;
 using gestion_bibliotecaria.Infrastructure.Security;
@@ -27,8 +28,13 @@ public class LibroModel : PageModel
         _libroServicio = libroServicio;
     }
 
-    public void OnGet()
+    public IActionResult OnGet()
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         Libros = _libroServicio.Select();
 
         foreach (var l in Libros)
@@ -38,10 +44,16 @@ public class LibroModel : PageModel
 
         AutoresNombres = _libroServicio.ObtenerNombresAutores();
         Autores = _libroServicio.ObtenerAutoresActivos();
+        return Page();
     }
 
     public IActionResult OnPostEliminar(string token)
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         if (!_routeTokenService.TryObtenerId(token, out var libroId))
         {
             return NotFound();
@@ -72,6 +84,16 @@ public class LibroModel : PageModel
         string? Descripcion,
         bool Estado)
     {
+        if (!EsAdminOBibliotecario())
+        {
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return new JsonResult(new { success = false, redirect = "/Index" });
+            }
+
+            return RedirectToPage("/Index");
+        }
+
         if (!_routeTokenService.TryObtenerId(token, out var id))
         {
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
@@ -130,6 +152,16 @@ public class LibroModel : PageModel
         string? Descripcion,
         bool Estado = true)
     {
+        if (!EsAdminOBibliotecario())
+        {
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return new JsonResult(new { success = false, redirect = "/Index" });
+            }
+
+            return RedirectToPage("/Index");
+        }
+
         ModelState.Remove("AutorId");
 
         int? AutorId = null;
@@ -180,5 +212,13 @@ public class LibroModel : PageModel
         }
 
         return null;
+    }
+
+    private bool EsAdminOBibliotecario()
+    {
+        var rol = HttpContext.Session.GetString(SessionKeys.Rol);
+
+        return string.Equals(rol, Usuario.RolAdmin, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(rol, Usuario.RolBibliotecario, StringComparison.OrdinalIgnoreCase);
     }
 }
