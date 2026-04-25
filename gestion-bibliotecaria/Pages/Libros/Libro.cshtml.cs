@@ -32,7 +32,7 @@ public class LibroModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return LocalRedirect("/");
         }
 
         Libros = _libroServicio.Select();
@@ -51,7 +51,7 @@ public class LibroModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return LocalRedirect("/");
         }
 
         if (!_routeTokenService.TryObtenerId(token, out var libroId))
@@ -91,7 +91,7 @@ public class LibroModel : PageModel
                 return new JsonResult(new { success = false, redirect = "/Index" });
             }
 
-            return RedirectToPage("/Index");
+            return LocalRedirect("/");
         }
 
         if (!_routeTokenService.TryObtenerId(token, out var id))
@@ -159,7 +159,7 @@ public class LibroModel : PageModel
                 return new JsonResult(new { success = false, redirect = "/Index" });
             }
 
-            return RedirectToPage("/Index");
+            return LocalRedirect("/");
         }
 
         ModelState.Remove("AutorId");

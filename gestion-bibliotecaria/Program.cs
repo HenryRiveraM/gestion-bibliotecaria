@@ -3,6 +3,7 @@ using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Aplicacion.Servicios;
 using gestion_bibliotecaria.Domain.Ports;
 using gestion_bibliotecaria.Infrastructure.Configuration;
+using gestion_bibliotecaria.Infrastructure.Creators;
 using gestion_bibliotecaria.Infrastructure.Email;
 using gestion_bibliotecaria.Infrastructure.Persistence;
 using gestion_bibliotecaria.Infrastructure.Security;
@@ -34,10 +35,21 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
-builder.Services.AddScoped<IAutorRepositorio>(sp => new AutorRepository());
-builder.Services.AddSingleton<ILibroRepositorio>(new LibroRepository());
-builder.Services.AddSingleton<IEjemplarRepositorio>(new EjemplarRepository());
-builder.Services.AddScoped<IUsuarioRepositorio>(sp => new UsuarioRepository());
+builder.Services.AddSingleton<AutorRepositoryCreator>();
+builder.Services.AddSingleton<LibroRepositoryCreator>();
+builder.Services.AddSingleton<EjemplarRepositoryCreator>();
+builder.Services.AddSingleton<UsuarioRepositoryCreator>();
+builder.Services.AddSingleton<PrestamoRepositoryCreator>();
+builder.Services.AddSingleton<DetalleRepositoryCreator>();
+
+builder.Services.AddScoped<IAutorRepositorio>(sp =>
+    (IAutorRepositorio)sp.GetRequiredService<AutorRepositoryCreator>().CreateRepository());
+builder.Services.AddSingleton<ILibroRepositorio>(sp =>
+    (ILibroRepositorio)sp.GetRequiredService<LibroRepositoryCreator>().CreateRepository());
+builder.Services.AddSingleton<IEjemplarRepositorio>(sp =>
+    (IEjemplarRepositorio)sp.GetRequiredService<EjemplarRepositoryCreator>().CreateRepository());
+builder.Services.AddScoped<IUsuarioRepositorio>(sp =>
+    (IUsuarioRepositorio)sp.GetRequiredService<UsuarioRepositoryCreator>().CreateRepository());
 
 builder.Services.AddScoped<IEmailSender>(EmailSenderFactory.Create);
 
@@ -45,8 +57,10 @@ builder.Services.AddScoped<IAutorServicio, AutorServicio>();
 builder.Services.AddScoped<ILibroServicio, LibroServicio>();
 builder.Services.AddScoped<IEjemplarServicio, EjemplarServicio>();
 
-builder.Services.AddScoped<IPrestamoRepositorio>(sp => new PrestamoRepository());
-builder.Services.AddScoped<IDetalleRepositorio>(sp => new DetalleRepository());
+builder.Services.AddScoped<IPrestamoRepositorio>(sp =>
+    sp.GetRequiredService<PrestamoRepositoryCreator>().CreateRepository());
+builder.Services.AddScoped<IDetalleRepositorio>(sp =>
+    sp.GetRequiredService<DetalleRepositoryCreator>().CreateRepository());
 builder.Services.AddScoped<IPrestamoServicio, PrestamoServicio>();
 builder.Services.AddScoped<IDetalleServicio>(sp => new DetalleServicio(
     sp.GetRequiredService<IDetalleRepositorio>(),

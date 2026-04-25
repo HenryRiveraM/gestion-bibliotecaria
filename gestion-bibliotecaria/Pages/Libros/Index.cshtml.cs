@@ -23,7 +23,7 @@ public class IndexModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return LocalRedirect("/");
         }
 
         Libros = _libroServicio.Select();

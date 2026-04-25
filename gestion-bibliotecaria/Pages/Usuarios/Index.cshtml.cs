@@ -40,7 +40,7 @@ public class IndexModel : PageModel
     {
         if (!EsAdmin())
         {
-            return RedirectToPage("/Index");
+            return LocalRedirect("/");
         }
 
         IsAdmin = true;
@@ -53,7 +53,7 @@ public class IndexModel : PageModel
     {
         if (!EsAdmin())
         {
-            return RedirectToPage("/Index");
+            return LocalRedirect("/");
         }
 
         IsAdmin = true;
@@ -113,7 +113,7 @@ public class IndexModel : PageModel
     {
         if (!EsAdmin())
         {
-            return RedirectToPage("/Index");
+            return LocalRedirect("/");
         }
 
         IsAdmin = true;

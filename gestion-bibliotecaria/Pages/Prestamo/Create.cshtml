@@ -3,7 +3,8 @@
 @model gestion_bibliotecaria.Pages.Prestamo.PrestamoModel
 @{
     ViewData["Title"] = "Nuevo Préstamo";
-    var reabrirModalLector = ViewData.ModelState.Keys.Any(k => k.StartsWith("NuevoLector.", StringComparison.Ordinal));
+    var reabrirModalLector = !string.IsNullOrWhiteSpace(Model.MensajeErrorNuevoLector)
+        || ViewData.ModelState.Keys.Any(k => k.StartsWith("NuevoLector.", StringComparison.Ordinal));
     var fechaMinimaDevolucion = Model.FechaPrestamoDisplay.Date.AddDays(1).ToString("yyyy-MM-dd");
 }
 
@@ -258,7 +259,11 @@
                 @Html.AntiForgeryToken()
 
                 <div class="modal-body">
-                    <div id="lectorModalFeedback" class="text-error-summary" style="display:none;"></div>
+                    <div id="lectorModalFeedback"
+                         class="text-error-summary"
+                         style="@(string.IsNullOrWhiteSpace(Model.MensajeErrorNuevoLector) ? "display:none;" : string.Empty)">
+                        @Model.MensajeErrorNuevoLector
+                    </div>
 
                     <div class="prestamo-grid lector-modal-grid">
                         <div class="field-block">
