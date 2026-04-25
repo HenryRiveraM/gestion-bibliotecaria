@@ -36,6 +36,7 @@ public class PrestamoModel : PageModel
     public gestion_bibliotecaria.Aplicacion.Dtos.LectorDto NuevoLector { get; set; } = new();
 
     public string? MensajeError { get; set; }
+    public string? MensajeErrorNuevoLector { get; set; }
     public string? MensajeOk { get; set; }
     public bool MostrarModalComprobante { get; set; }
     public int? ComprobantePrestamoId { get; set; }
@@ -297,13 +298,14 @@ public class PrestamoModel : PageModel
             return LocalRedirect("/");
         }
 
+        MensajeErrorNuevoLector = null;
+
         var usuarioSesionId = ObtenerUsuarioSesionId() ?? 1;
 
         var resultado = _usuarioServicio.CrearLector(NuevoLector, usuarioSesionId);
         if (resultado.IsFailure)
         {
-            ModelState.AddModelError(string.Empty, resultado.Error.Message);
-            MensajeError = resultado.Error.Message;
+            MensajeErrorNuevoLector = resultado.Error.Message;
             CargarPrestamosDetallados();
             SetFechaDefaults();
             return Page();
