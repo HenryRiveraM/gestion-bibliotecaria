@@ -39,7 +39,7 @@ public class EjemplarModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         CargarPagina();
@@ -50,7 +50,7 @@ public class EjemplarModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         if (!_routeTokenService.TryObtenerId(token, out var id))
@@ -103,7 +103,7 @@ public class EjemplarModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         if (!_routeTokenService.TryObtenerId(token, out var ejemplarId))
@@ -161,7 +161,7 @@ public class EjemplarModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         Ejemplar.UsuarioSesionId = ObtenerUsuarioSesionId();
@@ -230,7 +230,7 @@ public class EjemplarModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         if (!_routeTokenService.TryObtenerId(token, out var ejemplarId))

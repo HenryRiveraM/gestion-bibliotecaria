@@ -55,7 +55,7 @@ public class PrestamoModel : PageModel
     {
         if (!UsuarioEsBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         CargarPrestamosDetallados();
@@ -150,7 +150,7 @@ public class PrestamoModel : PageModel
     {
         if (!UsuarioEsBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         // Resolver lector: si LectorId no provisto, intentar buscar por CI+complemento
@@ -294,7 +294,7 @@ public class PrestamoModel : PageModel
     {
         if (!UsuarioEsBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         var usuarioSesionId = ObtenerUsuarioSesionId() ?? 1;
@@ -579,7 +579,7 @@ public class PrestamoModel : PageModel
     {
         if (!UsuarioEsBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         try

@@ -24,7 +24,7 @@ public class CreateModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         Libro.Estado = true;
@@ -35,7 +35,7 @@ public class CreateModel : PageModel
     {
         if (!EsAdminOBibliotecario())
         {
-            return RedirectToPage("/Index");
+            return RedirectToPage("/");
         }
 
         if (!ModelState.IsValid)
