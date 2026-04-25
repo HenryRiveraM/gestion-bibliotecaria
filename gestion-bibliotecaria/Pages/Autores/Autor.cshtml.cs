@@ -1,5 +1,6 @@
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Common;
+using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Mvc;
@@ -30,9 +31,15 @@ public class AutorModel : PageModel
     }
 
 
-    public void OnGet()
+    public IActionResult OnGet()
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         CargarAutores();
+        return Page();
     }
 
     private void CargarAutores()
@@ -52,6 +59,11 @@ public class AutorModel : PageModel
 
     public IActionResult OnPostEliminar(string token)
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         if (!_routeTokenService.TryObtenerId(token, out var id))
             return NotFound();
 
@@ -67,6 +79,11 @@ public class AutorModel : PageModel
 
     public IActionResult OnPostCrear()
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         ModalActivo = "crear";
 
         var result = _autorServicio.Create(Autor);
@@ -93,6 +110,11 @@ public class AutorModel : PageModel
         DateTime? FechaNacimiento,
         bool? Estado)
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         ModalActivo = "editar";
 
         if (!_routeTokenService.TryObtenerId(token, out var id))
@@ -142,5 +164,13 @@ public class AutorModel : PageModel
         {
             ModelState.AddModelError(key, error.Message);
         }
+    }
+
+    private bool EsAdminOBibliotecario()
+    {
+        var rol = HttpContext.Session.GetString(SessionKeys.Rol);
+
+        return string.Equals(rol, Usuario.RolAdmin, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(rol, Usuario.RolBibliotecario, StringComparison.OrdinalIgnoreCase);
     }
 }

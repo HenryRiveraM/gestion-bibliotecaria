@@ -2,6 +2,7 @@ using gestion_bibliotecaria.Aplicacion.Dtos;
 using gestion_bibliotecaria.Aplicacion.Fachadas;
 using gestion_bibliotecaria.Aplicacion.Interfaces;
 using gestion_bibliotecaria.Domain.Common;
+using gestion_bibliotecaria.Domain.Entities;
 using gestion_bibliotecaria.Domain.Errors;
 using gestion_bibliotecaria.Infrastructure.Security;
 using Microsoft.AspNetCore.Http;
@@ -34,13 +35,24 @@ public class EjemplarModel : PageModel
         _ejemplarDisponibilidadFachada = ejemplarDisponibilidadFachada; 
     }
 
-    public void OnGet()
+    public IActionResult OnGet()
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         CargarPagina();
+        return Page();
     }
 
     public IActionResult OnPostEliminar(string token)
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         if (!_routeTokenService.TryObtenerId(token, out var id))
         {
             return NotFound();
@@ -89,6 +101,11 @@ public class EjemplarModel : PageModel
         string? Ubicacion,
         bool? Estado)
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         if (!_routeTokenService.TryObtenerId(token, out var ejemplarId))
         {
             return NotFound();
@@ -142,6 +159,11 @@ public class EjemplarModel : PageModel
 
     public IActionResult OnPostCrear(EjemplarDto Ejemplar)
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         Ejemplar.UsuarioSesionId = ObtenerUsuarioSesionId();
 
         if (!ModelState.IsValid)
@@ -206,6 +228,11 @@ public class EjemplarModel : PageModel
 
     public IActionResult OnPostCambiarDisponibilidad(string token, bool disponible)
     {
+        if (!EsAdminOBibliotecario())
+        {
+            return RedirectToPage("/Index");
+        }
+
         if (!_routeTokenService.TryObtenerId(token, out var ejemplarId))
         {
             return NotFound();
@@ -232,9 +259,17 @@ public class EjemplarModel : PageModel
         }
         catch (Exception)
         {
-            ModelState.AddModelError(string.Empty, "Ocurrió un error al cambiar la disponibilidad.");
+            ModelState.AddModelError(string.Empty, "Ocurriï¿½ un error al cambiar la disponibilidad.");
             CargarPagina();
             return Page();
         }
+    }
+
+    private bool EsAdminOBibliotecario()
+    {
+        var rol = HttpContext.Session.GetString(SessionKeys.Rol);
+
+        return string.Equals(rol, Usuario.RolAdmin, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(rol, Usuario.RolBibliotecario, StringComparison.OrdinalIgnoreCase);
     }
 }
