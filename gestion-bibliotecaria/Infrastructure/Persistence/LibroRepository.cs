@@ -132,7 +132,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         VALUES (@UsuarioSesionId, @Nombres, @Apellidos, 1, @FechaRegistro);
         SELECT LAST_INSERT_ID();";
 
-    public IEnumerable<Libro> Select()
+    public IEnumerable<Libro> GetAll()
     {
         var libros = new List<Libro>();
 
@@ -164,13 +164,6 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         }
 
         return libros;
-    }
-
-    public IEnumerable<Libro> GetAll() => Select();
-
-    DataTable IRepository<Libro, int>.GetAll()
-    {
-        throw new NotImplementedException("Use ILibroRepositorio.Select() instead.");
     }
 
     public Libro? GetById(int id)
@@ -207,7 +200,7 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
         };
     }
 
-    public void Create(Libro libro)
+    public void Insert(Libro libro)
     {
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
         connection.Open();
@@ -231,8 +224,6 @@ public class LibroRepository : ILibroRepositorio, IRepository<Libro, int>
 
         command.ExecuteNonQuery();
     }
-
-    public void Insert(Libro libro) => Create(libro);
 
     public void Update(Libro libro)
     {

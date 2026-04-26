@@ -12,11 +12,6 @@ public class AutorRepository : IAutorRepositorio, IRepository<Autor, int>
     {
     }
 
-    DataTable IRepository<Autor, int>.GetAll()
-    {
-        throw new NotImplementedException("Use IAutorRepositorio.GetAll() instead.");
-    }
-
     public IEnumerable<Autor> ObtenerAutoresActivos()
     {
         var autores = new List<Autor>();

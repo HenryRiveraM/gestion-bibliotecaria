@@ -19,7 +19,7 @@ public class LibroServicio : ILibroServicio
 
     public IEnumerable<LibroDto> Select()
     {
-        var libros = _libroRepositorio.Select();
+        var libros = _libroRepositorio.GetAll();
         var autores = _libroRepositorio.ObtenerNombresAutores().ToDictionary(a => a.AutorId, a => $"{a.Nombres} {(a.Apellidos ?? "")}".Trim());
 
         return libros.Select(l => new LibroDto
@@ -107,7 +107,7 @@ public class LibroServicio : ILibroServicio
             libro.AutorId = _libroRepositorio.InsertarAutorYObtenerID(nombreAutorNormalizado, libro.UsuarioSesionId);
         }
 
-        _libroRepositorio.Create(libro);
+        _libroRepositorio.Insert(libro);
         return Result.Success();
     }
 

@@ -218,11 +218,6 @@ public class UsuarioRepository : IUsuarioRepositorio, IRepository<Usuario, int>
         return usuarios;
     }
 
-    DataTable IRepository<Usuario, int>.GetAll()
-    {
-        throw new NotImplementedException("Use IUsuarioRepositorio.GetAll instead");
-    }
-
     public DataTable Select() 
     {
         throw new NotImplementedException("Use GetAll instead");

@@ -73,6 +73,11 @@ public class PrestamoRepository : IPrestamoRepositorio
         return prestamoId;
     }
 
+    void IRepository<Prestamo, int>.Insert(Prestamo p)
+    {
+        Insert(p);
+    }
+
     public void Update(Prestamo p)
     {
         using var connection = (MySqlConnection)ConfigurationSingleton.Instancia.GetConnection();
