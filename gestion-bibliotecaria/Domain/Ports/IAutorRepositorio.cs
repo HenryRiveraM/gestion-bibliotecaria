@@ -2,14 +2,8 @@
 
 namespace gestion_bibliotecaria.Domain.Ports;
 
-public interface IAutorRepositorio
+public interface IAutorRepositorio : IRepository<Autor, int>
 {
-    IEnumerable<Autor> GetAll();
-    void Insert(Autor autor);
-    void Update(Autor autor);
-    void Delete(Autor autor);
-    Autor? GetById(int id);
-
     IEnumerable<Autor> ObtenerAutoresActivos();
     IEnumerable<Autor> ObtenerAutoresActivosTabla();
     bool ExisteAutorActivo(int autorId);

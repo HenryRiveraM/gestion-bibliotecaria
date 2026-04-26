@@ -1,9 +1,9 @@
-using System.Data;
+using System.Collections.Generic;
 
 namespace gestion_bibliotecaria.Domain.Ports;
 public interface IRepository<T,TId>
 {
-    DataTable GetAll();
+    IEnumerable<T> GetAll();
     void Insert(T t);
     void Update(T t);
     void Delete(T t);

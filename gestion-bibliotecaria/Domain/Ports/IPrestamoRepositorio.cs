@@ -2,12 +2,8 @@ using gestion_bibliotecaria.Domain.Entities;
 
 namespace gestion_bibliotecaria.Domain.Ports;
 
-public interface IPrestamoRepositorio
+public interface IPrestamoRepositorio : IRepository<Prestamo, int>
 {
-    IEnumerable<Prestamo> GetAll();
-    int Insert(Prestamo prestamo);
-    void Update(Prestamo prestamo);
-    void Delete(Prestamo prestamo);
-    Prestamo? GetById(int id);
+    new int Insert(Prestamo prestamo);
     void InsertManyWithTransaction(IEnumerable<Prestamo> prestamos);
 }
