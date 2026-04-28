@@ -22,7 +22,7 @@ public class EjemplarDisponibilidadFachada : IEjemplarDisponibilidadFachada
         if (ejemplar == null)
             return Result.Failure(new Error("Ejemplar.NotFound", "Ejemplar no encontrado"));
 
-        // Si no cambia nada, evitamos update innecesario
+        
         if (ejemplar.Disponible == disponible)
             return Result.Success();
 

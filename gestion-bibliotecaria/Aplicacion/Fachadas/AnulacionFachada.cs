@@ -12,15 +12,17 @@ public class AnulacionFachada : IAnulacionFachada
     private readonly IPrestamoServicio _prestamoServicio;
     private readonly IEjemplarServicio _ejemplarServicio;
     private readonly IDetalleRepositorio _detalleRepositorio;
-
+    private readonly IEjemplarDisponibilidadFachada _disponibilidadFachada;
     public AnulacionFachada(
         IPrestamoServicio prestamoServicio,
         IDetalleRepositorio detalleRepositorio,
-        IEjemplarServicio ejemplarServicio)
+        IEjemplarServicio ejemplarServicio,
+        IEjemplarDisponibilidadFachada disponibilidadFachada)
     {
         _prestamoServicio = prestamoServicio;
         _detalleRepositorio = detalleRepositorio;
         _ejemplarServicio = ejemplarServicio;
+        _disponibilidadFachada = disponibilidadFachada;
     }
 
     public Result AnularPrestamo(int prestamoId, int? usuarioSesionId = null, string? motivo = null)
@@ -61,13 +63,9 @@ public class AnulacionFachada : IAnulacionFachada
 
                 _detalleRepositorio.Update(detalle);
 
-                var ejemplar = _ejemplarServicio.GetById(detalle.EjemplarId);
-                if (ejemplar != null)
-                {
-                    ejemplar.Disponible = true;
-                    ejemplar.UsuarioSesionId = usuarioSesionId;
-                    _ejemplarServicio.Update(ejemplar);
-                }
+                var result = _disponibilidadFachada.CambiarDisponibilidad(detalle.EjemplarId, true, usuarioSesionId);
+                if (result.IsFailure)
+                    return Result.Failure(result.Error);
             }
 
             prestamo.Estado = 0; // ANULADO
