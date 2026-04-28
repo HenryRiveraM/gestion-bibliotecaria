@@ -17,7 +17,7 @@ public class EjemplarModel : PageModel
 {
     private readonly IEjemplarServicio _ejemplarServicio;
     private readonly RouteTokenService _routeTokenService;
-    private readonly IEjemplarDisponibilidadFachada _ejemplarDisponibilidadFachada;
+    
 
     public List<EjemplarDto> Ejemplares { get; set; } = new();
     public Dictionary<int, string> LibrosTitulos { get; set; } = new();
@@ -27,12 +27,12 @@ public class EjemplarModel : PageModel
 
     public EjemplarModel(
         IEjemplarServicio ejemplarServicio,
-        RouteTokenService routeTokenService,
-        IEjemplarDisponibilidadFachada ejemplarDisponibilidadFachada)
+        RouteTokenService routeTokenService
+        )
     {
         _ejemplarServicio = ejemplarServicio;
         _routeTokenService = routeTokenService;
-        _ejemplarDisponibilidadFachada = ejemplarDisponibilidadFachada; 
+   
     }
 
     public IActionResult OnGet()
@@ -226,44 +226,6 @@ public class EjemplarModel : PageModel
         return null;
     }
 
-    public IActionResult OnPostCambiarDisponibilidad(string token, bool disponible)
-    {
-        if (!EsAdminOBibliotecario())
-        {
-            return LocalRedirect("/");
-        }
-
-        if (!_routeTokenService.TryObtenerId(token, out var ejemplarId))
-        {
-            return NotFound();
-        }
-
-        try
-        {
-            var usuarioSesionId = ObtenerUsuarioSesionId();
-
-            var resultado = _ejemplarDisponibilidadFachada.CambiarDisponibilidad(
-                ejemplarId,
-                disponible,
-                usuarioSesionId
-            );
-
-            if (resultado.IsFailure)
-            {
-                ModelState.AddModelError(string.Empty, resultado.Error.Message);
-                CargarPagina();
-                return Page();
-            }
-
-            return RedirectToPage();
-        }
-        catch (Exception)
-        {
-            ModelState.AddModelError(string.Empty, "Ocurri� un error al cambiar la disponibilidad.");
-            CargarPagina();
-            return Page();
-        }
-    }
 
     private bool EsAdminOBibliotecario()
     {

@@ -16,14 +16,16 @@ public class PrestamoFachada : IPrestamoFachada
     private readonly IEjemplarServicio _ejemplarServicio;
     private readonly IUsuarioServicio _usuarioServicio;
     private readonly IDetalleServicio _detalleServicio;
+    private readonly IEjemplarDisponibilidadFachada _disponibilidadFachada;
 
-    public PrestamoFachada(IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, IDetalleServicio detalleServicio)
+    public PrestamoFachada(IPrestamoServicio prestamoServicio, IEjemplarServicio ejemplarServicio, IUsuarioServicio usuarioServicio, IDetalleServicio detalleServicio, IEjemplarDisponibilidadFachada disponibilidadFachada)
     {
         _prestamoServicio = prestamoServicio;
         _ejemplar_servicio_check(ejemplarServicio);
         _ejemplarServicio = ejemplarServicio;
         _usuarioServicio = usuarioServicio;
         _detalleServicio = detalleServicio;
+        _disponibilidadFachada = disponibilidadFachada;
     }
 
     
@@ -51,6 +53,13 @@ public class PrestamoFachada : IPrestamoFachada
         var actuales = _prestamoServicio.CountPrestamosActivos(lectorId);
         if (actuales >= 5)
             return Result<int>.Failure(new Error("Prestamo.Limite", "El lector ya tiene el máximo de préstamos activos (5)."));
+
+        foreach (var ejemplarId in ejemplares)
+        {
+            var ejemplar = _ejemplarServicio.GetById(ejemplarId);
+            if (ejemplar == null || !ejemplar.Disponible)
+                return Result<int>.Failure(new Error("Prestamo.Error", $"El ejemplar {ejemplarId} no está disponible."));
+        }
 
         try
         {
@@ -88,16 +97,12 @@ public class PrestamoFachada : IPrestamoFachada
             if (resultadoDetalles.IsFailure)
                 return Result<int>.Failure(resultadoDetalles.Error);
 
-            
+
             foreach (var ejemplarId in ejemplares)
             {
-                var ejemplar = _ejemplarServicio.GetById(ejemplarId);
-                if (ejemplar != null)
-                {
-                    ejemplar.Disponible = false;
-                    ejemplar.UsuarioSesionId = usuarioSesionId;
-                    _ejemplarServicio.Update(ejemplar);
-                }
+                var result = _disponibilidadFachada.CambiarDisponibilidad(ejemplarId, false, usuarioSesionId);
+                if (result.IsFailure)
+                    return Result<int>.Failure(result.Error);
             }
 
             return Result<int>.Success(prestamo.PrestamoId);
