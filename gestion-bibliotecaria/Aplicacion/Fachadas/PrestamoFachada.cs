@@ -79,7 +79,18 @@ public class PrestamoFachada : IPrestamoFachada
             var detalles = new List<Detalle>();
             foreach (var item in detallesEntrada)
             {
-                var detalle = DetalleFactory.CrearDetalle(prestamo.PrestamoId, item.EjemplarId, usuarioSesionId, item.ObservacionesSalida);
+                var detalle = new Detalle
+                {
+                    PrestamoId = prestamo.PrestamoId,
+                    EjemplarId = item.EjemplarId,
+                    EstadoDetalle = 1, // PRESTADO
+                    FechaDevolucionReal = null,
+                    ObservacionesSalida = item.ObservacionesSalida,
+                    ObservacionesEntrada = null,
+                    UsuarioSesionId = usuarioSesionId,
+                    FechaRegistro = DateTime.Now,
+                    UltimaActualizacion = null
+                };
                 detalles.Add(detalle);
             }
 
